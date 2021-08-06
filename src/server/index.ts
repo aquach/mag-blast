@@ -1,88 +1,58 @@
-import * as express from "express";
-import * as path from "path";
+import * as express from 'express'
+import * as path from 'path'
 
-import * as http from "http";
-import * as _ from "lodash";
-import { Server, Socket } from "socket.io";
+import * as http from 'http'
+import * as _ from 'lodash'
+import { Server, Socket } from 'socket.io'
 
-import { UIState } from "./shared-types";
+import { Action, UIState } from './shared-types'
+import { applyAction, GameState, newGameState, PlayerId, uiState } from './game'
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const app = express()
+const server = http.createServer(app)
+const io = new Server(server)
 
-app.get("/", (req, res) => {
-    res.sendFile(path.resolve(__dirname + "/../client/index.html"));
-});
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname + '/../client/index.html'))
+})
 
-app.get("/client.js", (req, res) => {
-    res.sendFile(path.resolve(__dirname + "/../../dist/client.js"));
-});
+app.get('/client.js', (req, res) => {
+  res.sendFile(path.resolve(__dirname + '/../../dist/client.js'))
+})
 
-function uiState(player: Player, state: GameState): UIState {
-    return {
-        playerHand: state.playerHands.get(player.id)!,
-        otherPlayerHandSize:
-            state.playerHands.get(player.id === "#1" ? "#2" : "#1")?.length ||
-            -1,
-        deckSize: state.deck.length,
-        isActivePlayer: state.activePlayer === player.id,
-    };
+interface PlayerSocketBinding {
+  id: PlayerId
+  socket: Socket
 }
 
-type PlayerId = string;
+const state = newGameState()
 
-interface GameState {
-    deck: number[];
-    playerHands: Map<PlayerId, number[]>;
-    activePlayer: string;
-}
+const bindings: PlayerSocketBinding[] = []
 
-interface Player {
-    id: PlayerId;
-    socket: Socket;
-}
+io.on('connection', (socket) => {
+  const binding: PlayerSocketBinding = {
+    id: socket.handshake.query.playerId as string,
+    socket,
+  }
+  bindings.push(binding)
 
-const state: GameState = {
-    activePlayer: "#1",
-    deck: [1, 2, 3],
-    playerHands: new Map(),
-};
+  bindings.forEach((b) => {
+    b.socket.emit('update', uiState(b.id, state))
+  })
 
-const players: Player[] = [];
+  socket.on('action', (a: Action) => {
+    applyAction(state, a)
 
-io.on("connection", (socket) => {
-    const player: Player = {
-        id: socket.handshake.query.playerId as string,
-        socket,
-    };
-    players.push(player);
+    bindings.forEach((b) => {
+      b.socket.emit('update', uiState(b.id, state))
+    })
+  })
 
-    console.log(`New player ${player.id} joined.`);
-
-    if (!state.playerHands.has(player.id)) {
-        state.playerHands.set(player.id, []);
-    }
-
-    players.forEach((p) => {
-        p.socket.emit("update", uiState(p, state));
-    });
-
-    socket.on("draw", () => {
-        const card = state.deck.shift()!;
-        state.playerHands.get(state.activePlayer)!.push(card);
-        state.activePlayer = state.activePlayer === "#1" ? "#2" : "#1";
-
-        players.forEach((p) => {
-            p.socket.emit("update", uiState(p, state));
-        });
-    });
-
-    socket.on("disconnect", () => {
-        console.log(`Player ${player.id} disconnected`);
-    });
-});
+  socket.on('disconnect', () => {
+    _.remove(bindings, (b) => b === binding)
+  })
+})
 
 server.listen(3000, () => {
-    console.log("listening on *:3000");
-});
+  console.log('Listening on port 3000.')
+})

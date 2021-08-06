@@ -8,7 +8,8 @@
     "build": "npm run build-client && npm run build-server",
     "build-server": "cd src/server && tsc",
     "client": "cd src/client && webpack --watch",
-    "server": "ts-node-dev src/server/index.ts"
+    "server": "ts-node-dev src/server/index.ts",
+    "format": "prettier --write 'src/**/*.ts' 'src/**/*.tsx'"
   },
   "repository": {
     "type": "git",

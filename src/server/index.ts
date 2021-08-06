@@ -5,12 +5,18 @@ import * as http from "http";
 import * as _ from "lodash";
 import { Server, Socket } from "socket.io";
 
+import { UIState } from "./shared-types";
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 app.get("/", (req, res) => {
     res.sendFile(path.resolve(__dirname + "/../client/index.html"));
+});
+
+app.get("/client.js", (req, res) => {
+    res.sendFile(path.resolve(__dirname + "/../../dist/client.js"));
 });
 
 function uiState(player: Player, state: GameState): UIState {
@@ -20,7 +26,7 @@ function uiState(player: Player, state: GameState): UIState {
             state.playerHands.get(player.id === "#1" ? "#2" : "#1")?.length ||
             -1,
         deckSize: state.deck.length,
-        isActivePlayer: state.activePlayer === player.id
+        isActivePlayer: state.activePlayer === player.id,
     };
 }
 
@@ -32,20 +38,13 @@ interface GameState {
     activePlayer: string;
 }
 
-interface UIState {
-    playerHand: number[];
-    otherPlayerHandSize: number;
-    deckSize: number;
-    isActivePlayer: boolean
-}
-
 interface Player {
     id: PlayerId;
     socket: Socket;
 }
 
 const state: GameState = {
-    activePlayer: '#1',
+    activePlayer: "#1",
     deck: [1, 2, 3],
     playerHands: new Map(),
 };
@@ -65,16 +64,16 @@ io.on("connection", (socket) => {
         state.playerHands.set(player.id, []);
     }
 
-    players.forEach(p => {
+    players.forEach((p) => {
         p.socket.emit("update", uiState(p, state));
     });
 
-    socket.on('draw', () => {
+    socket.on("draw", () => {
         const card = state.deck.shift()!;
         state.playerHands.get(state.activePlayer)!.push(card);
-        state.activePlayer = state.activePlayer === '#1' ? '#2' : '#1';
+        state.activePlayer = state.activePlayer === "#1" ? "#2" : "#1";
 
-        players.forEach(p => {
+        players.forEach((p) => {
             p.socket.emit("update", uiState(p, state));
         });
     });

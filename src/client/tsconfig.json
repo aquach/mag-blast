@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": [ "es6", "dom" ],
+    "strict": true,
+    "outDir": "../../dist/client",
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@shared-types": [
+        "../server/shared-types.ts"
+      ]
+    }
+  }
+}

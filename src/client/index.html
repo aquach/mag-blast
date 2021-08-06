@@ -1,0 +1,26 @@
+<button type="button" id="draw">Draw Card</button>
+<div style="white-space: pre; font-family: monospace" id="log"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io({
+    query: {
+      playerId: window.location.hash,
+    },
+  });
+
+  socket.on("update", (uiState) => {
+    document.getElementById("log").innerHTML += JSON.stringify(uiState);
+    document.getElementById("log").innerHTML += "\n";
+
+    document.getElementById("draw").style.display = uiState.isActivePlayer
+      ? "block"
+      : "none";
+  });
+</script>
+
+<script>
+  document.getElementById("draw").onclick = () => {
+    socket.emit("draw");
+  };
+</script>

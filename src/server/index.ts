@@ -5,8 +5,8 @@ import * as http from 'http'
 import * as _ from 'lodash'
 import { Server, Socket } from 'socket.io'
 
-import { Action, UIState } from './shared-types'
-import { applyAction, GameState, newGameState, PlayerId, uiState } from './game'
+import { Action, PlayerId } from './shared-types'
+import { applyAction, newGameState, uiState } from './game'
 
 const app = express()
 const server = http.createServer(app)

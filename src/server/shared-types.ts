@@ -1,13 +1,71 @@
+export type PlayerId = string
+
+export type Location = 'n' | 's' | 'e' | 'w'
+
+export interface PlayCardPrompt {
+  type: 'PlayCardPrompt'
+  playableCardIndices: number[]
+}
+
+export interface ChooseShipPrompt {
+  type: 'ChooseShipPrompt'
+  allowableShipIndices: [ PlayerId, number ][]
+  text: string
+}
+
+export interface RespondToAttackPrompt {
+  type: 'RespondToAttackPrompt'
+}
+
+export type Prompt = PlayCardPrompt | ChooseShipPrompt | RespondToAttackPrompt
+
+export interface UIPlayerState {
+    ships: UIShip[]
+}
+
+export interface UIShipCard {
+  name: string
+  movement: number
+  hp: number
+}
+
+export interface UIShip {
+  location: Location
+  shipType: UIShipCard
+  damage: number
+}
+
 export interface UIState {
-  playerHand: number[]
-  otherPlayerHandSize: number
+  playerHand: UIActionCard[]
+  playerState: Record<PlayerId, UIPlayerState>
   deckSize: number
   isActivePlayer: boolean
   eventLog: string[]
+  prompt: Prompt | undefined
+}
+
+export interface UIActionCard {
+  name: string
+  damage: number | undefined
+  text: string | undefined
 }
 
 export interface DrawAction {
-  type: 'draw'
+  type: 'DrawAction'
 }
 
-export type Action = DrawAction
+export interface PlayCardAction {
+  type: 'PlayCardAction'
+  handIndex: number
+}
+
+export interface ChooseShipAction {
+  type: 'ChooseShipAction'
+  choice: [ PlayerId, number ]
+}
+
+export interface RespondToAttackAction {
+  type: 'RespondToAttackAction'
+}
+
+export type Action = DrawAction | PlayCardAction | ChooseShipAction | RespondToAttackAction

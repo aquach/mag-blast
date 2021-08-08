@@ -66,19 +66,20 @@ const BoardPlayer: React.FunctionComponent<{
   )
 }
 
-const Board: React.FunctionComponent<{ board: Record<PlayerId, UIPlayerState> }> =
-  ({ board }) => {
-    return (
-      <div>
-        <h1>Board</h1>
-        <div className="flex" style={{ height: '50vh' }}>
-          {Object.entries(board).map(([playerId, playerState]) => (
-            <BoardPlayer playerId={playerId} playerState={playerState} />
-          ))}
-        </div>
+const Board: React.FunctionComponent<{
+  board: Record<PlayerId, UIPlayerState>
+}> = ({ board }) => {
+  return (
+    <div>
+      <h1>Board</h1>
+      <div className="flex" style={{ height: '50vh' }}>
+        {Object.entries(board).map(([playerId, playerState]) => (
+          <BoardPlayer playerId={playerId} playerState={playerState} />
+        ))}
       </div>
-    )
-  }
+    </div>
+  )
+}
 
 const ActionCard: React.FunctionComponent<{ card: UIActionCard }> = ({
   card,

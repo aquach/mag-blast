@@ -9,7 +9,7 @@ export interface PlayCardPrompt {
 
 export interface ChooseShipPrompt {
   type: 'ChooseShipPrompt'
-  allowableShipIndices: [ PlayerId, number ][]
+  allowableShipIndices: [PlayerId, number][]
   text: string
 }
 
@@ -20,7 +20,7 @@ export interface RespondToAttackPrompt {
 export type Prompt = PlayCardPrompt | ChooseShipPrompt | RespondToAttackPrompt
 
 export interface UIPlayerState {
-    ships: UIShip[]
+  ships: UIShip[]
 }
 
 export interface UIShipCard {
@@ -61,11 +61,15 @@ export interface PlayCardAction {
 
 export interface ChooseShipAction {
   type: 'ChooseShipAction'
-  choice: [ PlayerId, number ]
+  choice: [PlayerId, number]
 }
 
 export interface RespondToAttackAction {
   type: 'RespondToAttackAction'
 }
 
-export type Action = DrawAction | PlayCardAction | ChooseShipAction | RespondToAttackAction
+export type Action =
+  | DrawAction
+  | PlayCardAction
+  | ChooseShipAction
+  | RespondToAttackAction

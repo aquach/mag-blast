@@ -21,6 +21,8 @@ export function filterIndices<T>(x: Array<T>, f: (_: T) => boolean): number[] {
   return is
 }
 
-export function mapToObject<K extends string | number | symbol, V>(v: Map<K, V>): Record<K, V> {
-    return Object.fromEntries(Array.from(v)) as Record<K, V>
+export function mapToObject<K extends string | number | symbol, V>(
+  v: Map<K, V>
+): Record<K, V> {
+  return Object.fromEntries(Array.from(v)) as Record<K, V>
 }

@@ -173,7 +173,9 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
       damage: c.type === 'BlastCard' ? c.damage : undefined,
       text: undefined, // TODO
     })),
-    playerState: mapToObject(mapValues(state.playerState, (s) => ({ ships: s.ships }))),
+    playerState: mapToObject(
+      mapValues(state.playerState, (s) => ({ ships: s.ships }))
+    ),
     deckSize: state.actionDeck.length,
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,

@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import { GameState, DRAW_UP_TO_HAND_SIZE } from './types'
+import { GameState, DRAW_UP_TO_HAND_SIZE, MAX_ZONE_SHIPS } from './types'
 
 import {
   Action,
@@ -11,6 +11,7 @@ import { assert } from './utils'
 import {
   discardActivePlayerCards,
   drawActivePlayerCards,
+  drawShipCard,
   sufficientForReinforcement,
 } from './logic'
 
@@ -47,7 +48,10 @@ function applySelectCardAction(
       }
 
       state.turnState = {
-        type: 'ReinforceTurnState',
+        type:
+          activePlayerState.ships.length == MAX_ZONE_SHIPS * 4
+            ? 'ManeuverTurnState'
+            : 'ReinforceTurnState',
       }
       break
 
@@ -65,11 +69,16 @@ function applySelectCardAction(
       ) {
         discardActivePlayerCards(state, reinforceIndices)
 
-        // TODO: trigger reinforcement
-
         state.eventLog.push(
           `${state.activePlayer} uses ${reinforceIndices.length} cards to draw reinforcements.`
         )
+
+        const newShip = drawShipCard(state)
+
+        state.turnState = {
+          type: 'ReinforcePlaceShipState',
+          newShip,
+        }
       } else {
         // TODO
       }

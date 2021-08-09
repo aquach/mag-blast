@@ -1,6 +1,7 @@
 import { Location, PlayerId } from './shared-types'
 
 export const DRAW_UP_TO_HAND_SIZE = 5
+export const MAX_ZONE_SHIPS = 3
 
 export interface Resources {
   hasStar: boolean
@@ -38,7 +39,9 @@ export interface PlayerState {
 export interface GameState {
   actionDeck: ActionCard[]
   actionDiscardDeck: ActionCard[]
+
   shipDeck: ShipCard[]
+  shipDiscardDeck: ShipCard[]
 
   playerState: Map<PlayerId, PlayerState>
   activePlayer: string
@@ -55,6 +58,11 @@ export interface DiscardTurnState {
 
 export interface ReinforceTurnState {
   type: 'ReinforceTurnState'
+}
+
+export interface ReinforcePlaceShipState {
+  type: 'ReinforcePlaceShipState'
+  newShip: ShipCard
 }
 
 export interface ManeuverTurnState {
@@ -86,6 +94,7 @@ export interface PlayBlastRespondState {
 export type TurnState =
   | DiscardTurnState
   | ReinforceTurnState
+  | ReinforcePlaceShipState
   | ManeuverTurnState
   | AttackTurnState
   | PlayBlastChooseTargetShipState

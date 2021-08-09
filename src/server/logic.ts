@@ -1,4 +1,4 @@
-import { ActionCard, GameState } from './types'
+import { ActionCard, GameState, ShipCard } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
 
@@ -28,6 +28,20 @@ export function drawActivePlayerCards(
       state.actionDiscardDeck = []
     }
   })
+}
+
+export function drawShipCard(state: GameState): ShipCard {
+  const topCard = state.shipDeck.shift()
+  assert(topCard !== undefined, 'Ship card deck must not be empty.')
+
+  if (state.shipDeck.length === 0) {
+    state.eventLog.push('Ship card deck is reshuffled.')
+
+    state.shipDeck = _.shuffle(state.shipDiscardDeck)
+    state.shipDiscardDeck = []
+  }
+
+  return topCard
 }
 
 export function discardActivePlayerCards(

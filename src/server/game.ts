@@ -7,6 +7,7 @@ import {
   PlayerId,
   Prompt,
   UIState,
+  PlaceShipPrompt,
 } from './shared-types'
 import { ascribe, assert, filterIndices, mapToObject, mapValues } from './utils'
 
@@ -34,6 +35,7 @@ export function newGameState(): GameState {
     actionDiscardDeck: [],
 
     shipDeck: [],
+    shipDiscardDeck: [],
 
     playerState: new Map([
       [
@@ -87,6 +89,14 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             text: 'Choose cards to use for reinforcements.',
             multiselect: true,
             canPass: true,
+          })
+        }
+
+        case 'ReinforcePlaceShipState': {
+          return ascribe<PlaceShipPrompt>({
+            type: 'PlaceShipPrompt',
+            newShip: state.turnState.newShip,
+            text: `Choose a zone to place your new ${state.turnState.newShip.name}.`,
           })
         }
 

@@ -7,6 +7,7 @@ import {
   UIActionCard,
   UIPlayerState,
   UIShip,
+  UIShipCard,
   UIState,
 } from '@shared-types'
 import React, { useState, useEffect } from 'react'
@@ -242,6 +243,18 @@ const Hand: React.FunctionComponent<{
   )
 }
 
+const ShipPreview: React.FunctionComponent<{ ship: UIShipCard }> = ({
+  ship,
+}) => {
+  return (
+    <div className="ba br1 pa1">
+      <p>Name: {ship.name}</p>
+      <p>HP: {ship.hp}</p>
+      <p>Movement: {ship.movement}</p>
+    </div>
+  )
+}
+
 const App: React.FunctionComponent = () => {
   const comms = useComms()
 
@@ -265,6 +278,9 @@ const App: React.FunctionComponent = () => {
         performAction={comms.performAction}
       />
 
+      {uiState.prompt && uiState.prompt.type === 'PlaceShipPrompt' && (
+        <ShipPreview ship={uiState.prompt.newShip} />
+      )}
       {uiState.prompt && <h3>{uiState.prompt.text}</h3>}
 
       <h1>Events</h1>

@@ -16,7 +16,13 @@ export interface ChooseShipPrompt {
   text: string
 }
 
-export type Prompt = SelectCardPrompt | ChooseShipPrompt
+export interface PlaceShipPrompt {
+  type: 'PlaceShipPrompt'
+  newShip: UIShipCard
+  text: string
+}
+
+export type Prompt = SelectCardPrompt | ChooseShipPrompt | PlaceShipPrompt
 
 export interface UIPlayerState {
   ships: UIShip[]

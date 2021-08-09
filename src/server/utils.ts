@@ -35,3 +35,21 @@ export function assert(
     throw new Error(`Assertion failed: ${m}`)
   }
 }
+
+export function partition<T>(
+  x: Array<T>,
+  f: (_: T, i: number) => boolean
+): [T[], T[]] {
+  const trues: T[] = []
+  const falses: T[] = []
+
+  x.forEach((v, i) => {
+    if (f(v, i)) {
+      trues.push(v)
+    } else {
+      falses.push(v)
+    }
+  })
+
+  return [trues, falses]
+}

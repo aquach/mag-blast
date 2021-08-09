@@ -69,7 +69,24 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             type: 'SelectCardPrompt',
             selectableCardIndices: filterIndices(playerState.hand, () => true),
             text: 'Choose cards to discard.',
-            mode: 'Multiple',
+            canPass: false,
+            multiselect: true,
+          })
+        }
+
+        case 'ReinforceTurnState': {
+          return ascribe<SelectCardPrompt>({
+            type: 'SelectCardPrompt',
+            selectableCardIndices: filterIndices(
+              playerState.hand,
+              (c) =>
+                c.resources.hasDiamond ||
+                c.resources.hasCircle ||
+                c.resources.hasStar
+            ),
+            text: 'Choose cards to use for reinforcements.',
+            multiselect: true,
+            canPass: true,
           })
         }
 
@@ -86,7 +103,8 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             type: 'SelectCardPrompt',
             selectableCardIndices: playableCardIndices,
             text: 'Choose a card to play.',
-            mode: 'SingleWithPass',
+            multiselect: false,
+            canPass: true,
           })
         }
 
@@ -125,7 +143,8 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
           type: 'SelectCardPrompt',
           text: 'Choose a card to play in response.',
           selectableCardIndices: playableCardIndices,
-          mode: 'SingleWithPass',
+          multiselect: false,
+          canPass: true,
         })
       }
     }
@@ -135,6 +154,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
     playerHand: playerState.hand.map((c) => ({
       name: c.name,
       damage: c.type === 'BlastCard' ? c.damage : undefined,
+      resources: c.resources,
       text: undefined, // TODO
     })),
     playerState: mapToObject(

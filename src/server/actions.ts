@@ -8,7 +8,11 @@ import {
   SelectCardAction,
 } from './shared-types'
 import { assert } from './utils'
-import { drawActivePlayerCards } from './logic'
+import {
+  discardActivePlayerCards,
+  drawActivePlayerCards,
+  sufficientForReinforcement,
+} from './logic'
 
 function applySelectCardAction(
   state: GameState,
@@ -27,10 +31,10 @@ function applySelectCardAction(
         Array.isArray(action.handIndex),
         'handIndex should be an array for discarding.'
       )
+
       const discardIndices = action.handIndex
-      activePlayerState.hand = activePlayerState.hand.filter(
-        (c, i) => !discardIndices.includes(i)
-      )
+      discardActivePlayerCards(state, discardIndices)
+
       state.eventLog.push(
         `${state.activePlayer} discards ${discardIndices.length} cards.`
       )
@@ -44,6 +48,30 @@ function applySelectCardAction(
 
       state.turnState = {
         type: 'ReinforceTurnState',
+      }
+      break
+
+    case 'ReinforceTurnState':
+      assert(
+        Array.isArray(action.handIndex),
+        'handIndex should be an array for reinforcing.'
+      )
+      const reinforceIndices = action.handIndex
+
+      if (
+        sufficientForReinforcement(
+          reinforceIndices.map((i) => activePlayerState.hand[i])
+        )
+      ) {
+        discardActivePlayerCards(state, reinforceIndices)
+
+        // TODO: trigger reinforcement
+
+        state.eventLog.push(
+          `${state.activePlayer} uses ${reinforceIndices.length} cards to draw reinforcements.`
+        )
+      } else {
+        // TODO
       }
       break
 
@@ -148,6 +176,12 @@ function applyPassAction(state: GameState, action: PassAction): void {
 
       state.turnState = {
         type: 'AttackTurnState',
+      }
+      break
+
+    case 'ReinforceTurnState':
+      state.turnState = {
+        type: 'ManeuverTurnState',
       }
       break
 

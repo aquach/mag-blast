@@ -2,12 +2,11 @@ export type PlayerId = string
 
 export type Location = 'n' | 's' | 'e' | 'w'
 
-export type SelectCardPromptMode = 'Single' | 'SingleWithPass' | 'Multiple'
-
 export interface SelectCardPrompt {
   type: 'SelectCardPrompt'
   selectableCardIndices: number[]
-  mode: SelectCardPromptMode
+  multiselect: boolean
+  canPass: boolean
   text: string
 }
 
@@ -44,10 +43,17 @@ export interface UIState {
   prompt: Prompt | undefined
 }
 
+export interface UIResources {
+  hasStar: boolean
+  hasCircle: boolean
+  hasDiamond: boolean
+}
+
 export interface UIActionCard {
   name: string
   damage: number | undefined
   text: string | undefined
+  resources: UIResources
 }
 
 export interface SelectCardAction {

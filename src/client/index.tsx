@@ -153,6 +153,11 @@ const ActionCard: React.FunctionComponent<{
     >
       <p>Name: {card.name}</p>
       <p>Damage: {card.damage}</p>
+      <p>
+        Resources: {card.resources.hasStar ? 'S' : ''}
+        {card.resources.hasCircle ? 'C' : ''}
+        {card.resources.hasDiamond ? 'D' : ''}
+      </p>
       <p>Text: {card.text}</p>
     </div>
   )
@@ -166,13 +171,11 @@ const Hand: React.FunctionComponent<{
   const [selectedCards, setSelectedCards] = useState<number[]>([])
 
   const canPass =
-    prompt !== undefined &&
-    prompt.type === 'SelectCardPrompt' &&
-    prompt.mode === 'SingleWithPass'
+    prompt !== undefined && prompt.type === 'SelectCardPrompt' && prompt.canPass
   const canMultiselect =
     prompt !== undefined &&
     prompt.type === 'SelectCardPrompt' &&
-    prompt.mode === 'Multiple'
+    prompt.multiselect
 
   return (
     <div>
@@ -185,18 +188,19 @@ const Hand: React.FunctionComponent<{
             })
           }
         >
-          None
+          Pass
         </button>
       ) : null}
 
       {canMultiselect ? (
         <button
-          onClick={() =>
+          onClick={() => {
             performAction({
               type: 'SelectCardAction',
               handIndex: selectedCards,
             })
-          }
+            setSelectedCards([])
+          }}
         >
           Done
         </button>

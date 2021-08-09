@@ -7,7 +7,6 @@ import {
   PlayCardPrompt,
   PlayerId,
   Prompt,
-  RespondToAttackPrompt,
   UIState,
 } from './shared-types'
 import { ascribe, filterIndices, mapToObject, mapValues } from './utils'
@@ -134,6 +133,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
           return ascribe<PlayCardPrompt>({
             type: 'PlayCardPrompt',
             playableCardIndices,
+            text: 'Choose a card to play.',
           })
         }
 
@@ -152,16 +152,26 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             type: 'ChooseShipPrompt',
             text: 'Choose a target ship.',
             allowableShipIndices: filterIndices(
-              state.playerState.get('#2')!.ships,
+              state.playerState.get('#2')!.ships, // TODO
               () => true
-            ).map((i) => ascribe<[string, number]>([playerId, i])), // TODO
+            ).map((i) => ascribe<[string, number]>(['#2', i])), // TODO
           })
       }
     } else if (state.turnState.type === 'PlayBlastRespondState') {
       const turnState = state.turnState
       if (playerState.ships.some((s) => s === turnState.targetShip)) {
-        return ascribe<RespondToAttackPrompt>({
-          type: 'RespondToAttackPrompt',
+        const playableCardIndices = filterIndices(playerState.hand, (c) => {
+          switch (c.type) {
+            case 'BlastCard':
+              // TODO
+              return true
+          }
+        })
+
+        return ascribe<PlayCardPrompt>({
+          type: 'PlayCardPrompt',
+          text: 'Choose a card to play in response.',
+          playableCardIndices,
         })
       }
     }
@@ -248,7 +258,44 @@ export function applyAction(state: GameState, action: Action): void {
       }
       break
 
-    case 'RespondToAttackAction':
+    case 'PassAction':
+      switch (state.turnState.type) {
+        case 'PlayBlastRespondState':
+          // Resolve attack here.
+          const targetShip = state.turnState.targetShip
+          targetShip.damage += state.turnState.blast.damage
+          const targetPlayer = Array.from(state.playerState.entries()).find(
+            ([_, p]) => p.ships.some((s) => s === targetShip)
+          )?.[0]
+          if (targetPlayer === undefined) {
+            throw new Error('Should never get here!')
+          }
+
+          state.eventLog.push(
+            `${state.activePlayer}'s ${state.turnState.firingShip.shipType.name} fired a ${state.turnState.blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${state.turnState.blast.damage} damage.`
+          )
+
+          if (targetShip.damage >= targetShip.shipType.hp) {
+            state.playerState.forEach((player) => {
+              _.remove(player.ships, (ship) => ship === targetShip)
+            })
+            state.eventLog.push(
+              `${targetPlayer}'s ${targetShip.shipType.name} was destroyed!`
+            )
+          }
+
+          state.turnState = {
+            type: 'AttackTurnState',
+          }
+          break
+
+        case 'AttackTurnState':
+          // TODO: go to next person's turn
+          break
+
+        default:
+          throw new Error('Should never get here!')
+      }
       break
 
     default:

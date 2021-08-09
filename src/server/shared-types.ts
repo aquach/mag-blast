@@ -5,6 +5,7 @@ export type Location = 'n' | 's' | 'e' | 'w'
 export interface PlayCardPrompt {
   type: 'PlayCardPrompt'
   playableCardIndices: number[]
+  text: string
 }
 
 export interface ChooseShipPrompt {
@@ -13,11 +14,7 @@ export interface ChooseShipPrompt {
   text: string
 }
 
-export interface RespondToAttackPrompt {
-  type: 'RespondToAttackPrompt'
-}
-
-export type Prompt = PlayCardPrompt | ChooseShipPrompt | RespondToAttackPrompt
+export type Prompt = PlayCardPrompt | ChooseShipPrompt
 
 export interface UIPlayerState {
   ships: UIShip[]
@@ -64,12 +61,8 @@ export interface ChooseShipAction {
   choice: [PlayerId, number]
 }
 
-export interface RespondToAttackAction {
-  type: 'RespondToAttackAction'
+export interface PassAction {
+  type: 'PassAction'
 }
 
-export type Action =
-  | DrawAction
-  | PlayCardAction
-  | ChooseShipAction
-  | RespondToAttackAction
+export type Action = DrawAction | PlayCardAction | ChooseShipAction | PassAction

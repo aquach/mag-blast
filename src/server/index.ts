@@ -12,6 +12,8 @@ const app = express()
 const server = http.createServer(app)
 const io = new Server(server)
 
+app.set('etag', false)
+
 app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname + '/../client/index.html'))
 })

@@ -1,9 +1,18 @@
 import { Location, PlayerId } from './shared-types'
 
+export const DRAW_UP_TO_HAND_SIZE = 5
+
+export interface Resources {
+  hasStar: boolean
+  hasCircle: boolean
+  hasDiamond: boolean
+}
+
 export interface BlastCard {
   type: 'BlastCard'
   name: string
   damage: number
+  resources: Resources
 }
 
 export interface ShipCard {
@@ -28,6 +37,7 @@ export interface PlayerState {
 
 export interface GameState {
   actionDeck: ActionCard[]
+  actionDiscardDeck: ActionCard[]
   shipDeck: ShipCard[]
 
   playerState: Map<PlayerId, PlayerState>
@@ -35,6 +45,7 @@ export interface GameState {
   turnState: TurnState
   playerTurnOrder: PlayerId[]
 
+  turnNumber: number
   eventLog: string[]
 }
 

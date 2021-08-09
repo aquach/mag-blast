@@ -1,35 +1,79 @@
 import * as _ from 'lodash'
-import { GameState } from './types'
+import { GameState, DRAW_UP_TO_HAND_SIZE } from './types'
 
 import {
   Action,
   ChooseShipAction,
   PassAction,
-  PlayCardAction,
+  SelectCardAction,
 } from './shared-types'
 import { assert } from './utils'
+import { drawActivePlayerCards } from './logic'
 
-function applyPlayCardAction(state: GameState, action: PlayCardAction): void {
+function applySelectCardAction(
+  state: GameState,
+  action: SelectCardAction
+): void {
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
     `Player ID ${state.activePlayer} not found.`
   )
 
-  const card = activePlayerState.hand[action.handIndex]
+  switch (state.turnState.type) {
+    case 'DiscardTurnState':
+      // Discard, then draw.
+      assert(
+        Array.isArray(action.handIndex),
+        'handIndex should be an array for discarding.'
+      )
+      const discardIndices = action.handIndex
+      activePlayerState.hand = activePlayerState.hand.filter(
+        (c, i) => !discardIndices.includes(i)
+      )
+      state.eventLog.push(
+        `${state.activePlayer} discards ${discardIndices.length} cards.`
+      )
 
-  if (!card) {
-    console.warn(`Attempted to play a non-existent card ${action.handIndex}.`)
-    return
-  }
-
-  switch (card.type) {
-    case 'BlastCard':
-      activePlayerState.hand.splice(action.handIndex, 1)
-      state.turnState = {
-        type: 'PlayBlastChooseFiringShipState',
-        blast: card,
+      if (activePlayerState.hand.length < DRAW_UP_TO_HAND_SIZE) {
+        drawActivePlayerCards(
+          state,
+          DRAW_UP_TO_HAND_SIZE - activePlayerState.hand.length
+        )
       }
+
+      state.turnState = {
+        type: 'ReinforceTurnState',
+      }
+      break
+
+    case 'AttackTurnState':
+      assert(
+        typeof action.handIndex === 'number',
+        'handIndex should be a single number for playing cards.'
+      )
+      const card = activePlayerState.hand[action.handIndex]
+
+      if (!card) {
+        console.warn(
+          `Attempted to play a non-existent card ${action.handIndex}.`
+        )
+        return
+      }
+
+      switch (card.type) {
+        case 'BlastCard':
+          state.actionDiscardDeck.push(activePlayerState.hand[action.handIndex])
+          activePlayerState.hand.splice(action.handIndex, 1)
+          state.turnState = {
+            type: 'PlayBlastChooseFiringShipState',
+            blast: card,
+          }
+      }
+      break
+
+    default:
+      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
   }
 }
 
@@ -85,7 +129,7 @@ function applyPassAction(state: GameState, action: PassAction): void {
       const targetShip = state.turnState.targetShip
       targetShip.damage += state.turnState.blast.damage
       const targetPlayer = Array.from(state.playerState.entries()).find(
-        ([_, p]) => p.ships.some((s) => s === targetShip)
+        ([_, p]) => p.ships.includes(targetShip)
       )?.[0]
       assert(targetPlayer !== undefined, 'Target ship must belong to a player.')
 
@@ -118,11 +162,21 @@ function applyPassAction(state: GameState, action: PassAction): void {
         "Couldn't find active player in player turn order"
       )
 
-      state.activePlayer =
-        state.playerTurnOrder[
-          (currentPlayerIndex + 1) % state.playerTurnOrder.length
-        ]
-      state.turnState = { type: 'DiscardTurnState' }
+      const nextPlayerIndex =
+        (currentPlayerIndex + 1) % state.playerTurnOrder.length
+
+      state.turnState = {
+        type:
+          state.turnNumber === 1 ? 'ReinforceTurnState' : 'DiscardTurnState',
+      }
+
+      if (nextPlayerIndex === 0) {
+        state.turnNumber++
+        state.eventLog.push(`It is now turn ${state.turnNumber}.`)
+      }
+
+      state.activePlayer = state.playerTurnOrder[nextPlayerIndex]
+      state.eventLog.push(`It is now ${state.activePlayer}'s turn.`)
 
       break
 
@@ -133,8 +187,8 @@ function applyPassAction(state: GameState, action: PassAction): void {
 
 export function applyAction(state: GameState, action: Action): void {
   switch (action.type) {
-    case 'PlayCardAction':
-      applyPlayCardAction(state, action)
+    case 'SelectCardAction':
+      applySelectCardAction(state, action)
       break
 
     case 'ChooseShipAction':

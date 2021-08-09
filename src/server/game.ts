@@ -3,7 +3,7 @@ import { BlastCard, ShipCard, GameState } from './types'
 
 import {
   ChooseShipPrompt,
-  PlayCardPrompt,
+  SelectCardPrompt,
   PlayerId,
   Prompt,
   UIState,
@@ -14,6 +14,11 @@ const laser: BlastCard = {
   type: 'BlastCard',
   name: 'Laser Blast',
   damage: 1,
+  resources: {
+    hasStar: true,
+    hasCircle: true,
+    hasDiamond: true,
+  },
 }
 
 const dink: ShipCard = {
@@ -26,7 +31,10 @@ const dink: ShipCard = {
 export function newGameState(): GameState {
   return {
     actionDeck: [laser, laser, laser, laser],
+    actionDiscardDeck: [],
+
     shipDeck: [],
+
     playerState: new Map([
       [
         '#1',
@@ -44,6 +52,7 @@ export function newGameState(): GameState {
     turnState: { type: 'DiscardTurnState' },
     playerTurnOrder: ['#1', '#2'],
 
+    turnNumber: 1,
     eventLog: [],
   }
 }
@@ -55,6 +64,15 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
   const prompt: Prompt | undefined = (() => {
     if (state.activePlayer === playerId) {
       switch (state.turnState.type) {
+        case 'DiscardTurnState': {
+          return ascribe<SelectCardPrompt>({
+            type: 'SelectCardPrompt',
+            selectableCardIndices: filterIndices(playerState.hand, () => true),
+            text: 'Choose cards to discard.',
+            mode: 'Multiple',
+          })
+        }
+
         case 'AttackTurnState': {
           const playableCardIndices = filterIndices(playerState.hand, (c) => {
             switch (c.type) {
@@ -64,10 +82,11 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             }
           })
 
-          return ascribe<PlayCardPrompt>({
-            type: 'PlayCardPrompt',
-            playableCardIndices,
+          return ascribe<SelectCardPrompt>({
+            type: 'SelectCardPrompt',
+            selectableCardIndices: playableCardIndices,
             text: 'Choose a card to play.',
+            mode: 'SingleWithPass',
           })
         }
 
@@ -93,7 +112,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
       }
     } else if (state.turnState.type === 'PlayBlastRespondState') {
       const turnState = state.turnState
-      if (playerState.ships.some((s) => s === turnState.targetShip)) {
+      if (playerState.ships.includes(turnState.targetShip)) {
         const playableCardIndices = filterIndices(playerState.hand, (c) => {
           switch (c.type) {
             case 'BlastCard':
@@ -102,10 +121,11 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
           }
         })
 
-        return ascribe<PlayCardPrompt>({
-          type: 'PlayCardPrompt',
+        return ascribe<SelectCardPrompt>({
+          type: 'SelectCardPrompt',
           text: 'Choose a card to play in response.',
-          playableCardIndices,
+          selectableCardIndices: playableCardIndices,
+          mode: 'SingleWithPass',
         })
       }
     }

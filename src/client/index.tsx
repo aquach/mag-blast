@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client'
+import _ from 'lodash'
 import {
   Action,
   PlayerId,
@@ -94,6 +95,7 @@ const BoardPlayer: React.FunctionComponent<{
       <h2>{playerId}</h2>
       {playerState.ships.map((ship, i) => (
         <BoardShip
+          key={i}
           ship={ship}
           prompt={prompt}
           performAction={performAction}
@@ -116,6 +118,7 @@ const Board: React.FunctionComponent<{
       <div className="flex" style={{ height: '50vh' }}>
         {Object.entries(board).map(([playerId, playerState]) => (
           <BoardPlayer
+            key={playerId}
             playerId={playerId}
             playerState={playerState}
             prompt={prompt}
@@ -129,23 +132,24 @@ const Board: React.FunctionComponent<{
 
 const ActionCard: React.FunctionComponent<{
   card: UIActionCard
-  prompt: Prompt | undefined
-  performAction: (a: Action) => void
-  index: number
-}> = ({ card, prompt, performAction, index }) => {
-  const clickable =
-    prompt !== undefined &&
-    prompt.type === 'PlayCardPrompt' &&
-    prompt.playableCardIndices.some((i) => i === index)
+  onClick: () => void
+  clickable: boolean
+  selected: boolean
+}> = ({ card, onClick, clickable, selected }) => {
+  const borderColorClass = (() => {
+    if (selected) {
+      return 'b--red'
+    } else if (clickable) {
+      return 'b--gold'
+    }
+  })()
 
   return (
     <div
-      className={`ba br1 pa1 mh1 ${clickable ? 'b--gold pointer' : ''}`}
-      onClick={() =>
-        clickable
-          ? performAction({ type: 'PlayCardAction', handIndex: index })
-          : null
-      }
+      className={`ba br1 pa1 mh1 ${
+        clickable ? 'pointer' : ''
+      } ${borderColorClass}`}
+      onClick={clickable ? onClick : _.noop}
     >
       <p>Name: {card.name}</p>
       <p>Damage: {card.damage}</p>
@@ -159,31 +163,76 @@ const Hand: React.FunctionComponent<{
   prompt: Prompt | undefined
   performAction: (a: Action) => void
 }> = ({ hand, prompt, performAction }) => {
-  const canPass = prompt !== undefined && prompt.type === 'PlayCardPrompt'
+  const [selectedCards, setSelectedCards] = useState<number[]>([])
+
+  const canPass =
+    prompt !== undefined &&
+    prompt.type === 'SelectCardPrompt' &&
+    prompt.mode === 'SingleWithPass'
+  const canMultiselect =
+    prompt !== undefined &&
+    prompt.type === 'SelectCardPrompt' &&
+    prompt.mode === 'Multiple'
 
   return (
     <div>
       <h1>Hand</h1>
+      {canPass ? (
+        <button
+          onClick={() =>
+            performAction({
+              type: 'PassAction',
+            })
+          }
+        >
+          None
+        </button>
+      ) : null}
+
+      {canMultiselect ? (
+        <button
+          onClick={() =>
+            performAction({
+              type: 'SelectCardAction',
+              handIndex: selectedCards,
+            })
+          }
+        >
+          Done
+        </button>
+      ) : null}
+
       <div className="flex">
-        {hand.map((c, i) => (
-          <ActionCard
-            card={c}
-            prompt={prompt}
-            index={i}
-            performAction={performAction}
-          />
-        ))}
-        {canPass ? (
-          <button
-            onClick={() =>
-              performAction({
-                type: 'PassAction',
-              })
-            }
-          >
-            None
-          </button>
-        ) : null}
+        {hand.map((c, i) => {
+          const clickable =
+            prompt !== undefined &&
+            prompt.type === 'SelectCardPrompt' &&
+            prompt.selectableCardIndices.includes(i)
+
+          const toggleSelected = () => {
+            setSelectedCards(
+              selectedCards.includes(i)
+                ? _.without(selectedCards, i)
+                : selectedCards.concat(i)
+            )
+          }
+
+          const onClick = () => {
+            canMultiselect
+              ? toggleSelected()
+              : performAction({ type: 'SelectCardAction', handIndex: i })
+          }
+
+          return (
+            <ActionCard
+              key={i}
+              card={c}
+              clickable={clickable}
+              selected={canMultiselect && selectedCards.includes(i)}
+              onClick={clickable ? onClick : _.noop}
+            />
+          )
+        })}
       </div>
     </div>
   )
@@ -216,8 +265,8 @@ const App: React.FunctionComponent = () => {
 
       <h1>Events</h1>
       <div className="pre code ba pa1">
-        {uiState.eventLog.map((l) => (
-          <p>{l}</p>
+        {uiState.eventLog.map((l, i) => (
+          <p key={i}>{l}</p>
         ))}
       </div>
     </div>

@@ -2,9 +2,12 @@ export type PlayerId = string
 
 export type Location = 'n' | 's' | 'e' | 'w'
 
-export interface PlayCardPrompt {
-  type: 'PlayCardPrompt'
-  playableCardIndices: number[]
+export type SelectCardPromptMode = 'Single' | 'SingleWithPass' | 'Multiple'
+
+export interface SelectCardPrompt {
+  type: 'SelectCardPrompt'
+  selectableCardIndices: number[]
+  mode: SelectCardPromptMode
   text: string
 }
 
@@ -14,7 +17,7 @@ export interface ChooseShipPrompt {
   text: string
 }
 
-export type Prompt = PlayCardPrompt | ChooseShipPrompt
+export type Prompt = SelectCardPrompt | ChooseShipPrompt
 
 export interface UIPlayerState {
   ships: UIShip[]
@@ -47,9 +50,9 @@ export interface UIActionCard {
   text: string | undefined
 }
 
-export interface PlayCardAction {
-  type: 'PlayCardAction'
-  handIndex: number
+export interface SelectCardAction {
+  type: 'SelectCardAction'
+  handIndex: number | number[]
 }
 
 export interface ChooseShipAction {
@@ -61,4 +64,4 @@ export interface PassAction {
   type: 'PassAction'
 }
 
-export type Action = PlayCardAction | ChooseShipAction | PassAction
+export type Action = SelectCardAction | ChooseShipAction | PassAction

@@ -16,11 +16,11 @@ const io = new Server(server)
 app.set('etag', false)
 
 app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../client/index.html'))
+  res.sendFile(path.resolve(__dirname + '/../client/index.html'), { etag: false })
 })
 
 app.get('/client.js', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../../dist/client.js'))
+  res.sendFile(path.resolve(__dirname + '/../../dist/client.js'), { etag: false })
 })
 
 interface PlayerSocketBinding {

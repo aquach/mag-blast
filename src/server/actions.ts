@@ -7,13 +7,14 @@ import {
   PassAction,
   PlayCardAction,
 } from './shared-types'
+import { assert } from './utils'
 
 function applyPlayCardAction(state: GameState, action: PlayCardAction): void {
   const activePlayerState = state.playerState.get(state.activePlayer)
-
-  if (activePlayerState === undefined) {
-    throw new Error(`Player ID ${state.activePlayer} not found.`)
-  }
+  assert(
+    activePlayerState !== undefined,
+    `Player ID ${state.activePlayer} not found.`
+  )
 
   const card = activePlayerState.hand[action.handIndex]
 
@@ -37,10 +38,10 @@ function applyChooseShipAction(
   action: ChooseShipAction
 ): void {
   const activePlayerState = state.playerState.get(state.activePlayer)
-
-  if (activePlayerState === undefined) {
-    throw new Error(`Player ID ${state.activePlayer} not found.`)
-  }
+  assert(
+    activePlayerState !== undefined,
+    `Player ID ${state.activePlayer} not found.`
+  )
 
   switch (state.turnState.type) {
     case 'PlayBlastChooseFiringShipState':
@@ -67,28 +68,26 @@ function applyChooseShipAction(
       break
 
     default:
-      throw new Error('Should never get here!')
+      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
   }
 }
 
 function applyPassAction(state: GameState, action: PassAction): void {
   const activePlayerState = state.playerState.get(state.activePlayer)
-
-  if (activePlayerState === undefined) {
-    throw new Error(`Player ID ${state.activePlayer} not found.`)
-  }
+  assert(
+    activePlayerState !== undefined,
+    `Player ID ${state.activePlayer} not found.`
+  )
 
   switch (state.turnState.type) {
     case 'PlayBlastRespondState':
-      // Resolve attack here.
+      // Resolve attack.
       const targetShip = state.turnState.targetShip
       targetShip.damage += state.turnState.blast.damage
       const targetPlayer = Array.from(state.playerState.entries()).find(
         ([_, p]) => p.ships.some((s) => s === targetShip)
       )?.[0]
-      if (targetPlayer === undefined) {
-        throw new Error('Should never get here!')
-      }
+      assert(targetPlayer !== undefined, 'Target ship must belong to a player.')
 
       state.eventLog.push(
         `${state.activePlayer}'s ${state.turnState.firingShip.shipType.name} fired a ${state.turnState.blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${state.turnState.blast.damage} damage.`
@@ -109,11 +108,26 @@ function applyPassAction(state: GameState, action: PassAction): void {
       break
 
     case 'AttackTurnState':
-      // TODO: go to next person's turn
+      // Go to next person's turn.
+      const currentPlayerIndex = state.playerTurnOrder.indexOf(
+        state.activePlayer
+      )
+
+      assert(
+        currentPlayerIndex !== -1,
+        "Couldn't find active player in player turn order"
+      )
+
+      state.activePlayer =
+        state.playerTurnOrder[
+          (currentPlayerIndex + 1) % state.playerTurnOrder.length
+        ]
+      state.turnState = { type: 'DiscardTurnState' }
+
       break
 
     default:
-      throw new Error('Should never get here!')
+      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
   }
 }
 

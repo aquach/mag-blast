@@ -1,4 +1,4 @@
-import { Location, PlayerId } from './src/server/shared-types'
+import { Location, PlayerId } from './shared-types'
 
 export interface BlastCard {
   type: 'BlastCard'
@@ -26,6 +26,30 @@ export interface PlayerState {
   ships: Ship[]
 }
 
+export interface GameState {
+  actionDeck: ActionCard[]
+  shipDeck: ShipCard[]
+
+  playerState: Map<PlayerId, PlayerState>
+  activePlayer: string
+  turnState: TurnState
+  playerTurnOrder: PlayerId[]
+
+  eventLog: string[]
+}
+
+export interface DiscardTurnState {
+  type: 'DiscardTurnState'
+}
+
+export interface ReinforceTurnState {
+  type: 'ReinforceTurnState'
+}
+
+export interface ManeuverTurnState {
+  type: 'ManeuverTurnState'
+}
+
 export interface AttackTurnState {
   type: 'AttackTurnState'
 }
@@ -49,17 +73,11 @@ export interface PlayBlastRespondState {
 }
 
 export type TurnState =
+  | DiscardTurnState
+  | ReinforceTurnState
+  | ManeuverTurnState
   | AttackTurnState
   | PlayBlastChooseTargetShipState
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState
   | PlayBlastRespondState
-
-export interface GameState {
-  actionDeck: ActionCard[]
-  shipDeck: ShipCard[]
-  playerState: Map<PlayerId, PlayerState>
-  activePlayer: string
-  turnState: TurnState
-  eventLog: string[]
-}

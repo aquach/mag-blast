@@ -8,7 +8,7 @@ import {
   Prompt,
   UIState,
 } from './shared-types'
-import { ascribe, filterIndices, mapToObject, mapValues } from './utils'
+import { ascribe, assert, filterIndices, mapToObject, mapValues } from './utils'
 
 const laser: BlastCard = {
   type: 'BlastCard',
@@ -25,7 +25,6 @@ const dink: ShipCard = {
 
 export function newGameState(): GameState {
   return {
-    activePlayer: '#1',
     actionDeck: [laser, laser, laser, laser],
     shipDeck: [],
     playerState: new Map([
@@ -41,17 +40,17 @@ export function newGameState(): GameState {
         { hand: [], ships: [{ location: 'n', shipType: dink, damage: 0 }] },
       ],
     ]),
-    turnState: { type: 'AttackTurnState' },
+    activePlayer: '#1',
+    turnState: { type: 'DiscardTurnState' },
+    playerTurnOrder: ['#1', '#2'],
+
     eventLog: [],
   }
 }
 
 export function uiState(playerId: PlayerId, state: GameState): UIState {
   const playerState = state.playerState.get(playerId)
-
-  if (playerState === undefined) {
-    throw new Error(`Player ID ${playerId} not found.`)
-  }
+  assert(playerState !== undefined, `Player ID ${playerId} not found.`)
 
   const prompt: Prompt | undefined = (() => {
     if (state.activePlayer === playerId) {

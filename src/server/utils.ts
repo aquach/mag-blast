@@ -26,3 +26,12 @@ export function mapToObject<K extends string | number | symbol, V>(
 ): Record<K, V> {
   return Object.fromEntries(Array.from(v)) as Record<K, V>
 }
+
+export function assert(
+  pred: boolean,
+  m: string = 'no message provided'
+): asserts pred {
+  if (!pred) {
+    throw new Error(`Assertion failed: ${m}`)
+  }
+}

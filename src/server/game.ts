@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import {BlastCard, ShipCard, GameState} from './types'
+import { BlastCard, ShipCard, GameState } from './types'
 
 import {
   ChooseShipPrompt,

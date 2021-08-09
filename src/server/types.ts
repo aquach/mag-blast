@@ -1,4 +1,4 @@
-import {Location, PlayerId} from "./src/server/shared-types"
+import { Location, PlayerId } from './src/server/shared-types'
 
 export interface BlastCard {
   type: 'BlastCard'
@@ -63,4 +63,3 @@ export interface GameState {
   turnState: TurnState
   eventLog: string[]
 }
-

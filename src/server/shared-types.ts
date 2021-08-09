@@ -47,10 +47,6 @@ export interface UIActionCard {
   text: string | undefined
 }
 
-export interface DrawAction {
-  type: 'DrawAction'
-}
-
 export interface PlayCardAction {
   type: 'PlayCardAction'
   handIndex: number
@@ -65,4 +61,4 @@ export interface PassAction {
   type: 'PassAction'
 }
 
-export type Action = DrawAction | PlayCardAction | ChooseShipAction | PassAction
+export type Action = PlayCardAction | ChooseShipAction | PassAction

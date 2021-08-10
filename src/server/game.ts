@@ -1,8 +1,9 @@
 import * as _ from 'lodash'
 import { actionCards, shipCards } from './data'
-import { canFire } from './logic'
+import { canFire, movableZones } from './logic'
 import {
   ChooseShipPrompt,
+  ChooseZonePrompt,
   CommandShipCard,
   LOCATIONS,
   PlaceShipPrompt,
@@ -44,49 +45,49 @@ export function newGameState(): GameState {
             {
               type: 'Ship',
               location: 'e',
-              shipType: shipCards[0],
+              shipType: shipCards[1],
               damage: 0,
               hasFiredThisTurn: false,
             },
             {
               type: 'Ship',
               location: 's',
-              shipType: shipCards[0],
+              shipType: shipCards[10],
               damage: 0,
               hasFiredThisTurn: false,
             },
             {
               type: 'Ship',
               location: 'w',
-              shipType: shipCards[0],
+              shipType: shipCards[20],
               damage: 0,
               hasFiredThisTurn: false,
             },
             {
               type: 'Ship',
               location: 'n',
-              shipType: shipCards[0],
+              shipType: shipCards[21],
               damage: 0,
               hasFiredThisTurn: false,
             },
             {
               type: 'Ship',
               location: 'e',
-              shipType: shipCards[0],
+              shipType: shipCards[22],
               damage: 0,
               hasFiredThisTurn: false,
             },
             {
               type: 'Ship',
               location: 's',
-              shipType: shipCards[0],
+              shipType: shipCards[25],
               damage: 0,
               hasFiredThisTurn: false,
             },
             {
               type: 'Ship',
               location: 'w',
-              shipType: shipCards[0],
+              shipType: shipCards[30],
               damage: 0,
               hasFiredThisTurn: false,
             },
@@ -180,6 +181,34 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
           })
         }
 
+        case 'ManeuverTurnState':
+          return ascribe<ChooseShipPrompt>({
+            type: 'ChooseShipPrompt',
+            text: 'Choose a ship to move.',
+            allowableShipIndices: filterIndices(
+              playerState.ships,
+              (s) => s.shipType.movement > 0
+            ).map((i) => ascribe<[string, number]>([playerId, i])),
+            allowableCommandShips: [],
+            canPass: true,
+          })
+
+        case 'ManeuverChooseTargetZoneState': {
+          const location =
+            state.turnState.originalLocations.get(state.turnState.ship) ??
+            state.turnState.ship.location
+          const zones = movableZones(
+            location,
+            state.turnState.ship.shipType.movement
+          )
+
+          return ascribe<ChooseZonePrompt>({
+            type: 'ChooseZonePrompt',
+            text: `Choose a zone to move ${state.turnState.ship.shipType.name} to.`,
+            allowableZones: zones,
+          })
+        }
+
         case 'AttackTurnState': {
           const playableCardIndices = filterIndices(
             playerState.hand,
@@ -207,6 +236,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
                 canFire(s.shipType, turnState.blast.cardType)
             ).map((i) => ascribe<[string, number]>([playerId, i])),
             allowableCommandShips: [],
+            canPass: false,
           })
 
         case 'PlayBlastChooseTargetShipState':
@@ -218,6 +248,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
               () => true
             ).map((i) => ascribe<[string, number]>(['#2', i])), // TODO
             allowableCommandShips: [], //  TODO
+            canPass: false,
           })
       }
     } else if (state.turnState.type === 'PlayBlastRespondState') {

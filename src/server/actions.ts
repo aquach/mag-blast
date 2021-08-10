@@ -21,6 +21,7 @@ import {
   drawActivePlayerCards,
   drawShipCard,
   locationToString,
+  movableZones,
   sufficientForReinforcement,
 } from './logic'
 
@@ -56,12 +57,15 @@ function applySelectCardAction(
         )
       }
 
-      state.turnState = {
-        type:
-          activePlayerState.ships.length == MAX_ZONE_SHIPS * 4
-            ? 'ManeuverTurnState'
-            : 'ReinforceTurnState',
+      if (activePlayerState.ships.length == MAX_ZONE_SHIPS * 4) {
+        state.turnState = {
+          type: 'ManeuverTurnState',
+          originalLocations: new Map(),
+        }
+      } else {
+        state.turnState = { type: 'ReinforceTurnState' }
       }
+
       break
 
     case 'ReinforceTurnState':
@@ -135,6 +139,54 @@ function applyChooseShipAction(
   )
 
   switch (state.turnState.type) {
+    case 'ManeuverTurnState': {
+      assert(
+        Array.isArray(action.choice),
+        'choice should be an array for choosing ship to move.'
+      )
+
+      if (action.choice[0] !== state.activePlayer) {
+        console.warn(
+          `Player ${state.activePlayer} chose a ship to move that belongs to ${action.choice[0]}.`
+        )
+        break
+      }
+
+      if (
+        action.choice[1] < 0 ||
+        action.choice[1] >= activePlayerState.ships.length
+      ) {
+        console.warn(
+          `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
+        )
+        break
+      }
+
+      const designatedShip = activePlayerState.ships[action.choice[1]]
+
+      if (designatedShip.shipType.movement === 0) {
+        console.warn(
+          `Player ${state.activePlayer} chose a ship that can't move.`
+        )
+        break
+      }
+
+      if (!state.turnState.originalLocations.has(designatedShip)) {
+        state.turnState.originalLocations.set(
+          designatedShip,
+          designatedShip.location
+        )
+      }
+
+      state.turnState = {
+        type: 'ManeuverChooseTargetZoneState',
+        originalLocations: state.turnState.originalLocations,
+        ship: designatedShip,
+      }
+
+      break
+    }
+
     case 'PlayBlastChooseFiringShipState':
       {
         assert(
@@ -267,6 +319,7 @@ function applyPassAction(state: GameState, action: PassAction): void {
     case 'ReinforceTurnState':
       state.turnState = {
         type: 'ManeuverTurnState',
+        originalLocations: new Map(),
       }
       break
 
@@ -334,11 +387,33 @@ function applyChooseZoneAction(
         } into their ${locationToString(action.location)} zone.`
       )
 
+      if (activePlayerState.ships.length == MAX_ZONE_SHIPS * 4) {
+        state.turnState = {
+          type: 'ManeuverTurnState',
+          originalLocations: new Map(),
+        }
+      } else {
+        state.turnState = { type: 'ReinforceTurnState' }
+      }
+      break
+
+    case 'ManeuverChooseTargetZoneState':
+      const zones = movableZones(
+        state.turnState.ship.location,
+        state.turnState.ship.shipType.movement
+      )
+      if (!zones.includes(action.location)) {
+        console.warn(
+          `Player ${state.activePlayer} chose a zone that the ship can't move to.`
+        )
+        break
+      }
+
+      state.turnState.ship.location = action.location
+
       state.turnState = {
-        type:
-          activePlayerState.ships.length == MAX_ZONE_SHIPS * 4
-            ? 'ManeuverTurnState'
-            : 'ReinforceTurnState',
+        type: 'ManeuverTurnState',
+        originalLocations: state.turnState.originalLocations,
       }
       break
 

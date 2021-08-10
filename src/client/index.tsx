@@ -124,21 +124,28 @@ const CommandShip: React.FunctionComponent<{
 }
 
 const ShipZone: React.FunctionComponent<{
-  ships: UIShip[]
+  shipsWithIndices: [UIShip, number][]
   playerId: PlayerId
   prompt: Prompt | undefined
   performAction: (a: Action) => void
   location: ShipLocation
   color: string
-}> = ({ ships, playerId, prompt, performAction, location, color }) => {
+}> = ({
+  shipsWithIndices,
+  playerId,
+  prompt,
+  performAction,
+  location,
+  color,
+}) => {
   const clickable =
     prompt !== undefined &&
-    prompt.type === 'PlaceShipPrompt' &&
+    (prompt.type === 'PlaceShipPrompt' || prompt.type === 'ChooseZonePrompt') &&
     prompt.allowableZones.includes(location)
 
   return (
     <div
-      className={`ma1 flex ${clickable ? 'b--gold pointer' : ''}`}
+      className={`ba ma1 flex ${clickable ? 'b--gold pointer' : ''}`}
       style={{ backgroundColor: color, filter: 'saturate(0.5)' }}
       onClick={() =>
         clickable
@@ -149,7 +156,7 @@ const ShipZone: React.FunctionComponent<{
           : undefined
       }
     >
-      {ships.map((ship, i) => (
+      {shipsWithIndices.map(([ship, i]) => (
         <BoardShip
           key={i}
           ship={ship}
@@ -169,10 +176,10 @@ const BoardPlayer: React.FunctionComponent<{
   prompt: Prompt | undefined
   performAction: (a: Action) => void
 }> = ({ playerId, playerState, prompt, performAction }) => {
-  const shipsByLocation = _.groupBy(
-    playerState.ships,
-    (s) => s.location
-  ) as Record<ShipLocation, UIShip[]>
+  const shipsByLocationWithIndex = _.groupBy(
+    playerState.ships.map((s, i) => [s, i]),
+    ([s, i]) => s.location
+  ) as Record<ShipLocation, [UIShip, number][]>
 
   return (
     <div className="ph2">
@@ -180,7 +187,7 @@ const BoardPlayer: React.FunctionComponent<{
 
       <div className="flex justify-center">
         <ShipZone
-          ships={shipsByLocation['n'] || []}
+          shipsWithIndices={shipsByLocationWithIndex['n'] || []}
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}
@@ -190,7 +197,7 @@ const BoardPlayer: React.FunctionComponent<{
       </div>
       <div className="flex justify-center">
         <ShipZone
-          ships={shipsByLocation['w'] || []}
+          shipsWithIndices={shipsByLocationWithIndex['w'] || []}
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}
@@ -204,7 +211,7 @@ const BoardPlayer: React.FunctionComponent<{
           playerId={playerId}
         />
         <ShipZone
-          ships={shipsByLocation['e'] || []}
+          shipsWithIndices={shipsByLocationWithIndex['e'] || []}
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}
@@ -214,7 +221,7 @@ const BoardPlayer: React.FunctionComponent<{
       </div>
       <div className="flex justify-center">
         <ShipZone
-          ships={shipsByLocation['s'] || []}
+          shipsWithIndices={shipsByLocationWithIndex['s'] || []}
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}

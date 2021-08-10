@@ -61,6 +61,13 @@ export interface ReinforcePlaceShipState {
 
 export interface ManeuverTurnState {
   type: 'ManeuverTurnState'
+  originalLocations: Map<Ship, Location>
+}
+
+export interface ManeuverChooseTargetZoneState {
+  type: 'ManeuverChooseTargetZoneState'
+  originalLocations: Map<Ship, Location>
+  ship: Ship
 }
 
 export interface AttackTurnState {
@@ -90,6 +97,7 @@ export type TurnState =
   | ReinforceTurnState
   | ReinforcePlaceShipState
   | ManeuverTurnState
+  | ManeuverChooseTargetZoneState
   | AttackTurnState
   | PlayBlastChooseTargetShipState
   | PlayBlastChooseFiringShipState

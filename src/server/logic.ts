@@ -1,7 +1,7 @@
 import { GameState } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
-import { ActionCard, Location, ShipCard } from './shared-types'
+import { ActionCard, Location, LOCATIONS, ShipCard } from './shared-types'
 
 export function drawActivePlayerCards(
   state: GameState,
@@ -101,5 +101,26 @@ export function locationToString(l: Location): string {
       return 'East'
     case 's':
       return 'South'
+  }
+}
+
+export function movableZones(l: Location, movement: number): Location[] {
+  if (movement <= 0) {
+    return [l]
+  }
+
+  if (movement >= 2) {
+    return LOCATIONS
+  }
+
+  switch (l) {
+    case 'n':
+      return ['w', 'n', 'e']
+    case 'w':
+      return ['s', 'w', 'n']
+    case 'e':
+      return ['s', 'e', 'n']
+    case 's':
+      return ['w', 's', 'e']
   }
 }

@@ -50,7 +50,14 @@ export interface ChooseShipPrompt {
   type: 'ChooseShipPrompt'
   allowableShipIndices: [PlayerId, number][]
   allowableCommandShips: PlayerId[]
+  canPass: boolean
   text: string
+}
+
+export interface ChooseZonePrompt {
+  type: 'ChooseZonePrompt'
+  text: string
+  allowableZones: Location[]
 }
 
 export interface PlaceShipPrompt {
@@ -60,7 +67,11 @@ export interface PlaceShipPrompt {
   allowableZones: Location[]
 }
 
-export type Prompt = SelectCardPrompt | ChooseShipPrompt | PlaceShipPrompt
+export type Prompt =
+  | SelectCardPrompt
+  | ChooseShipPrompt
+  | PlaceShipPrompt
+  | ChooseZonePrompt
 
 export interface UIPlayerState {
   ships: UIShip[]

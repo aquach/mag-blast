@@ -21,6 +21,10 @@ export interface ShipCard {
   name: string
   movement: number
   hp: number
+  shipClass: string
+  firesLasers: boolean
+  firesBeams: boolean
+  firesMags: boolean
 }
 
 export type ActionCard = BlastCard

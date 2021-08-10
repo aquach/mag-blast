@@ -1,15 +1,47 @@
 import * as _ from 'lodash'
-import { BlastCard, ShipCard, GameState } from './types'
-
+import * as parse from 'csv-parse/lib/sync'
+import * as fs from 'fs'
 import {
   ChooseShipPrompt,
-  SelectCardPrompt,
+  PlaceShipPrompt,
   PlayerId,
   Prompt,
+  SelectCardPrompt,
   UIState,
-  PlaceShipPrompt,
 } from './shared-types'
+import { BlastCard, GameState, ShipCard } from './types'
 import { ascribe, assert, filterIndices, mapToObject, mapValues } from './utils'
+
+interface ShipCSVRow {
+  Type: string
+  'Fires L': string
+  'Fires B': string
+  'Fires M': string
+  Movement: number
+  Name: string
+  HP: number
+}
+
+const shipCSVRows: ShipCSVRow[] = parse(
+  fs.readFileSync('cards/ships.csv', 'utf-8'),
+  {
+    skipEmptyLines: true,
+    skipLinesWithEmptyValues: true,
+    columns: true,
+    cast: true,
+  }
+)
+
+const shipCards: ShipCard[] = shipCSVRows.map((row) => ({
+  type: 'ShipCard',
+  name: row.Name,
+  movement: row.Movement,
+  hp: row.HP,
+  shipClass: row.Type,
+  firesLasers: row['Fires L'] === 'TRUE',
+  firesBeams: row['Fires B'] === 'TRUE',
+  firesMags: row['Fires M'] === 'TRUE',
+}))
 
 const laser: BlastCard = {
   type: 'BlastCard',
@@ -22,19 +54,12 @@ const laser: BlastCard = {
   },
 }
 
-const dink: ShipCard = {
-  type: 'ShipCard',
-  name: 'Dink',
-  movement: 2,
-  hp: 1,
-}
-
 export function newGameState(): GameState {
   return {
     actionDeck: [laser, laser, laser, laser],
     actionDiscardDeck: [],
 
-    shipDeck: [],
+    shipDeck: _.shuffle(shipCards),
     shipDiscardDeck: [],
 
     playerState: new Map([
@@ -42,12 +67,15 @@ export function newGameState(): GameState {
         '#1',
         {
           hand: [laser],
-          ships: [{ location: 'n', shipType: dink, damage: 0 }],
+          ships: [{ location: 'n', shipType: shipCards[0], damage: 0 }],
         },
       ],
       [
         '#2',
-        { hand: [], ships: [{ location: 'n', shipType: dink, damage: 0 }] },
+        {
+          hand: [],
+          ships: [{ location: 'n', shipType: shipCards[0], damage: 0 }],
+        },
       ],
     ]),
     activePlayer: '#1',

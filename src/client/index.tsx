@@ -76,10 +76,16 @@ const BoardShip: React.FunctionComponent<{
       }
     >
       <p>Name: {ship.shipType.name}</p>
+      <p>Class: {ship.shipType.shipClass}</p>
       <p>
         HP: {ship.shipType.hp - ship.damage}/{ship.shipType.hp}
       </p>
       <p>Movement: {ship.shipType.movement}</p>
+      <p>
+        Fires: {ship.shipType.firesLasers ? 'L' : ''}
+        {ship.shipType.firesBeams ? 'B' : ''}
+        {ship.shipType.firesMags ? 'M' : ''}
+      </p>
       <p>Location: {ship.location}</p>
     </div>
   )
@@ -249,8 +255,14 @@ const ShipPreview: React.FunctionComponent<{ ship: UIShipCard }> = ({
   return (
     <div className="ba br1 pa1">
       <p>Name: {ship.name}</p>
+      <p>Class: {ship.shipClass}</p>
       <p>HP: {ship.hp}</p>
       <p>Movement: {ship.movement}</p>
+      <p>
+        Fires: {ship.firesLasers ? 'L' : ''}
+        {ship.firesBeams ? 'B' : ''}
+        {ship.firesMags ? 'M' : ''}
+      </p>
     </div>
   )
 }

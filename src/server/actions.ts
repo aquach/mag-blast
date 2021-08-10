@@ -10,6 +10,7 @@ import {
 import {
   Action,
   ChooseShipAction,
+  ChooseZoneAction,
   PassAction,
   SelectCardAction,
 } from './shared-types'
@@ -19,6 +20,7 @@ import {
   discardActivePlayerCards,
   drawActivePlayerCards,
   drawShipCard,
+  locationToString,
   sufficientForReinforcement,
 } from './logic'
 
@@ -306,6 +308,45 @@ function applyPassAction(state: GameState, action: PassAction): void {
   }
 }
 
+function applyChooseZoneAction(
+  state: GameState,
+  action: ChooseZoneAction
+): void {
+  const activePlayerState = state.playerState.get(state.activePlayer)
+  assert(
+    activePlayerState !== undefined,
+    `Player ID ${state.activePlayer} not found.`
+  )
+
+  switch (state.turnState.type) {
+    case 'ReinforcePlaceShipState':
+      activePlayerState.ships.push({
+        type: 'Ship',
+        location: action.location,
+        shipType: state.turnState.newShip,
+        damage: 0,
+        hasFiredThisTurn: false,
+      })
+
+      state.eventLog.push(
+        `${state.activePlayer} places a new ${
+          state.turnState.newShip.name
+        } into their ${locationToString(action.location)} zone.`
+      )
+
+      state.turnState = {
+        type:
+          activePlayerState.ships.length == MAX_ZONE_SHIPS * 4
+            ? 'ManeuverTurnState'
+            : 'ReinforceTurnState',
+      }
+      break
+
+    default:
+      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
+  }
+}
+
 export function applyAction(state: GameState, action: Action): void {
   switch (action.type) {
     case 'SelectCardAction':
@@ -318,6 +359,10 @@ export function applyAction(state: GameState, action: Action): void {
 
     case 'PassAction':
       applyPassAction(state, action)
+      break
+
+    case 'ChooseZoneAction':
+      applyChooseZoneAction(state, action)
       break
 
     default:

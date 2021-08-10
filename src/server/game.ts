@@ -1,16 +1,17 @@
 import * as _ from 'lodash'
 import { actionCards, shipCards } from './data'
-import {canFire} from './logic'
+import { canFire } from './logic'
 import {
   ChooseShipPrompt,
   CommandShipCard,
+  LOCATIONS,
   PlaceShipPrompt,
   PlayerId,
   Prompt,
   SelectCardPrompt,
   UIState,
 } from './shared-types'
-import { GameState } from './types'
+import { GameState, MAX_ZONE_SHIPS } from './types'
 import { ascribe, assert, filterIndices, mapToObject, mapValues } from './utils'
 
 const commandShip: CommandShipCard = {
@@ -33,14 +34,62 @@ export function newGameState(): GameState {
         {
           hand: [],
           ships: [
-            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
-            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
-            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
-            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
-            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
-            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
-            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
-            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            {
+              type: 'Ship',
+              location: 'n',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
+            {
+              type: 'Ship',
+              location: 'e',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
+            {
+              type: 'Ship',
+              location: 's',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
+            {
+              type: 'Ship',
+              location: 'w',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
+            {
+              type: 'Ship',
+              location: 'n',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
+            {
+              type: 'Ship',
+              location: 'e',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
+            {
+              type: 'Ship',
+              location: 's',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
+            {
+              type: 'Ship',
+              location: 'w',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
           ],
           commandShip: {
             type: 'CommandShip',
@@ -55,7 +104,13 @@ export function newGameState(): GameState {
         {
           hand: [],
           ships: [
-            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            {
+              type: 'Ship',
+              location: 'n',
+              shipType: shipCards[0],
+              damage: 0,
+              hasFiredThisTurn: false,
+            },
           ],
           commandShip: {
             type: 'CommandShip',
@@ -109,10 +164,19 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
         }
 
         case 'ReinforcePlaceShipState': {
+          const shipsByLocation = _.groupBy(
+            playerState.ships,
+            (s) => s.location
+          )
+          const allowableZones = LOCATIONS.filter(
+            (l) => (shipsByLocation[l] ?? []).length <= MAX_ZONE_SHIPS
+          )
+
           return ascribe<PlaceShipPrompt>({
             type: 'PlaceShipPrompt',
             newShip: state.turnState.newShip,
             text: `Choose a zone to place your new ${state.turnState.newShip.name}.`,
+            allowableZones,
           })
         }
 
@@ -132,13 +196,15 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
         }
 
         case 'PlayBlastChooseFiringShipState':
-              const turnState = state.turnState
+          const turnState = state.turnState
           return ascribe<ChooseShipPrompt>({
             type: 'ChooseShipPrompt',
             text: `Choose a ship to fire a ${turnState.blast.name} from.`,
             allowableShipIndices: filterIndices(
               playerState.ships,
-              s => !s.hasFiredThisTurn && canFire(s.shipType, turnState.blast.cardType)
+              (s) =>
+                !s.hasFiredThisTurn &&
+                canFire(s.shipType, turnState.blast.cardType)
             ).map((i) => ascribe<[string, number]>([playerId, i])),
             allowableCommandShips: [],
           })

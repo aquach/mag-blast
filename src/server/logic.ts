@@ -1,7 +1,7 @@
 import { GameState } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
-import { ActionCard, ShipCard } from './shared-types'
+import { ActionCard, Location, ShipCard } from './shared-types'
 
 export function drawActivePlayerCards(
   state: GameState,
@@ -88,5 +88,18 @@ export function canFire(ship: ShipCard, blastType: string): boolean {
         false,
         `canFire received card type ${blastType} instead of a valid blast.`
       )
+  }
+}
+
+export function locationToString(l: Location): string {
+  switch (l) {
+    case 'n':
+      return 'North'
+    case 'w':
+      return 'West'
+    case 'e':
+      return 'East'
+    case 's':
+      return 'South'
   }
 }

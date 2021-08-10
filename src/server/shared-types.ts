@@ -1,6 +1,7 @@
 export type PlayerId = string
 
 export type Location = 'n' | 's' | 'e' | 'w'
+export const LOCATIONS: Location[] = ['n', 's', 'e', 'w']
 
 export interface ShipCard {
   type: 'ShipCard'
@@ -26,15 +27,15 @@ export interface Resources {
 }
 
 export interface ActionCard {
-    type: 'ActionCard'
-    name: string
-    cardType: string
-    damage: number
-    resources: Resources
-    isBlast: boolean
-    isSquadron: boolean
-    isDirectHit: boolean
-    isDirectHitEffect: boolean
+  type: 'ActionCard'
+  name: string
+  cardType: string
+  damage: number
+  resources: Resources
+  isBlast: boolean
+  isSquadron: boolean
+  isDirectHit: boolean
+  isDirectHitEffect: boolean
 }
 
 export interface SelectCardPrompt {
@@ -56,6 +57,7 @@ export interface PlaceShipPrompt {
   type: 'PlaceShipPrompt'
   newShip: ShipCard
   text: string
+  allowableZones: Location[]
 }
 
 export type Prompt = SelectCardPrompt | ChooseShipPrompt | PlaceShipPrompt
@@ -95,8 +97,17 @@ export interface ChooseShipAction {
   choice: [PlayerId, number] | PlayerId
 }
 
+export interface ChooseZoneAction {
+  type: 'ChooseZoneAction'
+  location: Location
+}
+
 export interface PassAction {
   type: 'PassAction'
 }
 
-export type Action = SelectCardAction | ChooseShipAction | PassAction
+export type Action =
+  | SelectCardAction
+  | ChooseShipAction
+  | PassAction
+  | ChooseZoneAction

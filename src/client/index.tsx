@@ -12,7 +12,7 @@ import {
   UIShip,
   UIState,
 } from '@shared-types'
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
 interface Comms {
@@ -128,12 +128,26 @@ const ShipZone: React.FunctionComponent<{
   playerId: PlayerId
   prompt: Prompt | undefined
   performAction: (a: Action) => void
+  location: ShipLocation
   color: string
-}> = ({ ships, playerId, prompt, performAction, color }) => {
+}> = ({ ships, playerId, prompt, performAction, location, color }) => {
+  const clickable =
+    prompt !== undefined &&
+    prompt.type === 'PlaceShipPrompt' &&
+    prompt.allowableZones.includes(location)
+
   return (
     <div
-      className="ma1 flex"
+      className={`ma1 flex ${clickable ? 'b--gold pointer' : ''}`}
       style={{ backgroundColor: color, filter: 'saturate(0.5)' }}
+      onClick={() =>
+        clickable
+          ? performAction({
+              type: 'ChooseZoneAction',
+              location,
+            })
+          : undefined
+      }
     >
       {ships.map((ship, i) => (
         <BoardShip
@@ -170,6 +184,7 @@ const BoardPlayer: React.FunctionComponent<{
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}
+          location="n"
           color="yellow"
         />
       </div>
@@ -179,6 +194,7 @@ const BoardPlayer: React.FunctionComponent<{
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}
+          location="w"
           color="blue"
         />
         <CommandShip
@@ -192,6 +208,7 @@ const BoardPlayer: React.FunctionComponent<{
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}
+          location="e"
           color="green"
         />
       </div>
@@ -201,6 +218,7 @@ const BoardPlayer: React.FunctionComponent<{
           playerId={playerId}
           prompt={prompt}
           performAction={performAction}
+          location="s"
           color="red"
         />
       </div>
@@ -255,7 +273,9 @@ const ActionCard: React.FunctionComponent<{
       <p>Name: {card.name}</p>
       <p>Damage: {card.damage}</p>
       <p>
-        Resources: {'S'.repeat(card.resources.stars)}{'C'.repeat(card.resources.circles)}{'D'.repeat(card.resources.diamonds)}
+        Resources: {'S'.repeat(card.resources.stars)}
+        {'C'.repeat(card.resources.circles)}
+        {'D'.repeat(card.resources.diamonds)}
       </p>
       {/*<p>Text: {card.text}</p>*/}
     </div>

@@ -1,5 +1,6 @@
 import * as _ from 'lodash'
 import { actionCards, shipCards } from './data'
+import {canFire} from './logic'
 import {
   ChooseShipPrompt,
   CommandShipCard,
@@ -32,14 +33,14 @@ export function newGameState(): GameState {
         {
           hand: [],
           ships: [
-            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0 },
-            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0 },
-            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0 },
-            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0 },
-            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0 },
-            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0 },
-            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0 },
-            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
+            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
           ],
           commandShip: {
             type: 'CommandShip',
@@ -54,7 +55,7 @@ export function newGameState(): GameState {
         {
           hand: [],
           ships: [
-            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0, hasFiredThisTurn: false },
           ],
           commandShip: {
             type: 'CommandShip',
@@ -131,13 +132,14 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
         }
 
         case 'PlayBlastChooseFiringShipState':
+              const turnState = state.turnState
           return ascribe<ChooseShipPrompt>({
             type: 'ChooseShipPrompt',
-            text: `Choose a ship to fire a ${state.turnState.blast.name} from.`,
+            text: `Choose a ship to fire a ${turnState.blast.name} from.`,
             allowableShipIndices: filterIndices(
               playerState.ships,
-              () => true
-            ).map((i) => ascribe<[string, number]>([playerId, i])), // TODO
+              s => !s.hasFiredThisTurn && canFire(s.shipType, turnState.blast.cardType)
+            ).map((i) => ascribe<[string, number]>([playerId, i])),
             allowableCommandShips: [],
           })
 

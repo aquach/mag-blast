@@ -159,9 +159,7 @@ function applyChooseShipAction(
 
         const designatedShip = activePlayerState.ships[action.choice[1]]
 
-        if (
-          !canFire(designatedShip.shipType, state.turnState.blast.cardType)
-        ) {
+        if (!canFire(designatedShip.shipType, state.turnState.blast.cardType)) {
           console.warn(
             `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`
           )
@@ -288,6 +286,10 @@ function applyPassAction(state: GameState, action: PassAction): void {
         type:
           state.turnNumber === 1 ? 'ReinforceTurnState' : 'DiscardTurnState',
       }
+
+      activePlayerState.ships.forEach((s) => {
+        s.hasFiredThisTurn = false
+      })
 
       if (nextPlayerIndex === 0) {
         state.turnNumber++

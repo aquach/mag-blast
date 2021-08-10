@@ -8,6 +8,7 @@ export interface Ship {
   location: Location
   shipType: ShipCard
   damage: number
+  hasFiredThisTurn: boolean
 }
 
 export interface CommandShip {

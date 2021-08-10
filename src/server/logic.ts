@@ -1,4 +1,4 @@
-import { ActionCard, GameState, ShipCard } from './types'
+import { ActionCard, BlastCardType, GameState, ShipCard } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
 
@@ -72,4 +72,15 @@ export function sufficientForReinforcement(cards: ActionCard[]): boolean {
     numDiamonds === 3 ||
     (numStars >= 1 && numCircles >= 1 && numDiamonds >= 1)
   )
+}
+
+export function canFire(ship: ShipCard, blastType: BlastCardType): boolean {
+  switch (blastType) {
+    case 'Laser':
+      return ship.firesLasers
+    case 'Beam':
+      return ship.firesBeams
+    case 'Mag':
+      return ship.firesMags
+  }
 }

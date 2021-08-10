@@ -9,10 +9,13 @@ export interface Resources {
   hasDiamond: boolean
 }
 
+export type BlastCardType = 'Laser' | 'Beam' | 'Mag'
+
 export interface BlastCard {
   type: 'BlastCard'
   name: string
   damage: number
+  blastType: BlastCardType
   resources: Resources
 }
 

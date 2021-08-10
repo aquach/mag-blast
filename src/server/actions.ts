@@ -9,6 +9,7 @@ import {
 } from './shared-types'
 import { assert } from './utils'
 import {
+  canFire,
   discardActivePlayerCards,
   drawActivePlayerCards,
   drawShipCard,
@@ -126,13 +127,36 @@ function applyChooseShipAction(
 
   switch (state.turnState.type) {
     case 'PlayBlastChooseFiringShipState':
-      // TODO: validate choice
+      if (action.choice[0] !== state.activePlayer) {
+        console.warn(
+          `Player ${state.activePlayer} chose a firing ship that belongs to ${action.choice[0]}.`
+        )
+        break
+      }
+
+      if (
+        action.choice[1] < 0 ||
+        action.choice[1] >= activePlayerState.ships.length
+      ) {
+        console.warn(
+          `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
+        )
+        break
+      }
+
+      const designatedShip = activePlayerState.ships[action.choice[1]]
+
+      if (!canFire(designatedShip.shipType, state.turnState.blast.blastType)) {
+        console.warn(
+          `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`
+        )
+        break
+      }
+
       state.turnState = {
         type: 'PlayBlastChooseTargetShipState',
         blast: state.turnState.blast,
-        firingShip: state.playerState.get(action.choice[0])!.ships[
-          action.choice[1]
-        ],
+        firingShip: activePlayerState.ships[action.choice[1]],
       }
       break
 

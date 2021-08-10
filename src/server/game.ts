@@ -47,6 +47,7 @@ const laser: BlastCard = {
   type: 'BlastCard',
   name: 'Laser Blast',
   damage: 1,
+  blastType: 'Laser',
   resources: {
     hasStar: true,
     hasCircle: true,
@@ -54,9 +55,21 @@ const laser: BlastCard = {
   },
 }
 
+const beam: BlastCard = {
+  type: 'BlastCard',
+  name: 'Beam Blast',
+  damage: 3,
+  blastType: 'Beam',
+  resources: {
+    hasStar: false,
+    hasCircle: false,
+    hasDiamond: true,
+  },
+}
+
 export function newGameState(): GameState {
   return {
-    actionDeck: [laser, laser, laser, laser],
+    actionDeck: [beam, beam, laser, laser],
     actionDiscardDeck: [],
 
     shipDeck: _.shuffle(shipCards),

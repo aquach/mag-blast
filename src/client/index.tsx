@@ -2,15 +2,17 @@ import { io } from 'socket.io-client'
 import _ from 'lodash'
 import {
   Action,
+  Location as ShipLocation,
   PlayerId,
   Prompt,
+  ShipCard,
   UIActionCard,
+  UICommandShip,
   UIPlayerState,
   UIShip,
-  UIShipCard,
   UIState,
 } from '@shared-types'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Fragment } from 'react'
 import ReactDOM from 'react-dom'
 
 interface Comms {
@@ -65,7 +67,7 @@ const BoardShip: React.FunctionComponent<{
 
   return (
     <div
-      className={`ba br1 pa1 ${clickable ? 'b--gold pointer' : ''}`}
+      className={`ba br1 ma1 pa1 ${clickable ? 'b--gold pointer' : ''}`}
       onClick={() =>
         clickable
           ? performAction({
@@ -86,21 +88,54 @@ const BoardShip: React.FunctionComponent<{
         {ship.shipType.firesBeams ? 'B' : ''}
         {ship.shipType.firesMags ? 'M' : ''}
       </p>
-      <p>Location: {ship.location}</p>
     </div>
   )
 }
 
-const BoardPlayer: React.FunctionComponent<{
-  playerId: PlayerId
-  playerState: UIPlayerState
+const CommandShip: React.FunctionComponent<{
+  ship: UICommandShip
   prompt: Prompt | undefined
   performAction: (a: Action) => void
-}> = ({ playerId, playerState, prompt, performAction }) => {
+  playerId: PlayerId
+}> = ({ ship, prompt, performAction, playerId }) => {
+  const clickable =
+    prompt !== undefined &&
+    prompt.type === 'ChooseShipPrompt' &&
+    prompt.allowableCommandShips.includes(playerId)
+
   return (
-    <div className="ph2">
-      <h2>{playerId}</h2>
-      {playerState.ships.map((ship, i) => (
+    <div
+      className={`ba br1 ma1 pa1 ${clickable ? 'b--gold pointer' : ''}`}
+      onClick={() =>
+        clickable
+          ? performAction({
+              type: 'ChooseShipAction',
+              choice: playerId,
+            })
+          : undefined
+      }
+    >
+      <p>Name: {ship.shipType.name}</p>
+      <p>
+        HP: {ship.shipType.hp - ship.damage}/{ship.shipType.hp}
+      </p>
+    </div>
+  )
+}
+
+const ShipZone: React.FunctionComponent<{
+  ships: UIShip[]
+  playerId: PlayerId
+  prompt: Prompt | undefined
+  performAction: (a: Action) => void
+  color: string
+}> = ({ ships, playerId, prompt, performAction, color }) => {
+  return (
+    <div
+      className="ma1 flex"
+      style={{ backgroundColor: color, filter: 'saturate(0.5)' }}
+    >
+      {ships.map((ship, i) => (
         <BoardShip
           key={i}
           ship={ship}
@@ -114,6 +149,65 @@ const BoardPlayer: React.FunctionComponent<{
   )
 }
 
+const BoardPlayer: React.FunctionComponent<{
+  playerId: PlayerId
+  playerState: UIPlayerState
+  prompt: Prompt | undefined
+  performAction: (a: Action) => void
+}> = ({ playerId, playerState, prompt, performAction }) => {
+  const shipsByLocation = _.groupBy(
+    playerState.ships,
+    (s) => s.location
+  ) as Record<ShipLocation, UIShip[]>
+
+  return (
+    <div className="ph2">
+      <h2>{playerId}</h2>
+
+      <div className="flex justify-center">
+        <ShipZone
+          ships={shipsByLocation['n'] || []}
+          playerId={playerId}
+          prompt={prompt}
+          performAction={performAction}
+          color="yellow"
+        />
+      </div>
+      <div className="flex justify-center">
+        <ShipZone
+          ships={shipsByLocation['w'] || []}
+          playerId={playerId}
+          prompt={prompt}
+          performAction={performAction}
+          color="blue"
+        />
+        <CommandShip
+          ship={playerState.commandShip}
+          prompt={prompt}
+          performAction={performAction}
+          playerId={playerId}
+        />
+        <ShipZone
+          ships={shipsByLocation['e'] || []}
+          playerId={playerId}
+          prompt={prompt}
+          performAction={performAction}
+          color="green"
+        />
+      </div>
+      <div className="flex justify-center">
+        <ShipZone
+          ships={shipsByLocation['s'] || []}
+          playerId={playerId}
+          prompt={prompt}
+          performAction={performAction}
+          color="red"
+        />
+      </div>
+    </div>
+  )
+}
+
 const Board: React.FunctionComponent<{
   board: Record<PlayerId, UIPlayerState>
   prompt: Prompt | undefined
@@ -122,7 +216,7 @@ const Board: React.FunctionComponent<{
   return (
     <div>
       <h1>Board</h1>
-      <div className="flex" style={{ height: '50vh' }}>
+      <div className="flex">
         {Object.entries(board).map(([playerId, playerState]) => (
           <BoardPlayer
             key={playerId}
@@ -249,9 +343,7 @@ const Hand: React.FunctionComponent<{
   )
 }
 
-const ShipPreview: React.FunctionComponent<{ ship: UIShipCard }> = ({
-  ship,
-}) => {
+const ShipPreview: React.FunctionComponent<{ ship: ShipCard }> = ({ ship }) => {
   return (
     <div className="ba br1 pa1">
       <p>Name: {ship.name}</p>

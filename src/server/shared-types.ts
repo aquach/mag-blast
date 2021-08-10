@@ -2,6 +2,23 @@ export type PlayerId = string
 
 export type Location = 'n' | 's' | 'e' | 'w'
 
+export interface ShipCard {
+  type: 'ShipCard'
+  name: string
+  movement: number
+  hp: number
+  shipClass: string
+  firesLasers: boolean
+  firesBeams: boolean
+  firesMags: boolean
+}
+
+export interface CommandShipCard {
+  type: 'CommandShipCard'
+  name: string
+  hp: number
+}
+
 export interface SelectCardPrompt {
   type: 'SelectCardPrompt'
   selectableCardIndices: number[]
@@ -13,12 +30,13 @@ export interface SelectCardPrompt {
 export interface ChooseShipPrompt {
   type: 'ChooseShipPrompt'
   allowableShipIndices: [PlayerId, number][]
+  allowableCommandShips: PlayerId[]
   text: string
 }
 
 export interface PlaceShipPrompt {
   type: 'PlaceShipPrompt'
-  newShip: UIShipCard
+  newShip: ShipCard
   text: string
 }
 
@@ -26,22 +44,18 @@ export type Prompt = SelectCardPrompt | ChooseShipPrompt | PlaceShipPrompt
 
 export interface UIPlayerState {
   ships: UIShip[]
-}
-
-export interface UIShipCard {
-  name: string
-  movement: number
-  hp: number
-  shipClass: string
-  firesLasers: boolean
-  firesBeams: boolean
-  firesMags: boolean
+  commandShip: UICommandShip
 }
 
 export interface UIShip {
   location: Location
-  shipType: UIShipCard
+  shipType: ShipCard
   damage: number
+}
+
+export interface UICommandShip {
+  damage: number
+  shipType: CommandShipCard
 }
 
 export interface UIState {
@@ -73,7 +87,7 @@ export interface SelectCardAction {
 
 export interface ChooseShipAction {
   type: 'ChooseShipAction'
-  choice: [PlayerId, number]
+  choice: [PlayerId, number] | PlayerId
 }
 
 export interface PassAction {

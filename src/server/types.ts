@@ -1,4 +1,4 @@
-import { Location, PlayerId } from './shared-types'
+import { CommandShipCard, Location, PlayerId, ShipCard } from './shared-types'
 
 export const DRAW_UP_TO_HAND_SIZE = 5
 export const MAX_ZONE_SHIPS = 3
@@ -19,28 +19,26 @@ export interface BlastCard {
   resources: Resources
 }
 
-export interface ShipCard {
-  type: 'ShipCard'
-  name: string
-  movement: number
-  hp: number
-  shipClass: string
-  firesLasers: boolean
-  firesBeams: boolean
-  firesMags: boolean
-}
-
 export type ActionCard = BlastCard
 
 export interface Ship {
+  type: 'Ship'
   location: Location
   shipType: ShipCard
+  damage: number
+}
+
+export interface CommandShip {
+  type: 'CommandShip'
+  shipType: CommandShipCard
   damage: number
 }
 
 export interface PlayerState {
   hand: ActionCard[]
   ships: Ship[]
+  commandShip: CommandShip
+  alive: boolean
 }
 
 export interface GameState {
@@ -95,7 +93,7 @@ export interface PlayBlastRespondState {
   type: 'PlayBlastRespondState'
   blast: BlastCard
   firingShip: Ship
-  targetShip: Ship
+  targetShip: Ship | CommandShip
 }
 
 export type TurnState =

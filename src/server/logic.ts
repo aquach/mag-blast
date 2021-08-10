@@ -1,6 +1,7 @@
-import { ActionCard, BlastCardType, GameState, ShipCard } from './types'
+import { ActionCard, BlastCardType, GameState } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
+import { ShipCard } from './shared-types'
 
 export function drawActivePlayerCards(
   state: GameState,

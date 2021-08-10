@@ -3,13 +3,15 @@ import * as parse from 'csv-parse/lib/sync'
 import * as fs from 'fs'
 import {
   ChooseShipPrompt,
+  CommandShipCard,
   PlaceShipPrompt,
   PlayerId,
   Prompt,
   SelectCardPrompt,
+  ShipCard,
   UIState,
 } from './shared-types'
-import { BlastCard, GameState, ShipCard } from './types'
+import { BlastCard, GameState } from './types'
 import { ascribe, assert, filterIndices, mapToObject, mapValues } from './utils'
 
 interface ShipCSVRow {
@@ -67,6 +69,12 @@ const beam: BlastCard = {
   },
 }
 
+const commandShip: CommandShipCard = {
+  type: 'CommandShipCard',
+  name: 'The Glorp',
+  hp: 8,
+}
+
 export function newGameState(): GameState {
   return {
     actionDeck: [beam, beam, laser, laser],
@@ -80,14 +88,37 @@ export function newGameState(): GameState {
         '#1',
         {
           hand: [laser],
-          ships: [{ location: 'n', shipType: shipCards[0], damage: 0 }],
+          ships: [
+            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 'e', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 's', shipType: shipCards[0], damage: 0 },
+            { type: 'Ship', location: 'w', shipType: shipCards[0], damage: 0 },
+          ],
+          commandShip: {
+            type: 'CommandShip',
+            shipType: commandShip,
+            damage: 0,
+          },
+          alive: true,
         },
       ],
       [
         '#2',
         {
           hand: [],
-          ships: [{ location: 'n', shipType: shipCards[0], damage: 0 }],
+          ships: [
+            { type: 'Ship', location: 'n', shipType: shipCards[0], damage: 0 },
+          ],
+          commandShip: {
+            type: 'CommandShip',
+            shipType: commandShip,
+            damage: 0,
+          },
+          alive: true,
         },
       ],
     ]),
@@ -167,6 +198,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
               playerState.ships,
               () => true
             ).map((i) => ascribe<[string, number]>([playerId, i])), // TODO
+            allowableCommandShips: [],
           })
 
         case 'PlayBlastChooseTargetShipState':
@@ -177,11 +209,16 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
               state.playerState.get('#2')!.ships, // TODO
               () => true
             ).map((i) => ascribe<[string, number]>(['#2', i])), // TODO
+            allowableCommandShips: [], //  TODO
           })
       }
     } else if (state.turnState.type === 'PlayBlastRespondState') {
-      const turnState = state.turnState
-      if (playerState.ships.includes(turnState.targetShip)) {
+      const targetShip = state.turnState.targetShip
+      if (
+        (targetShip.type === 'Ship' &&
+          playerState.ships.includes(targetShip)) ||
+        playerState.commandShip === targetShip
+      ) {
         const playableCardIndices = filterIndices(playerState.hand, (c) => {
           switch (c.type) {
             case 'BlastCard':
@@ -209,7 +246,10 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
       text: undefined, // TODO
     })),
     playerState: mapToObject(
-      mapValues(state.playerState, (s) => ({ ships: s.ships }))
+      mapValues(state.playerState, (s) => ({
+        ships: s.ships,
+        commandShip: s.commandShip,
+      }))
     ),
     deckSize: state.actionDeck.length,
     isActivePlayer: state.activePlayer === playerId,

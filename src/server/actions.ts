@@ -1,5 +1,11 @@
 import * as _ from 'lodash'
-import { GameState, DRAW_UP_TO_HAND_SIZE, MAX_ZONE_SHIPS } from './types'
+import {
+  GameState,
+  DRAW_UP_TO_HAND_SIZE,
+  MAX_ZONE_SHIPS,
+  CommandShip,
+  Ship,
+} from './types'
 
 import {
   Action,
@@ -127,48 +133,82 @@ function applyChooseShipAction(
 
   switch (state.turnState.type) {
     case 'PlayBlastChooseFiringShipState':
-      if (action.choice[0] !== state.activePlayer) {
-        console.warn(
-          `Player ${state.activePlayer} chose a firing ship that belongs to ${action.choice[0]}.`
+      {
+        assert(
+          Array.isArray(action.choice),
+          'choice should be an array for choosing firing ship.'
         )
-        break
-      }
 
-      if (
-        action.choice[1] < 0 ||
-        action.choice[1] >= activePlayerState.ships.length
-      ) {
-        console.warn(
-          `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
-        )
-        break
-      }
+        if (action.choice[0] !== state.activePlayer) {
+          console.warn(
+            `Player ${state.activePlayer} chose a firing ship that belongs to ${action.choice[0]}.`
+          )
+          break
+        }
 
-      const designatedShip = activePlayerState.ships[action.choice[1]]
+        if (
+          action.choice[1] < 0 ||
+          action.choice[1] >= activePlayerState.ships.length
+        ) {
+          console.warn(
+            `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
+          )
+          break
+        }
 
-      if (!canFire(designatedShip.shipType, state.turnState.blast.blastType)) {
-        console.warn(
-          `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`
-        )
-        break
-      }
+        const designatedShip = activePlayerState.ships[action.choice[1]]
 
-      state.turnState = {
-        type: 'PlayBlastChooseTargetShipState',
-        blast: state.turnState.blast,
-        firingShip: activePlayerState.ships[action.choice[1]],
+        if (
+          !canFire(designatedShip.shipType, state.turnState.blast.blastType)
+        ) {
+          console.warn(
+            `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`
+          )
+          break
+        }
+
+        state.turnState = {
+          type: 'PlayBlastChooseTargetShipState',
+          blast: state.turnState.blast,
+          firingShip: activePlayerState.ships[action.choice[1]],
+        }
       }
       break
 
     case 'PlayBlastChooseTargetShipState':
-      // TODO: validate choice
-      state.turnState = {
-        type: 'PlayBlastRespondState',
-        blast: state.turnState.blast,
-        firingShip: state.turnState.firingShip,
-        targetShip: state.playerState.get(action.choice[0])!.ships[
-          action.choice[1]
-        ],
+      {
+        const targetPlayerState = state.playerState.get(action.choice[0])
+        if (targetPlayerState === undefined) {
+          console.warn(
+            `Player ${state.activePlayer} chose a target player that doesn't exist.`
+          )
+          break
+        }
+
+        let designatedShip: Ship | CommandShip
+
+        if (Array.isArray(action.choice)) {
+          if (
+            action.choice[1] < 0 ||
+            action.choice[1] >= activePlayerState.ships.length
+          ) {
+            console.warn(
+              `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
+            )
+            break
+          }
+
+          designatedShip = targetPlayerState.ships[action.choice[1]]
+        } else {
+          designatedShip = targetPlayerState.commandShip
+        }
+
+        state.turnState = {
+          type: 'PlayBlastRespondState',
+          blast: state.turnState.blast,
+          firingShip: state.turnState.firingShip,
+          targetShip: designatedShip,
+        }
       }
       break
 
@@ -189,22 +229,33 @@ function applyPassAction(state: GameState, action: PassAction): void {
       // Resolve attack.
       const targetShip = state.turnState.targetShip
       targetShip.damage += state.turnState.blast.damage
-      const targetPlayer = Array.from(state.playerState.entries()).find(
-        ([_, p]) => p.ships.includes(targetShip)
-      )?.[0]
-      assert(targetPlayer !== undefined, 'Target ship must belong to a player.')
+      const targetPlayerEntry = Array.from(state.playerState.entries()).find(
+        ([_, p]) =>
+          targetShip.type === 'Ship'
+            ? p.ships.includes(targetShip)
+            : p.commandShip === targetShip
+      )
+      assert(
+        targetPlayerEntry !== undefined,
+        'Target ship must belong to a player.'
+      )
+      const [targetPlayer, targetPlayerState] = targetPlayerEntry
 
       state.eventLog.push(
         `${state.activePlayer}'s ${state.turnState.firingShip.shipType.name} fired a ${state.turnState.blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${state.turnState.blast.damage} damage.`
       )
 
       if (targetShip.damage >= targetShip.shipType.hp) {
-        state.playerState.forEach((player) => {
-          _.remove(player.ships, (ship) => ship === targetShip)
-        })
         state.eventLog.push(
-          `${targetPlayer}'s ${targetShip.shipType.name} was destroyed!`
+          `${targetPlayer}'s ${targetShip.shipType.name} is destroyed!`
         )
+
+        if (targetShip.type === 'Ship') {
+          _.remove(targetPlayerState.ships, (ship) => ship === targetShip)
+        } else {
+          state.eventLog.push(`${targetPlayer} is eliminated.`)
+          targetPlayerState.alive = false
+        }
       }
 
       state.turnState = {

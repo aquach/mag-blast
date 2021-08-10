@@ -1,7 +1,7 @@
-import { ActionCard, BlastCardType, GameState } from './types'
+import { GameState } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
-import { ShipCard } from './shared-types'
+import { ActionCard, ShipCard } from './shared-types'
 
 export function drawActivePlayerCards(
   state: GameState,
@@ -63,9 +63,9 @@ export function discardActivePlayerCards(
 }
 
 export function sufficientForReinforcement(cards: ActionCard[]): boolean {
-  const numStars = cards.filter((c) => c.resources.hasStar).length
-  const numCircles = cards.filter((c) => c.resources.hasCircle).length
-  const numDiamonds = cards.filter((c) => c.resources.hasDiamond).length
+  const numStars = _.sum(cards.map((c) => c.resources.stars))
+  const numCircles = _.sum(cards.map((c) => c.resources.circles))
+  const numDiamonds = _.sum(cards.map((c) => c.resources.diamonds))
 
   return (
     numStars === 3 ||
@@ -75,13 +75,18 @@ export function sufficientForReinforcement(cards: ActionCard[]): boolean {
   )
 }
 
-export function canFire(ship: ShipCard, blastType: BlastCardType): boolean {
+export function canFire(ship: ShipCard, blastType: string): boolean {
   switch (blastType) {
-    case 'Laser':
+    case 'LaserBlastCard':
       return ship.firesLasers
-    case 'Beam':
+    case 'BeamBlastCard':
       return ship.firesBeams
-    case 'Mag':
+    case 'MagBlastCard':
       return ship.firesMags
+    default:
+      assert(
+        false,
+        `canFire received card type ${blastType} instead of a valid blast.`
+      )
   }
 }

@@ -19,6 +19,24 @@ export interface CommandShipCard {
   hp: number
 }
 
+export interface Resources {
+  stars: number
+  circles: number
+  diamonds: number
+}
+
+export interface ActionCard {
+    type: 'ActionCard'
+    name: string
+    cardType: string
+    damage: number
+    resources: Resources
+    isBlast: boolean
+    isSquadron: boolean
+    isDirectHit: boolean
+    isDirectHitEffect: boolean
+}
+
 export interface SelectCardPrompt {
   type: 'SelectCardPrompt'
   selectableCardIndices: number[]
@@ -59,25 +77,12 @@ export interface UICommandShip {
 }
 
 export interface UIState {
-  playerHand: UIActionCard[]
+  playerHand: ActionCard[]
   playerState: Record<PlayerId, UIPlayerState>
   deckSize: number
   isActivePlayer: boolean
   eventLog: string[]
   prompt: Prompt | undefined
-}
-
-export interface UIResources {
-  hasStar: boolean
-  hasCircle: boolean
-  hasDiamond: boolean
-}
-
-export interface UIActionCard {
-  name: string
-  damage: number | undefined
-  text: string | undefined
-  resources: UIResources
 }
 
 export interface SelectCardAction {

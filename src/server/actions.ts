@@ -105,14 +105,15 @@ function applySelectCardAction(
         return
       }
 
-      switch (card.type) {
-        case 'BlastCard':
-          state.actionDiscardDeck.push(activePlayerState.hand[action.handIndex])
-          activePlayerState.hand.splice(action.handIndex, 1)
-          state.turnState = {
-            type: 'PlayBlastChooseFiringShipState',
-            blast: card,
-          }
+      if (card.isBlast) {
+        state.actionDiscardDeck.push(activePlayerState.hand[action.handIndex])
+        activePlayerState.hand.splice(action.handIndex, 1)
+        state.turnState = {
+          type: 'PlayBlastChooseFiringShipState',
+          blast: card,
+        }
+      } else {
+        // TODO
       }
       break
 
@@ -159,7 +160,7 @@ function applyChooseShipAction(
         const designatedShip = activePlayerState.ships[action.choice[1]]
 
         if (
-          !canFire(designatedShip.shipType, state.turnState.blast.blastType)
+          !canFire(designatedShip.shipType, state.turnState.blast.cardType)
         ) {
           console.warn(
             `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`

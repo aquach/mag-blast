@@ -1,25 +1,7 @@
-import { CommandShipCard, Location, PlayerId, ShipCard } from './shared-types'
+import { ActionCard, CommandShipCard, Location, PlayerId, ShipCard } from './shared-types'
 
 export const DRAW_UP_TO_HAND_SIZE = 5
 export const MAX_ZONE_SHIPS = 3
-
-export interface Resources {
-  hasStar: boolean
-  hasCircle: boolean
-  hasDiamond: boolean
-}
-
-export type BlastCardType = 'Laser' | 'Beam' | 'Mag'
-
-export interface BlastCard {
-  type: 'BlastCard'
-  name: string
-  damage: number
-  blastType: BlastCardType
-  resources: Resources
-}
-
-export type ActionCard = BlastCard
 
 export interface Ship {
   type: 'Ship'
@@ -80,18 +62,18 @@ export interface AttackTurnState {
 
 export interface PlayBlastChooseFiringShipState {
   type: 'PlayBlastChooseFiringShipState'
-  blast: BlastCard
+  blast: ActionCard
 }
 
 export interface PlayBlastChooseTargetShipState {
   type: 'PlayBlastChooseTargetShipState'
-  blast: BlastCard
+  blast: ActionCard
   firingShip: Ship
 }
 
 export interface PlayBlastRespondState {
   type: 'PlayBlastRespondState'
-  blast: BlastCard
+  blast: ActionCard
   firingShip: Ship
   targetShip: Ship | CommandShip
 }

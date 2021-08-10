@@ -6,13 +6,13 @@ import {
   PlayerId,
   Prompt,
   ShipCard,
-  UIActionCard,
+  ActionCard,
   UICommandShip,
   UIPlayerState,
   UIShip,
   UIState,
 } from '@shared-types'
-import React, { useState, useEffect, Fragment } from 'react'
+import React, { useState, useEffect} from 'react'
 import ReactDOM from 'react-dom'
 
 interface Comms {
@@ -232,7 +232,7 @@ const Board: React.FunctionComponent<{
 }
 
 const ActionCard: React.FunctionComponent<{
-  card: UIActionCard
+  card: ActionCard
   onClick: () => void
   clickable: boolean
   selected: boolean
@@ -255,17 +255,15 @@ const ActionCard: React.FunctionComponent<{
       <p>Name: {card.name}</p>
       <p>Damage: {card.damage}</p>
       <p>
-        Resources: {card.resources.hasStar ? 'S' : ''}
-        {card.resources.hasCircle ? 'C' : ''}
-        {card.resources.hasDiamond ? 'D' : ''}
+        Resources: {'S'.repeat(card.resources.stars)}{'C'.repeat(card.resources.circles)}{'D'.repeat(card.resources.diamonds)}
       </p>
-      <p>Text: {card.text}</p>
+      {/*<p>Text: {card.text}</p>*/}
     </div>
   )
 }
 
 const Hand: React.FunctionComponent<{
-  hand: UIActionCard[]
+  hand: ActionCard[]
   prompt: Prompt | undefined
   performAction: (a: Action) => void
 }> = ({ hand, prompt, performAction }) => {

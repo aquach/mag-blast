@@ -117,8 +117,6 @@ const BoardShip: React.FunctionComponent<{
           top: 0,
           left: 0,
           padding: '0.125rem 0.25rem',
-          borderRight: '1px solid',
-          borderBottom: '1px solid',
           color: 'white',
         }}
       >

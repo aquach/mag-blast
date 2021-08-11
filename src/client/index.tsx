@@ -12,7 +12,7 @@ import {
   UIShip,
   UIState,
 } from '@shared-types'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Fragment } from 'react'
 import ReactDOM from 'react-dom'
 
 interface Comms {
@@ -51,6 +51,25 @@ function useComms(): Comms {
   return comms
 }
 
+const TurretMarker: React.FunctionComponent<{
+  color: 'yellow' | 'green' | 'red'
+}> = ({ color }) => {
+  const colorToHex = {
+    yellow: '#fec848',
+    green: '#5e9f47',
+    red: '#d35e2d',
+  }
+  return (
+    <div
+      style={{
+        width: '0.75rem',
+        height: '0.75rem',
+        backgroundColor: colorToHex[color],
+      }}
+    />
+  )
+}
+
 const BoardShip: React.FunctionComponent<{
   ship: UIShip
   prompt: Prompt | undefined
@@ -67,7 +86,10 @@ const BoardShip: React.FunctionComponent<{
 
   return (
     <div
-      className={`ba br1 ma1 pa1 ${clickable ? 'b--gold pointer' : ''}`}
+      className={`ba br1 ma1 pa1 bg-light-gray relative ${
+        clickable ? 'b--gold pointer' : ''
+      }`}
+      style={{ width: '4rem', height: '7.2rem' }}
       onClick={() =>
         clickable
           ? performAction({
@@ -77,17 +99,55 @@ const BoardShip: React.FunctionComponent<{
           : undefined
       }
     >
-      <p>Name: {ship.shipType.name}</p>
-      <p>Class: {ship.shipType.shipClass}</p>
-      <p>
-        HP: {ship.shipType.hp - ship.damage}/{ship.shipType.hp}
+      <p className="f7 tc mt4 mb1 b">{ship.shipType.name}</p>
+      <p className="f7 tc mt1">
+        {ship.shipType.shipClass === 'Dreadnought' ? (
+          <Fragment>
+            Dread
+            <br />
+            nought
+          </Fragment>
+        ) : (
+          ship.shipType.shipClass
+        )}
       </p>
-      <p>Movement: {ship.shipType.movement}</p>
-      <p>
-        Fires: {ship.shipType.firesLasers ? 'L' : ''}
-        {ship.shipType.firesBeams ? 'B' : ''}
-        {ship.shipType.firesMags ? 'M' : ''}
-      </p>
+      <div
+        className="absolute bg-near-black"
+        style={{
+          top: 0,
+          left: 0,
+          padding: '0.125rem 0.25rem',
+          borderRight: '1px solid',
+          borderBottom: '1px solid',
+          color: 'white',
+        }}
+      >
+        {ship.shipType.movement}
+      </div>
+      <div
+        className="absolute red"
+        style={{
+          bottom: 0,
+          right: 0,
+          padding: '0.125rem 0.25rem',
+          borderLeft: '1px solid',
+          borderTop: '1px solid',
+          background: 'white',
+        }}
+      >
+        {ship.shipType.hp - ship.damage}
+      </div>
+      <div
+        className="absolute"
+        style={{
+          bottom: 0,
+          left: 0,
+        }}
+      >
+        {ship.shipType.firesLasers ? <TurretMarker color="yellow" /> : null}
+        {ship.shipType.firesBeams ? <TurretMarker color="green" /> : null}
+        {ship.shipType.firesMags ? <TurretMarker color="red" /> : null}
+      </div>
     </div>
   )
 }
@@ -105,7 +165,10 @@ const CommandShip: React.FunctionComponent<{
 
   return (
     <div
-      className={`ba br1 ma1 pa1 ${clickable ? 'b--gold pointer' : ''}`}
+      className={`ba br1 ma1 pa1 bg-light-gray relative ${
+        clickable ? 'b--gold pointer' : ''
+      }`}
+      style={{ width: '4rem', height: '7.825rem' }}
       onClick={() =>
         clickable
           ? performAction({
@@ -115,10 +178,20 @@ const CommandShip: React.FunctionComponent<{
           : undefined
       }
     >
-      <p>Name: {ship.shipType.name}</p>
-      <p>
-        HP: {ship.shipType.hp - ship.damage}/{ship.shipType.hp}
-      </p>
+      <p className="f6 tc b">{ship.shipType.name}</p>
+      <div
+        className="absolute red"
+        style={{
+          bottom: 0,
+          right: 0,
+          padding: '0.125rem 0.25rem',
+          borderLeft: '1px solid',
+          borderTop: '1px solid',
+          background: 'white',
+        }}
+      >
+        {ship.shipType.hp - ship.damage}
+      </div>
     </div>
   )
 }
@@ -129,7 +202,7 @@ const ShipZone: React.FunctionComponent<{
   prompt: Prompt | undefined
   performAction: (a: Action) => void
   location: ShipLocation
-  color: string
+  color: 'yellow' | 'blue' | 'red' | 'green'
 }> = ({
   shipsWithIndices,
   playerId,
@@ -143,10 +216,21 @@ const ShipZone: React.FunctionComponent<{
     (prompt.type === 'PlaceShipPrompt' || prompt.type === 'ChooseZonePrompt') &&
     prompt.allowableZones.includes(location)
 
+  const colorToHex = {
+    yellow: '#f2de5f',
+    green: '#a0c246',
+    red: '#df4d36',
+    blue: '#60a3c2',
+  }
+
   return (
     <div
       className={`ba ma1 flex ${clickable ? 'b--gold pointer' : ''}`}
-      style={{ backgroundColor: color, filter: 'saturate(0.5)' }}
+      style={{
+        backgroundColor: colorToHex[color],
+        minHeight: '6.25rem',
+        minWidth: '4rem',
+      }}
       onClick={() =>
         clickable
           ? performAction({

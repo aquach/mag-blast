@@ -280,6 +280,8 @@ function applyChooseShipAction(
           }
         }
 
+        state.turnState.firingShip.hasFiredThisTurn = true
+
         state.turnState = {
           type: 'PlayBlastRespondState',
           blast: state.turnState.blast,
@@ -388,18 +390,18 @@ function applyPassAction(state: GameState, action: PassAction): void {
       const nextPlayerIndex =
         (currentPlayerIndex + 1) % state.playerTurnOrder.length
 
-      state.turnState = {
-        type:
-          state.turnNumber === 1 ? 'ReinforceTurnState' : 'DiscardTurnState',
-      }
-
       activePlayerState.ships.forEach((s) => {
         s.hasFiredThisTurn = false
       })
 
       if (nextPlayerIndex === 0) {
         state.turnNumber++
-        state.eventLog.push(`It is now turn ${state.turnNumber}.`)
+        state.eventLog.push(`=== Turn ${state.turnNumber} ===`)
+      }
+
+      state.turnState = {
+        type:
+          state.turnNumber === 1 ? 'ReinforceTurnState' : 'DiscardTurnState',
       }
 
       state.activePlayer = state.playerTurnOrder[nextPlayerIndex]

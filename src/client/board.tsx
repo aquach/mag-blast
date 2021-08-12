@@ -179,7 +179,7 @@ const ShipZone: React.FunctionComponent<{
   const colorToHex = {
     yellow: '#f2de5f',
     green: '#a0c246',
-    red: '#df4d36',
+    red: '#ff7f6b',
     blue: '#60a3c2',
   }
 

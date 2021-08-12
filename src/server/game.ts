@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import { actionCards, shipCards } from './data'
+import { actionCards, shipCards } from './cards'
 import { canFire, movableZones } from './logic'
 import {
   ChooseShipPrompt,

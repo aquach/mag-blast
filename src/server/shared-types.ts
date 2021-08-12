@@ -32,6 +32,7 @@ export interface ActionCard {
   cardType: string
   damage: number
   resources: Resources
+  text: string
   isBlast: boolean
   isSquadron: boolean
   isDirectHit: boolean

@@ -1,14 +1,9 @@
 import { io } from 'socket.io-client'
 import _ from 'lodash'
-import {
-  Action,
-  Prompt,
-  ActionCard,
-  UIState,
-} from '@shared-types'
+import { Action, Prompt, ActionCard, UIState } from '@shared-types'
 import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
-import {Board, BoardShip} from './board'
+import { Board, BoardShip } from './board'
 
 interface Comms {
   uiState: UIState | null
@@ -62,19 +57,41 @@ const ActionCard: React.FunctionComponent<{
 
   return (
     <div
-      className={`ba br1 pa1 mh1 ${clickable ? 'pointer' : ''} ${
-        borderColorClass ?? ''
-      }`}
+      className={`ba br1 pa1 mh1 bg-light-gray relative ${
+        clickable ? 'pointer' : ''
+      } ${borderColorClass ?? ''}`}
+      style={{ width: '6rem', height: '10.8rem' }}
       onClick={clickable ? onClick : _.noop}
     >
-      <p>Name: {card.name}</p>
-      <p>Damage: {card.damage}</p>
-      <p>
-        Resources: {'S'.repeat(card.resources.stars)}
-        {'C'.repeat(card.resources.circles)}
-        {'D'.repeat(card.resources.diamonds)}
-      </p>
-      {/*<p>Text: {card.text}</p>*/}
+      <p className="f5 tc mt4 mb1 b">{card.name}</p>
+      <p className="f7 tc">{card.text}</p>
+      {card.damage > 0 && (
+        <div
+          className="absolute red f4"
+          style={{
+            bottom: 0,
+            right: 0,
+            padding: '0.125rem 0.25rem',
+            borderLeft: '1px solid',
+            borderTop: '1px solid',
+            background: 'white',
+          }}
+        >
+          {card.damage}
+        </div>
+      )}
+      <div
+        className="absolute f4"
+        style={{
+          top: 0,
+          right: 0,
+          padding: '0.125rem 0.25rem',
+        }}
+      >
+        {_.repeat('S', card.resources.stars)}
+        {_.repeat('D', card.resources.diamonds)}
+        {_.repeat('C', card.resources.circles)}
+      </div>
     </div>
   )
 }

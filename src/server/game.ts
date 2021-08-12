@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import { LobbyState } from '.'
 import { actionCards, shipCards } from './cards'
 import { canFire, movableZones } from './logic'
 import {
@@ -10,7 +11,8 @@ import {
   PlayerId,
   Prompt,
   SelectCardPrompt,
-  UIState,
+  UIGameState,
+  UILobbyState,
 } from './shared-types'
 import { GameState, MAX_ZONE_SHIPS } from './types'
 import { ascribe, assert, filterIndices, mapToObject, mapValues } from './utils'
@@ -21,8 +23,10 @@ const commandShip: CommandShipCard = {
   hp: 9,
 }
 
-export function newGameState(): GameState {
+export function newGameState(playerIds: Set<string>): GameState {
   return {
+    type: 'GameState',
+
     actionDeck: _.shuffle(actionCards),
     actionDiscardDeck: [],
 
@@ -131,7 +135,14 @@ export function newGameState(): GameState {
   }
 }
 
-export function uiState(playerId: PlayerId, state: GameState): UIState {
+export function lobbyUiState(playerIds: PlayerId[]): UILobbyState {
+  return {
+    type: 'UILobbyState',
+    playerIds,
+  }
+}
+
+export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
   const playerState = state.playerState.get(playerId)
   assert(playerState !== undefined, `Player ID ${playerId} not found.`)
 
@@ -322,6 +333,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
   })()
 
   return {
+    type: 'UIGameState',
     playerHand: playerState.hand,
     playerState: mapToObject(
       mapValues(state.playerState, (s) => ({

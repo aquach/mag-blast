@@ -92,7 +92,13 @@ export interface UICommandShip {
   shipType: CommandShipCard
 }
 
-export interface UIState {
+export interface UILobbyState {
+  type: 'UILobbyState'
+  playerIds: string[]
+}
+
+export interface UIGameState {
+  type: 'UIGameState'
   playerHand: ActionCard[]
   playerState: Record<PlayerId, UIPlayerState>
   deckSize: number

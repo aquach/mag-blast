@@ -31,6 +31,8 @@ export interface PlayerState {
 }
 
 export interface GameState {
+  type: 'GameState'
+
   actionDeck: ActionCard[]
   actionDiscardDeck: ActionCard[]
 

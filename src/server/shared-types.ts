@@ -43,7 +43,7 @@ export interface SelectCardPrompt {
   type: 'SelectCardPrompt'
   selectableCardIndices: number[]
   multiselect: { actionText: string } | undefined
-  canPass: boolean
+  pass: { actionText: string } | undefined
   text: string
 }
 
@@ -51,7 +51,8 @@ export interface ChooseShipPrompt {
   type: 'ChooseShipPrompt'
   allowableShipIndices: [PlayerId, number][]
   allowableCommandShips: PlayerId[]
-  canPass: boolean
+    pass: { actionText: string } | undefined
+    canCancel: boolean
   text: string
 }
 

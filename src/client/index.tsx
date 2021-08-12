@@ -60,10 +60,10 @@ const ActionCard: React.FunctionComponent<{
       className={`ba br1 pa1 mh1 bg-light-gray relative ${
         clickable ? 'pointer' : ''
       } ${borderColorClass ?? ''}`}
-      style={{ width: '5rem', height: '9rem' }}
+      style={{ width: '5.5rem', height: '9.9rem' }}
       onClick={clickable ? onClick : _.noop}
     >
-      <p className="f5 tc mt4 mb1 b">{card.name}</p>
+      <p className="f6 tc mt4 mb1 b">{card.name}</p>
       <p className="f7 tc">{card.text}</p>
       {card.damage > 0 && (
         <div
@@ -104,7 +104,9 @@ const Hand: React.FunctionComponent<{
   const [selectedCards, setSelectedCards] = useState<number[]>([])
 
   const passOptions =
-    prompt !== undefined && prompt.type === 'SelectCardPrompt' ? prompt.pass : undefined
+    prompt !== undefined && prompt.type === 'SelectCardPrompt'
+      ? prompt.pass
+      : undefined
   const canPass = passOptions !== undefined
 
   const multiSelectOptions =
@@ -118,7 +120,8 @@ const Hand: React.FunctionComponent<{
   return (
     <div>
       {canPass ? (
-        <button className="ma1 pa1 f5"
+        <button
+          className="ma1 pa1 f5"
           onClick={() =>
             performAction({
               type: 'PassAction',
@@ -130,7 +133,8 @@ const Hand: React.FunctionComponent<{
       ) : null}
 
       {canMultiselect ? (
-        <button className="ma1 pa1 f5"
+        <button
+          className="ma1 pa1 f5"
           onClick={() => {
             performAction({
               type: 'SelectCardAction',
@@ -143,7 +147,7 @@ const Hand: React.FunctionComponent<{
         </button>
       ) : null}
 
-      <div className="flex">
+      <div className="flex mv1">
         {hand.map((c, i) => {
           const clickable =
             prompt !== undefined &&
@@ -206,8 +210,15 @@ const App: React.FunctionComponent = () => {
   const prompt = uiState.prompt
 
   const passOptions =
-    prompt !== undefined && prompt.type === 'ChooseShipPrompt' ? prompt.pass : undefined
+    prompt !== undefined && prompt.type === 'ChooseShipPrompt'
+      ? prompt.pass
+      : undefined
   const canPass = passOptions !== undefined
+
+  const canCancel =
+    prompt !== undefined &&
+    prompt.type === 'ChooseShipPrompt' &&
+    prompt.canCancel
 
   return (
     <div className="flex ma2">
@@ -219,7 +230,7 @@ const App: React.FunctionComponent = () => {
           performAction={comms.performAction}
         />
 
-        {prompt && <h3>{prompt.text}</h3>}
+        {prompt && <h3 className="ma1 mv2">{prompt.text}</h3>}
         {prompt && prompt.type === 'PlaceShipPrompt' && (
           <BoardShip
             ship={{
@@ -235,7 +246,8 @@ const App: React.FunctionComponent = () => {
         )}
 
         {canPass ? (
-          <button className="ma1 pa1 f5"
+          <button
+            className="ma1 pa1 f5"
             onClick={() =>
               comms.performAction({
                 type: 'PassAction',
@@ -243,6 +255,19 @@ const App: React.FunctionComponent = () => {
             }
           >
             {passOptions?.actionText}
+          </button>
+        ) : null}
+
+        {canCancel ? (
+          <button
+            className="ma1 pa1 f5"
+            onClick={() =>
+              comms.performAction({
+                type: 'CancelAction',
+              })
+            }
+          >
+            Cancel ↩
           </button>
         ) : null}
 

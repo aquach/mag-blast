@@ -97,7 +97,7 @@ export function newGameState(): GameState {
             shipType: commandShip,
             damage: 0,
           },
-          alive: true,
+          isAlive: true,
         },
       ],
       [
@@ -118,7 +118,7 @@ export function newGameState(): GameState {
             shipType: commandShip,
             damage: 0,
           },
-          alive: true,
+          isAlive: true,
         },
       ],
     ]),
@@ -162,7 +162,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             ),
             text: 'Choose cards to use for reinforcements.',
             pass: {
-                actionText: "I'm done ⏭️"
+              actionText: "I'm done ⏭️",
             },
             multiselect: {
               actionText: 'Reinforce 🚀',
@@ -196,10 +196,10 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
               (s) => s.shipType.movement > 0
             ).map((i) => ascribe<[string, number]>([playerId, i])),
             allowableCommandShips: [],
-              pass: {
-                  actionText: "I'm done ⏭️"
-              },
-              canCancel: false
+            pass: {
+              actionText: "I'm done ⏭️",
+            },
+            canCancel: false,
           })
 
         case 'ManeuverChooseTargetZoneState': {
@@ -229,9 +229,9 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             selectableCardIndices: playableCardIndices,
             text: 'Choose a card to play.',
             multiselect: undefined,
-              pass: {
-                  actionText: "I'm done ⏭️"
-              },
+            pass: {
+              actionText: "I'm done ⏭️",
+            },
           })
         }
 
@@ -248,7 +248,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             ).map((i) => ascribe<[string, number]>([playerId, i])),
             allowableCommandShips: [],
             pass: undefined,
-              canCancel: true
+            canCancel: true,
           })
 
         case 'PlayBlastChooseTargetShipState':
@@ -288,7 +288,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             allowableShipIndices,
             allowableCommandShips,
             pass: undefined,
-              canCancel: true
+            canCancel: true,
           })
       }
     } else if (state.turnState.type === 'PlayBlastRespondState') {
@@ -300,17 +300,22 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
       ) {
         const playableCardIndices = filterIndices(
           playerState.hand,
-          (c) => c.isBlast // TODO
+          (c) => false // TODO
+        )
+
+        const firingShip = state.turnState.firingShip
+        const attackingPlayer = Array.from(state.playerState.keys()).find(
+          (pid) => state.playerState.get(pid)?.ships?.includes(firingShip)
         )
 
         return ascribe<SelectCardPrompt>({
           type: 'SelectCardPrompt',
-          text: 'Choose a card to play in response.',
+          text: `${attackingPlayer} is attempting to play a ${state.turnState.blast.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
           selectableCardIndices: playableCardIndices,
           multiselect: undefined,
-            pass: {
-                actionText: "Do nothing"
-            },
+          pass: {
+            actionText: 'Do nothing',
+          },
         })
       }
     }
@@ -322,6 +327,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
       mapValues(state.playerState, (s) => ({
         ships: s.ships,
         commandShip: s.commandShip,
+        isAlive: s.isAlive,
       }))
     ),
     deckSize: state.actionDeck.length,

@@ -51,8 +51,8 @@ export interface ChooseShipPrompt {
   type: 'ChooseShipPrompt'
   allowableShipIndices: [PlayerId, number][]
   allowableCommandShips: PlayerId[]
-    pass: { actionText: string } | undefined
-    canCancel: boolean
+  pass: { actionText: string } | undefined
+  canCancel: boolean
   text: string
 }
 
@@ -78,6 +78,7 @@ export type Prompt =
 export interface UIPlayerState {
   ships: UIShip[]
   commandShip: UICommandShip
+  isAlive: boolean
 }
 
 export interface UIShip {
@@ -119,8 +120,13 @@ export interface PassAction {
   type: 'PassAction'
 }
 
+export interface CancelAction {
+  type: 'CancelAction'
+}
+
 export type Action =
   | SelectCardAction
   | ChooseShipAction
   | PassAction
   | ChooseZoneAction
+  | CancelAction

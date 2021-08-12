@@ -27,7 +27,7 @@ export interface PlayerState {
   hand: ActionCard[]
   ships: Ship[]
   commandShip: CommandShip
-  alive: boolean
+  isAlive: boolean
 }
 
 export interface GameState {
@@ -92,6 +92,10 @@ export interface PlayBlastRespondState {
   targetShip: Ship | CommandShip
 }
 
+export interface EndGameState {
+  type: 'EndGameState'
+}
+
 export type TurnState =
   | DiscardTurnState
   | ReinforceTurnState
@@ -103,3 +107,4 @@ export type TurnState =
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState
   | PlayBlastRespondState
+  | EndGameState

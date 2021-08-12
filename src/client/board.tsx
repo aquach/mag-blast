@@ -94,7 +94,7 @@ export const BoardShip: React.FunctionComponent<{
           background: 'white',
         }}
       >
-        {ship.shipType.hp - ship.damage}
+        {Math.max(ship.shipType.hp - ship.damage, 0)}
       </div>
       <div
         className="absolute"
@@ -125,7 +125,7 @@ const CommandShip: React.FunctionComponent<{
   return (
     <div
       className={`ba br1 ma1 pa1 bg-light-gray relative ${
-        clickable ? 'b--purple pointer' : ''
+        clickable ? 'clickable pointer' : ''
       }`}
       style={{ width: '4rem', height: '7.825rem' }}
       onClick={() =>
@@ -149,7 +149,7 @@ const CommandShip: React.FunctionComponent<{
           background: 'white',
         }}
       >
-        {ship.shipType.hp - ship.damage}
+        {Math.max(ship.shipType.hp - ship.damage, 0)}
       </div>
     </div>
   )
@@ -225,8 +225,10 @@ const BoardPlayer: React.FunctionComponent<{
   ) as Record<ShipLocation, [UIShip, number][]>
 
   return (
-    <div className="ph2">
-      <h3 className="mt0">{playerId}</h3>
+    <div className={`ph2 ${!playerState.isAlive ? 'o-50' : ''}`}>
+      <h3 className="mt0">
+        {playerId} {!playerState.isAlive ? '(Eliminated)' : ''}
+      </h3>
 
       <div className="flex justify-center">
         <ShipZone

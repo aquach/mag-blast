@@ -1,4 +1,4 @@
-import { GameState } from './types'
+import { GameState, PlayerState } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
 import { ActionCard, Location, LOCATIONS, ShipCard } from './shared-types'
@@ -123,4 +123,10 @@ export function movableZones(l: Location, movement: number): Location[] {
     case 's':
       return ['w', 's', 'e']
   }
+}
+
+export function onePlayerLeft(playerState: Map<string, PlayerState>): boolean {
+  return (
+    Array.from(playerState.values()).filter((ps) => ps.isAlive).length === 1
+  )
 }

@@ -5,10 +5,12 @@ import {
   MAX_ZONE_SHIPS,
   CommandShip,
   Ship,
+  PlayerState,
 } from './types'
 
 import {
   Action,
+  CancelAction,
   ChooseShipAction,
   ChooseZoneAction,
   PassAction,
@@ -22,6 +24,7 @@ import {
   drawShipCard,
   locationToString,
   movableZones,
+  onePlayerLeft,
   sufficientForReinforcement,
 } from './logic'
 
@@ -230,7 +233,9 @@ function applyChooseShipAction(
 
     case 'PlayBlastChooseTargetShipState':
       {
-        const targetPlayerState = state.playerState.get(action.choice[0])
+        const targetPlayerState = state.playerState.get(
+          Array.isArray(action.choice) ? action.choice[0] : action.choice
+        )
         if (targetPlayerState === undefined) {
           console.warn(
             `Player ${state.activePlayer} chose a target player that doesn't exist.`
@@ -326,7 +331,17 @@ function applyPassAction(state: GameState, action: PassAction): void {
           _.remove(targetPlayerState.ships, (ship) => ship === targetShip)
         } else {
           state.eventLog.push(`${targetPlayer} is eliminated.`)
-          targetPlayerState.alive = false
+          targetPlayerState.isAlive = false
+
+          if (onePlayerLeft(state.playerState)) {
+            state.eventLog.push(
+              `${state.activePlayer} is the only player left and wins the game!`
+            )
+            state.turnState = {
+              type: 'EndGameState',
+            }
+            state.activePlayer = ''
+          }
         }
       }
 
@@ -472,6 +487,27 @@ function applyChooseZoneAction(
   }
 }
 
+export function applyCancelAction(
+  state: GameState,
+  action: CancelAction
+): void {
+  const activePlayerState = state.playerState.get(state.activePlayer)
+  assert(
+    activePlayerState !== undefined,
+    `Player ID ${state.activePlayer} not found.`
+  )
+
+  switch (state.turnState.type) {
+    case 'PlayBlastChooseFiringShipState':
+    case 'PlayBlastChooseTargetShipState':
+      activePlayerState.hand.push(state.turnState.blast)
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+      break
+  }
+}
+
 export function applyAction(state: GameState, action: Action): void {
   switch (action.type) {
     case 'SelectCardAction':
@@ -488,6 +524,10 @@ export function applyAction(state: GameState, action: Action): void {
 
     case 'ChooseZoneAction':
       applyChooseZoneAction(state, action)
+      break
+
+    case 'CancelAction':
+      applyCancelAction(state, action)
       break
 
     default:

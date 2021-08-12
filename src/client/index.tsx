@@ -9,7 +9,7 @@ const App: React.FunctionComponent = () => {
     }).then((r) => r.json())
 
     resp.then((r) => {
-      window.location = `/game/${r.gameId}` as any
+      window.location = `game/${r.gameId}` as any
     })
   }
 

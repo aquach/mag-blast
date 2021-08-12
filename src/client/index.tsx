@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 
 const App: React.FunctionComponent = () => {
   const onClick = () => {
-    const resp = fetch('/create-game', {
+    const resp = fetch('create-game', {
       method: 'POST',
     }).then((r) => r.json())
 

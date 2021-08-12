@@ -68,13 +68,13 @@ app.get('/game/:gameId', (req, res) => {
 })
 
 app.get('/index.js', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../../dist/index.js'), {
+  res.sendFile(path.resolve(__dirname + '/../../dist/client/index.js'), {
     etag: false,
   })
 })
 
-app.get('/client.js', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../../dist/client.js'), {
+app.get('/game.js', (req, res) => {
+  res.sendFile(path.resolve(__dirname + '/../../dist/client/game.js'), {
     etag: false,
   })
 })

@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "build-client": "cd src/client && webpack",
-    "build": "npm run build-client && npm run build-server",
+    "build": "npm run build-client && npm run build-server && cp src/client/*.html dist/client",
     "build-server": "cd src/server && tsc",
     "client": "cd src/client && webpack --watch",
     "server": "ts-node-dev src/server/index.ts",
+    "start:prod": "NODE_ENV=production node dist/server/index.js",
     "format": "prettier --write 'src/**/*.ts' 'src/**/*.tsx'"
   },
   "repository": {

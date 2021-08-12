@@ -11,23 +11,22 @@ import {
 import React, { Fragment } from 'react'
 
 const TurretMarker: React.FunctionComponent<{
-  color: 'yellow' | 'green' | 'red'
-}> = ({ color }) => {
-  const colorToHex = {
-    yellow: '#fec848',
-    green: '#5e9f47',
-    red: '#d35e2d',
-  }
+  type: 'laser' | 'beam' | 'mag'
+  active: boolean
+}> = ({ type, active }) => {
   return (
     <div
+      className={`${active ? `blast-${type}` : ''} tc`}
       style={{
+        fontSize: '0.6em',
         width: '0.75rem',
         height: '0.75rem',
-        backgroundColor: colorToHex[color],
         borderTop: '1px solid black',
         borderRight: '1px solid black',
       }}
-    />
+    >
+      {active ? type[0].toUpperCase() : ''}
+    </div>
   )
 }
 
@@ -60,7 +59,9 @@ export const BoardShip: React.FunctionComponent<{
           : undefined
       }
     >
-      <p className="f7 tc mt4 mb1 b">{ship.shipType.name}</p>
+      <p className="f7 tc mb1 b" style={{ marginTop: '1.75rem' }}>
+        {ship.shipType.name}
+      </p>
       <p className="f7 tc mt1">
         {ship.shipType.shipClass === 'Dreadnought' ? (
           <Fragment>
@@ -103,9 +104,9 @@ export const BoardShip: React.FunctionComponent<{
           left: 0,
         }}
       >
-        {ship.shipType.firesLasers ? <TurretMarker color="yellow" /> : null}
-        {ship.shipType.firesBeams ? <TurretMarker color="green" /> : null}
-        {ship.shipType.firesMags ? <TurretMarker color="red" /> : null}
+        <TurretMarker type="laser" active={ship.shipType.firesLasers} />
+        <TurretMarker type="beam" active={ship.shipType.firesBeams} />
+        <TurretMarker type="mag" active={ship.shipType.firesMags} />
       </div>
     </div>
   )

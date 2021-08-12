@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { Action, Prompt, ActionCard, UIState } from '@shared-types'
 import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
-import { Board, BoardShip } from './board'
+import { blastColorToHex, Board, BoardShip } from './board'
 
 interface Comms {
   uiState: UIState | null
@@ -47,7 +47,23 @@ const ActionCard: React.FunctionComponent<{
   clickable: boolean
   selected: boolean
 }> = ({ card, onClick, clickable, selected }) => {
-  const borderColorClass = (() => {
+  const bgColor = (() => {
+    if (card.isBlast) {
+      switch (card.cardType) {
+        case 'LaserBlastCard':
+          return 'blast-laser'
+        case 'BeamBlastCard':
+          return 'blast-beam'
+        case 'MagBlastCard':
+          return 'blast-mag'
+        default:
+          return ''
+      }
+    } else {
+      return 'bg-light-gray'
+    }
+  })()
+  const interactionClass = (() => {
     if (selected) {
       return 'selected'
     } else if (clickable) {
@@ -57,9 +73,9 @@ const ActionCard: React.FunctionComponent<{
 
   return (
     <div
-      className={`ba br1 pa1 mh1 bg-light-gray relative ${
+      className={`ba br1 pa1 mh1 relative ${bgColor} ${
         clickable ? 'pointer' : ''
-      } ${borderColorClass ?? ''}`}
+      } ${interactionClass ?? ''}`}
       style={{ width: '5.5rem', height: '9.9rem' }}
       onClick={clickable ? onClick : _.noop}
     >

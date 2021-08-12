@@ -256,6 +256,25 @@ function applyChooseShipAction(
           designatedShip = targetPlayerState.commandShip
         }
 
+        if (designatedShip.type === 'Ship') {
+          if (state.turnState.firingShip.location !== designatedShip.location) {
+            console.warn("Ship can't fire on a ship in a different zone.")
+            break
+          }
+        } else {
+          const firingShip = state.turnState.firingShip
+          if (
+            targetPlayerState.ships.some(
+              (s) => s.location === firingShip.location
+            )
+          ) {
+            console.warn(
+              "Ship can't fire on the command ship when there are ships in the way."
+            )
+            break
+          }
+        }
+
         state.turnState = {
           type: 'PlayBlastRespondState',
           blast: state.turnState.blast,

@@ -60,7 +60,7 @@ const ActionCard: React.FunctionComponent<{
       className={`ba br1 pa1 mh1 bg-light-gray relative ${
         clickable ? 'pointer' : ''
       } ${borderColorClass ?? ''}`}
-      style={{ width: '6rem', height: '10.8rem' }}
+      style={{ width: '5rem', height: '9rem' }}
       onClick={clickable ? onClick : _.noop}
     >
       <p className="f5 tc mt4 mb1 b">{card.name}</p>

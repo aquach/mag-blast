@@ -244,14 +244,41 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
           })
 
         case 'PlayBlastChooseTargetShipState':
+          const firingShip = state.turnState.firingShip
+          const allowableShipIndices: [string, number][] = _.flatMap(
+            Array.from(state.playerState.entries()),
+            ([pid, playerState]) => {
+              if (pid === playerId) {
+                return []
+              }
+
+              return filterIndices(
+                playerState.ships,
+                (s) => s.location === firingShip.location
+              ).map<[string, number]>((shipIndex) => [pid, shipIndex])
+            }
+          )
+
+          const allowableCommandShips: string[] = _.flatMap(
+            Array.from(state.playerState.entries()),
+            ([pid, playerState]) => {
+              if (pid === playerId) {
+                return []
+              }
+
+              const shipInTheWay = playerState.ships.some(
+                (s) => s.location === firingShip.location
+              )
+
+              return shipInTheWay ? [] : [pid]
+            }
+          )
+
           return ascribe<ChooseShipPrompt>({
             type: 'ChooseShipPrompt',
             text: 'Choose a target ship.',
-            allowableShipIndices: filterIndices(
-              state.playerState.get('#2')!.ships, // TODO
-              () => true
-            ).map((i) => ascribe<[string, number]>(['#2', i])), // TODO
-            allowableCommandShips: [], //  TODO
+            allowableShipIndices,
+            allowableCommandShips,
             canPass: false,
           })
       }

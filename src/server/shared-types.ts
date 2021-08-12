@@ -41,7 +41,7 @@ export interface ActionCard {
 export interface SelectCardPrompt {
   type: 'SelectCardPrompt'
   selectableCardIndices: number[]
-  multiselect: boolean
+  multiselect: { actionText: string } | undefined
   canPass: boolean
   text: string
 }

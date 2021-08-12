@@ -295,7 +295,7 @@ function applyPassAction(state: GameState, action: PassAction): void {
       const [targetPlayer, targetPlayerState] = targetPlayerEntry
 
       state.eventLog.push(
-        `${state.activePlayer}'s ${state.turnState.firingShip.shipType.name} fired a ${state.turnState.blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${state.turnState.blast.damage} damage.`
+        `${state.activePlayer}'s ${state.turnState.firingShip.shipType.name} fires a ${state.turnState.blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${state.turnState.blast.damage} damage.`
       )
 
       if (targetShip.damage >= targetShip.shipType.hp) {
@@ -320,6 +320,23 @@ function applyPassAction(state: GameState, action: PassAction): void {
       state.turnState = {
         type: 'ManeuverTurnState',
         originalLocations: new Map(),
+      }
+      break
+
+    case 'ManeuverTurnState':
+      {
+        const shipsByLocation = _.groupBy(
+          activePlayerState.ships,
+          (s) => s.location
+        )
+
+        if (_.some(shipsByLocation, (zone) => zone.length > MAX_ZONE_SHIPS)) {
+          // TODO: report error
+        } else {
+          state.turnState = {
+            type: 'AttackTurnState',
+          }
+        }
       }
       break
 
@@ -398,8 +415,16 @@ function applyChooseZoneAction(
       break
 
     case 'ManeuverChooseTargetZoneState':
+      const originalLocation = state.turnState.originalLocations.get(
+        state.turnState.ship
+      )
+      assert(
+        originalLocation !== undefined,
+        `originalLocations must be populated.`
+      )
+
       const zones = movableZones(
-        state.turnState.ship.location,
+        originalLocation,
         state.turnState.ship.shipType.movement
       )
       if (!zones.includes(action.location)) {
@@ -410,6 +435,12 @@ function applyChooseZoneAction(
       }
 
       state.turnState.ship.location = action.location
+
+      state.eventLog.push(
+        `${state.activePlayer} moves their ${
+          state.turnState.ship.shipType.name
+        } to the ${locationToString(action.location)} Zone.`
+      )
 
       state.turnState = {
         type: 'ManeuverTurnState',

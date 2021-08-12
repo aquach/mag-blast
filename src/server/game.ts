@@ -144,7 +144,9 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             selectableCardIndices: filterIndices(playerState.hand, () => true),
             text: 'Choose cards to discard.',
             canPass: false,
-            multiselect: true,
+            multiselect: {
+              actionText: 'Discard',
+            },
           })
         }
 
@@ -159,8 +161,10 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
                 c.resources.stars > 0
             ),
             text: 'Choose cards to use for reinforcements.',
-            multiselect: true,
             canPass: true,
+            multiselect: {
+              actionText: 'Reinforce',
+            },
           })
         }
 
@@ -219,7 +223,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
             type: 'SelectCardPrompt',
             selectableCardIndices: playableCardIndices,
             text: 'Choose a card to play.',
-            multiselect: false,
+            multiselect: undefined,
             canPass: true,
           })
         }
@@ -267,7 +271,7 @@ export function uiState(playerId: PlayerId, state: GameState): UIState {
           type: 'SelectCardPrompt',
           text: 'Choose a card to play in response.',
           selectableCardIndices: playableCardIndices,
-          multiselect: false,
+          multiselect: undefined,
           canPass: true,
         })
       }

@@ -87,7 +87,7 @@ const BoardShip: React.FunctionComponent<{
   return (
     <div
       className={`ba br1 ma1 pa1 bg-light-gray relative ${
-        clickable ? 'b--gold pointer' : ''
+        clickable ? 'clickable pointer' : ''
       }`}
       style={{ width: '4rem', height: '7.2rem' }}
       onClick={() =>
@@ -164,7 +164,7 @@ const CommandShip: React.FunctionComponent<{
   return (
     <div
       className={`ba br1 ma1 pa1 bg-light-gray relative ${
-        clickable ? 'b--gold pointer' : ''
+        clickable ? 'b--purple pointer' : ''
       }`}
       style={{ width: '4rem', height: '7.825rem' }}
       onClick={() =>
@@ -223,7 +223,7 @@ const ShipZone: React.FunctionComponent<{
 
   return (
     <div
-      className={`ba ma1 flex ${clickable ? 'b--gold pointer' : ''}`}
+      className={`ba ma1 flex ${clickable ? 'clickable pointer' : ''}`}
       style={{
         backgroundColor: colorToHex[color],
         minHeight: '6.25rem',
@@ -265,7 +265,7 @@ const BoardPlayer: React.FunctionComponent<{
 
   return (
     <div className="ph2">
-      <h2>{playerId}</h2>
+      <h3 className="mt0">{playerId}</h3>
 
       <div className="flex justify-center">
         <ShipZone
@@ -321,19 +321,16 @@ const Board: React.FunctionComponent<{
   performAction: (a: Action) => void
 }> = ({ board, prompt, performAction }) => {
   return (
-    <div>
-      <h1>Board</h1>
-      <div className="flex">
-        {Object.entries(board).map(([playerId, playerState]) => (
-          <BoardPlayer
-            key={playerId}
-            playerId={playerId}
-            playerState={playerState}
-            prompt={prompt}
-            performAction={performAction}
-          />
-        ))}
-      </div>
+    <div className="flex">
+      {Object.entries(board).map(([playerId, playerState]) => (
+        <BoardPlayer
+          key={playerId}
+          playerId={playerId}
+          playerState={playerState}
+          prompt={prompt}
+          performAction={performAction}
+        />
+      ))}
     </div>
   )
 }
@@ -346,17 +343,17 @@ const ActionCard: React.FunctionComponent<{
 }> = ({ card, onClick, clickable, selected }) => {
   const borderColorClass = (() => {
     if (selected) {
-      return 'b--red'
+      return 'selected'
     } else if (clickable) {
-      return 'b--gold'
+      return 'clickable'
     }
   })()
 
   return (
     <div
-      className={`ba br1 pa1 mh1 ${
-        clickable ? 'pointer' : ''
-      } ${borderColorClass}`}
+      className={`ba br1 pa1 mh1 ${clickable ? 'pointer' : ''} ${
+        borderColorClass ?? ''
+      }`}
       onClick={clickable ? onClick : _.noop}
     >
       <p>Name: {card.name}</p>
@@ -380,14 +377,16 @@ const Hand: React.FunctionComponent<{
 
   const canPass =
     prompt !== undefined && prompt.type === 'SelectCardPrompt' && prompt.canPass
-  const canMultiselect =
-    prompt !== undefined &&
-    prompt.type === 'SelectCardPrompt' &&
-    prompt.multiselect
+  const multiSelectOptions =
+    prompt !== undefined && prompt.type === 'SelectCardPrompt'
+      ? prompt.multiselect
+      : undefined
+  const canMultiselect = multiSelectOptions !== undefined
+
+  const actionText = multiSelectOptions?.actionText
 
   return (
     <div>
-      <h1>Hand</h1>
       {canPass ? (
         <button
           onClick={() =>
@@ -410,7 +409,7 @@ const Hand: React.FunctionComponent<{
             setSelectedCards([])
           }}
         >
-          Done
+          {actionText}
         </button>
       ) : null}
 
@@ -450,18 +449,17 @@ const Hand: React.FunctionComponent<{
   )
 }
 
-const ShipPreview: React.FunctionComponent<{ ship: ShipCard }> = ({ ship }) => {
+const EventLog: React.FunctionComponent<{ eventLog: string[] }> = ({
+  eventLog,
+}) => {
   return (
-    <div className="ba br1 pa1">
-      <p>Name: {ship.name}</p>
-      <p>Class: {ship.shipClass}</p>
-      <p>HP: {ship.hp}</p>
-      <p>Movement: {ship.movement}</p>
-      <p>
-        Fires: {ship.firesLasers ? 'L' : ''}
-        {ship.firesBeams ? 'B' : ''}
-        {ship.firesMags ? 'M' : ''}
-      </p>
+    <div
+      className="code ba pa1 overflow-y-scroll"
+      style={{ width: '20em', height: 'calc(100vh - 1rem)' }}
+    >
+      {eventLog.map((l, i) => (
+        <p key={i}>{l}</p>
+      ))}
     </div>
   )
 }
@@ -472,33 +470,56 @@ const App: React.FunctionComponent = () => {
   const uiState = comms.uiState
 
   if (!uiState) {
-    return <div>"Loading..."</div>
+    return <div>Loading...</div>
   }
 
+  const prompt = uiState.prompt
+
+  const canPass =
+    prompt !== undefined && prompt.type === 'ChooseShipPrompt' && prompt.canPass
+
   return (
-    <div className="ma2">
-      <Board
-        board={uiState.playerState}
-        prompt={uiState.prompt}
-        performAction={comms.performAction}
-      />
+    <div className="flex ma2">
+      <EventLog eventLog={uiState.eventLog} />
+      <div className="ml2">
+        <Board
+          board={uiState.playerState}
+          prompt={prompt}
+          performAction={comms.performAction}
+        />
 
-      <Hand
-        hand={uiState.playerHand}
-        prompt={uiState.prompt}
-        performAction={comms.performAction}
-      />
+        {prompt && <h3>{prompt.text}</h3>}
+        {prompt && prompt.type === 'PlaceShipPrompt' && (
+          <BoardShip
+            ship={{
+              location: 'n',
+              shipType: prompt.newShip,
+              damage: 0,
+            }}
+            prompt={undefined}
+            performAction={_.noop}
+            index={0}
+            playerId=""
+          />
+        )}
 
-      {uiState.prompt && uiState.prompt.type === 'PlaceShipPrompt' && (
-        <ShipPreview ship={uiState.prompt.newShip} />
-      )}
-      {uiState.prompt && <h3>{uiState.prompt.text}</h3>}
+        {canPass ? (
+          <button
+            onClick={() =>
+              comms.performAction({
+                type: 'PassAction',
+              })
+            }
+          >
+            Pass
+          </button>
+        ) : null}
 
-      <h1>Events</h1>
-      <div className="pre code ba pa1">
-        {uiState.eventLog.map((l, i) => (
-          <p key={i}>{l}</p>
-        ))}
+        <Hand
+          hand={uiState.playerHand}
+          prompt={prompt}
+          performAction={comms.performAction}
+        />
       </div>
     </div>
   )

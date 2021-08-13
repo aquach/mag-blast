@@ -1,4 +1,4 @@
-import { GameState, PlayerState } from './types'
+import { CommandShip, GameState, PlayerState, Ship } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
 import { ActionCard, Location, LOCATIONS, ShipCard } from './shared-types'
@@ -129,4 +129,42 @@ export function onePlayerLeft(playerState: Map<string, PlayerState>): boolean {
   return (
     Array.from(playerState.values()).filter((ps) => ps.isAlive).length === 1
   )
+}
+
+export function owningPlayer(
+  playerState: Map<string, PlayerState>,
+  ship: Ship | CommandShip
+): [string, PlayerState] {
+  const playerEntry = Array.from(playerState.entries()).find(([_, p]) =>
+    ship.type === 'Ship' ? p.ships.includes(ship) : p.commandShip === ship
+  )
+  assert(playerEntry !== undefined, 'Target ship must belong to a player.')
+
+  return playerEntry
+}
+
+export function destroyShip(state: GameState, ship: Ship | CommandShip): void {
+  const [targetPlayer, targetPlayerState] = owningPlayer(
+    state.playerState,
+    ship
+  )
+
+  state.eventLog.push(`${targetPlayer}'s ${ship.shipType.name} is destroyed!`)
+
+  if (ship.type === 'Ship') {
+    _.remove(targetPlayerState.ships, (s) => s === ship)
+  } else {
+    state.eventLog.push(`${targetPlayer} is eliminated.`)
+    targetPlayerState.isAlive = false
+
+    if (onePlayerLeft(state.playerState)) {
+      state.eventLog.push(
+        `${state.activePlayer} is the only player left and wins the game!`
+      )
+      state.turnState = {
+        type: 'EndGameState',
+      }
+      state.activePlayer = ''
+    }
+  }
 }

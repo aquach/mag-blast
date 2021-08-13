@@ -30,6 +30,23 @@ export interface PlayerState {
   isAlive: boolean
 }
 
+export interface BlastPlayedDirectHitState {
+  type: 'BlastPlayedDirectHitState'
+  firingShip: Ship
+  targetShip: Ship | CommandShip
+}
+
+export interface DirectHitPlayedDirectHitState {
+  type: 'DirectHitPlayedDirectHitState'
+  firingShip: Ship
+  targetShip: Ship | CommandShip
+}
+
+export type DirectHitState =
+  | undefined
+  | BlastPlayedDirectHitState
+  | DirectHitPlayedDirectHitState
+
 export interface GameState {
   type: 'GameState'
 
@@ -41,6 +58,7 @@ export interface GameState {
 
   playerState: Map<PlayerId, PlayerState>
   activePlayer: string
+  directHitStateMachine: DirectHitState
   turnState: TurnState
   playerTurnOrder: PlayerId[]
 

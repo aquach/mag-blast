@@ -80,6 +80,7 @@ export function newGameState(playerIdSet: Set<PlayerId>): GameState {
 
     playerState: new Map(players),
     activePlayer: '',
+    directHitStateMachine: undefined,
     turnState: {
       type: 'ChooseStartingShipsState',
       dealtShipCards: startingShipAssignments,
@@ -188,10 +189,27 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
         }
 
         case 'AttackTurnState': {
-          const playableCardIndices = filterIndices(
-            playerState.hand,
-            (c) => !c.isInstant
-          )
+          const playableCardIndices = filterIndices(playerState.hand, (c) => {
+            if (c.isInstant) {
+              return false
+            }
+
+            if (c.isDirectHit) {
+              return (
+                state.directHitStateMachine?.type ===
+                'BlastPlayedDirectHitState'
+              )
+            }
+
+            if (c.isDirectHitEffect) {
+              return (
+                state.directHitStateMachine?.type ===
+                'DirectHitPlayedDirectHitState'
+              )
+            }
+
+            return true
+          })
 
           return ascribe<ChooseCardPrompt>({
             type: 'ChooseCardPrompt',

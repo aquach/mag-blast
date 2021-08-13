@@ -5,7 +5,6 @@ import {
   MAX_ZONE_SHIPS,
   CommandShip,
   Ship,
-  PlayerState,
 } from './types'
 
 import {
@@ -15,21 +14,132 @@ import {
   ChooseZoneAction,
   PassAction,
   ChooseCardAction,
+  ActionCard,
 } from './shared-types'
 import { assert, partition } from './utils'
 import {
   canFire,
+  destroyShip,
   discardActivePlayerCards,
   drawActivePlayerCards,
   drawShipCard,
   locationToString,
   movableZones,
   onePlayerLeft,
+  owningPlayer,
   sufficientForReinforcement,
 } from './logic'
 
 const STARTING_HAND_SIZE = 5
 const NUM_STARTING_SHIPS = 4
+
+function executeCardEffect(state: GameState, card: ActionCard): void {
+  const activePlayerState = state.playerState.get(state.activePlayer)
+  assert(
+    activePlayerState !== undefined,
+    `Player ID ${state.activePlayer} not found.`
+  )
+
+  if (card.isBlast) {
+    if (state.directHitStateMachine?.type === 'DirectHitPlayedDirectHitState') {
+      const firingShip = state.directHitStateMachine.firingShip
+      const targetShip = state.directHitStateMachine.targetShip
+      targetShip.damage += card.damage
+
+      const [targetPlayer, targetPlayerState] = owningPlayer(
+        state.playerState,
+        targetShip
+      )
+
+      state.eventLog.push(
+        `${state.activePlayer}'s ${firingShip.shipType.name} fires an additional ${card.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${card.damage} damage.`
+      )
+
+      if (targetShip.damage >= targetShip.shipType.hp) {
+        destroyShip(state, targetShip)
+      }
+
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+    } else {
+      state.turnState = {
+        type: 'PlayBlastChooseFiringShipState',
+        blast: card,
+      }
+    }
+  } else if (card.cardType === 'ReinforcementsCard') {
+    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+    const newShip = drawShipCard(state)
+
+    state.turnState = {
+      type: 'AttackPlaceShipState',
+      newShip,
+    }
+  } else if (card.cardType === 'StrategicAllocationCard') {
+    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+    drawActivePlayerCards(state, 3)
+  } else if (card.isDirectHit) {
+    if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
+      console.warn(
+        `Wrong state ${state.directHitStateMachine?.type} to play direct hit.`
+      )
+      return
+    }
+
+    state.eventLog.push(`${state.activePlayer} plays a Direct Hit!`)
+    state.directHitStateMachine = {
+      type: 'DirectHitPlayedDirectHitState',
+      firingShip: state.directHitStateMachine.firingShip,
+      targetShip: state.directHitStateMachine.targetShip,
+    }
+  } else if (card.isDirectHitEffect) {
+    if (state.directHitStateMachine?.type !== 'DirectHitPlayedDirectHitState') {
+      console.warn(
+        `Wrong state ${state.directHitStateMachine?.type} to play a direct hit effect.`
+      )
+      return
+    }
+
+    state.eventLog.push(`${state.activePlayer} plays a ${card.name}!`)
+
+    const [targetPlayer, targetPlayerState] = owningPlayer(
+      state.playerState,
+      state.directHitStateMachine.targetShip
+    )
+
+    switch (card.cardType) {
+      case 'CatastrophicDamageCard':
+        destroyShip(state, state.directHitStateMachine.targetShip)
+        break
+      case 'BoardingPartyCard':
+        // TODO
+        break
+      case 'ConcussiveBlastCard':
+        // TODO
+        break
+      case 'BridgeHitCard':
+        state.eventLog.push(
+          `${state.activePlayer} takes three cards at random from ${targetPlayer}'s hand.`
+        )
+        const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
+        stealCards.forEach((c) => {
+          activePlayerState.hand.push(c)
+        })
+        targetPlayerState.hand = targetPlayerState.hand.filter(
+          (c) => !stealCards.includes(c)
+        )
+        break
+      default:
+        console.warn(
+          `Don't know how to handle choosing a ${card.cardType} card.`
+        )
+        return
+    }
+  } else {
+    console.warn(`Don't know how to handle choosing a ${card.cardType} card.`)
+  }
+}
 
 function applyChooseCardAction(
   state: GameState,
@@ -102,14 +212,10 @@ function applyChooseCardAction(
       card.cardType === 'EvasiveActionCard'
     ) {
       // Cancel effects by transitioning back to AttackTurnState without doing anything.
-      const firingPlayerEntry = Array.from(state.playerState.entries()).find(
-        ([_, p]) => p.ships.includes(firingShip)
+      const [firingPlayer, firingPlayerState] = owningPlayer(
+        state.playerState,
+        firingShip
       )
-      assert(
-        firingPlayerEntry !== undefined,
-        'Firing ship must belong to a player.'
-      )
-      const [firingPlayer, firingPlayerState] = firingPlayerEntry
       state.eventLog.push(
         `${firingPlayer} attempts to play a ${state.turnState.blast.name} targeting ${playerId}'s ${state.turnState.targetShip.shipType.name}, but ${playerId} responds with ${card.name}, canceling its effect!`
       )
@@ -211,29 +317,14 @@ function applyChooseCardAction(
         return
       }
 
+      executeCardEffect(state, card)
+
+      // Consume the card.
       state.actionDiscardDeck.push(activePlayerState.hand[action.handIndex])
       activePlayerState.hand.splice(action.handIndex, 1)
 
-      if (card.isBlast) {
-        state.turnState = {
-          type: 'PlayBlastChooseFiringShipState',
-          blast: card,
-        }
-      } else if (card.cardType === 'ReinforcementsCard') {
-        state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
-        const newShip = drawShipCard(state)
-
-        state.turnState = {
-          type: 'AttackPlaceShipState',
-          newShip,
-        }
-      } else if (card.cardType === 'StrategicAllocationCard') {
-        state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
-        drawActivePlayerCards(state, 3)
-      } else {
-        console.warn(
-          `Don't know how to handle choosing a ${card.cardType} card.`
-        )
+      if (!card.isDirectHit) {
+        state.directHitStateMachine = undefined
       }
       break
 
@@ -429,42 +520,23 @@ function applyPassAction(
       // Resolve attack.
       const targetShip = state.turnState.targetShip
       targetShip.damage += state.turnState.blast.damage
-      const targetPlayerEntry = Array.from(state.playerState.entries()).find(
-        ([_, p]) =>
-          targetShip.type === 'Ship'
-            ? p.ships.includes(targetShip)
-            : p.commandShip === targetShip
+
+      const [targetPlayer, targetPlayerState] = owningPlayer(
+        state.playerState,
+        targetShip
       )
-      assert(
-        targetPlayerEntry !== undefined,
-        'Target ship must belong to a player.'
-      )
-      const [targetPlayer, targetPlayerState] = targetPlayerEntry
 
       state.eventLog.push(
         `${state.activePlayer}'s ${state.turnState.firingShip.shipType.name} fires a ${state.turnState.blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${state.turnState.blast.damage} damage.`
       )
 
       if (targetShip.damage >= targetShip.shipType.hp) {
-        state.eventLog.push(
-          `${targetPlayer}'s ${targetShip.shipType.name} is destroyed!`
-        )
-
-        if (targetShip.type === 'Ship') {
-          _.remove(targetPlayerState.ships, (ship) => ship === targetShip)
-        } else {
-          state.eventLog.push(`${targetPlayer} is eliminated.`)
-          targetPlayerState.isAlive = false
-
-          if (onePlayerLeft(state.playerState)) {
-            state.eventLog.push(
-              `${state.activePlayer} is the only player left and wins the game!`
-            )
-            state.turnState = {
-              type: 'EndGameState',
-            }
-            state.activePlayer = ''
-          }
+        destroyShip(state, targetShip)
+      } else {
+        state.directHitStateMachine = {
+          type: 'BlastPlayedDirectHitState',
+          firingShip: state.turnState.firingShip,
+          targetShip,
         }
       }
 
@@ -538,6 +610,7 @@ function applyPassAction(
       }
 
       state.activePlayer = state.playerTurnOrder[nextPlayerIndex]
+      state.directHitStateMachine = undefined
       state.eventLog.push(`It is now ${state.activePlayer}'s turn.`)
 
       break

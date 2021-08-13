@@ -14,10 +14,29 @@ import {
   ShipCard,
   ChooseShipCardPrompt,
 } from './shared-types'
-import { GameState, MAX_ZONE_SHIPS, PlayerState } from './types'
+import { GameState, MAX_ZONE_SHIPS, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
 
 const NUM_STARTING_SHIP_CARDS = 6
+
+function obfuscateShips(ships: Ship[]): Ship[] {
+  return ships.map((s) => ({
+    type: 'Ship',
+    location: s.location,
+    damage: 0,
+    shipType: {
+      type: 'ShipCard',
+      name: 'Unknown',
+      shipClass: 'Unknown',
+      hp: 0,
+      movement: 0,
+      firesLasers: false,
+      firesBeams: false,
+      firesMags: false,
+    },
+    hasFiredThisTurn: false,
+  }))
+}
 
 export function newGameState(playerIdSet: Set<PlayerId>): GameState {
   const playerIds = _.shuffle(Array.from(playerIdSet.values()))
@@ -250,6 +269,26 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
         text: 'Choose four starting ships.',
         multiselect: { actionText: 'Confirm' },
       })
+    } else if (state.turnState.type === 'PlaceStartingShipsState') {
+      const chosenCards = state.turnState.chosenShipCards.get(playerId)
+      assert(
+        chosenCards !== undefined,
+        'PlaceStartingShipsState must have chosen cards.'
+      )
+
+      if (chosenCards.length > 0) {
+        const shipsByLocation = _.groupBy(playerState.ships, (s) => s.location)
+        const allowableZones = LOCATIONS.filter(
+          (l) => (shipsByLocation[l] ?? []).length <= MAX_ZONE_SHIPS
+        )
+
+        return ascribe<PlaceShipPrompt>({
+          type: 'PlaceShipPrompt',
+          text: `Choose a location to place your starting ${chosenCards[0].name}`,
+          newShip: chosenCards[0],
+          allowableZones,
+        })
+      }
     } else if (state.turnState.type === 'PlayBlastRespondState') {
       const targetShip = state.turnState.targetShip
       if (
@@ -284,13 +323,14 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
     type: 'UIGameState',
     playerHand: playerState.hand,
     playerState: Array.from(
-      Object.entries(
-        mapValues(state.playerState, (s) => ({
-          ships: s.ships,
-          commandShip: s.commandShip,
-          isAlive: s.isAlive,
-        }))
-      )
+      mapValues(state.playerState, (playerState, pid) => ({
+        ships:
+          state.turnState.type === 'PlaceStartingShipsState' && pid !== playerId
+            ? obfuscateShips(playerState.ships)
+            : playerState.ships,
+        commandShip: playerState.commandShip,
+        isAlive: playerState.isAlive,
+      })).entries()
     ),
     deckSize: state.actionDeck.length,
     isActivePlayer: state.activePlayer === playerId,

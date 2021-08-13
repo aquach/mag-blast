@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client'
 import _ from 'lodash'
-import { Action, UIGameState, UILobbyState } from '@shared-types'
+import { Action, PlayerId, UIGameState, UILobbyState } from '@shared-types'
 import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { Board } from './board'
@@ -65,10 +65,11 @@ const EventLog: React.FunctionComponent<{ eventLog: string[] }> = ({
   )
 }
 
-const Game: React.FunctionComponent<{ comms: Comms; uiState: UIGameState }> = ({
-  comms,
-  uiState,
-}) => {
+const Game: React.FunctionComponent<{
+  comms: Comms
+  uiState: UIGameState
+  clientPlayerId: PlayerId
+}> = ({ comms, uiState, clientPlayerId }) => {
   const prompt = uiState.prompt
 
   const passOptions =
@@ -88,6 +89,7 @@ const Game: React.FunctionComponent<{ comms: Comms; uiState: UIGameState }> = ({
       <div className="ml2">
         <Board
           board={uiState.playerState}
+          clientPlayerId={clientPlayerId}
           prompt={prompt}
           performAction={comms.performAction}
         />
@@ -182,7 +184,7 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
     case 'UILobbyState':
       return <Lobby players={uiState.playerIds} startGame={comms.startGame} />
     case 'UIGameState':
-      return <Game comms={comms} uiState={uiState} />
+      return <Game clientPlayerId={playerId} comms={comms} uiState={uiState} />
   }
 }
 

@@ -28,6 +28,8 @@ import {
   sufficientForReinforcement,
 } from './logic'
 
+const STARTING_HAND_SIZE = 5
+
 function applySelectCardAction(
   state: GameState,
   playerId: string,
@@ -296,7 +298,7 @@ function applyChooseShipAction(
         if (Array.isArray(action.choice)) {
           if (
             action.choice[1] < 0 ||
-            action.choice[1] >= activePlayerState.ships.length
+            action.choice[1] >= targetPlayerState.ships.length
           ) {
             console.warn(
               `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
@@ -350,10 +352,6 @@ function applyPassAction(
   playerId: string,
   action: PassAction
 ): void {
-  assert(
-    state.activePlayer === playerId,
-    'A player acted that was not the active player.'
-  )
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
@@ -410,6 +408,10 @@ function applyPassAction(
       break
 
     case 'ReinforceTurnState':
+      assert(
+        state.activePlayer === playerId,
+        'A player acted that was not the active player.'
+      )
       state.turnState = {
         type: 'ManeuverTurnState',
         originalLocations: new Map(),
@@ -417,6 +419,10 @@ function applyPassAction(
       break
 
     case 'ManeuverTurnState':
+      assert(
+        state.activePlayer === playerId,
+        'A player acted that was not the active player.'
+      )
       {
         const shipsByLocation = _.groupBy(
           activePlayerState.ships,
@@ -434,6 +440,10 @@ function applyPassAction(
       break
 
     case 'AttackTurnState':
+      assert(
+        state.activePlayer === playerId,
+        'A player acted that was not the active player.'
+      )
       // Go to next person's turn.
       const currentPlayerIndex = state.playerTurnOrder.indexOf(
         state.activePlayer
@@ -476,6 +486,70 @@ function applyChooseZoneAction(
   playerId: string,
   action: ChooseZoneAction
 ): void {
+  if (state.turnState.type === 'PlaceStartingShipsState') {
+    const chosenShipCards = state.turnState.chosenShipCards.get(playerId)
+    assert(
+      chosenShipCards !== undefined,
+      `Ship cards for player ${playerId} not found.`
+    )
+    const playerState = state.playerState.get(playerId)
+    assert(playerState !== undefined, `Player ${playerId}'s state not found.`)
+
+    if (chosenShipCards.length === 0) {
+      // TODO
+      return
+    }
+
+    const card = chosenShipCards.shift()!
+
+    playerState.ships.push({
+      type: 'Ship',
+      location: action.location,
+      shipType: card,
+      damage: 0,
+      hasFiredThisTurn: false,
+    })
+
+    state.eventLog.push(`${playerId} places a ship.`)
+
+    if (
+      Array.from(state.turnState.chosenShipCards.values()).every(
+        (c) => c.length === 0
+      )
+    ) {
+      const playerWithLowestHullStrength = _.minBy(state.playerTurnOrder, (p) =>
+        _.sum(state.playerState.get(p)!.ships.map((s) => s.shipType.hp))
+      )!
+      const index = state.playerTurnOrder.indexOf(playerWithLowestHullStrength)
+
+      state.playerTurnOrder = [
+        ..._.drop(state.playerTurnOrder, index),
+        ..._.take(state.playerTurnOrder, index),
+      ]
+
+      state.playerState.forEach((player) => {
+        _.times(STARTING_HAND_SIZE, () =>
+          player.hand.push(state.actionDeck.shift()!)
+        )
+      })
+
+      state.eventLog.push(
+        `All players have placed their ships and the game can now begin.`
+      )
+      state.eventLog.push(
+        `${playerWithLowestHullStrength} has the lowest total hull strength and thus goes first.`
+      )
+      state.eventLog.push(`=== Turn 1 ===`)
+      state.turnState = {
+        type: 'ManeuverTurnState',
+        originalLocations: new Map(),
+      }
+      state.activePlayer = state.playerTurnOrder[0]
+    }
+
+    return
+  }
+
   assert(
     state.activePlayer === playerId,
     'A player acted that was not the active player.'

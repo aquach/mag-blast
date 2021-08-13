@@ -95,6 +95,7 @@ io.on('connection', (socket) => {
     console.warn(
       `A socket tried to connect to a game ${gameId} that doesn't exist.`
     )
+    socket.emit('game-not-found')
     return
   }
 

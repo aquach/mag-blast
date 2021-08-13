@@ -8,8 +8,13 @@ import { Hand, ShipCardComponent, ShipCardSelector } from './hand'
 
 const gameId = _.last(window.location.pathname.split('/')) as string
 
+interface UIErrorState {
+  type: 'UIErrorState'
+  text: JSX.Element
+}
+
 interface Comms {
-  uiState: UILobbyState | UIGameState | null
+  uiState: UILobbyState | UIGameState | UIErrorState | null
   performAction(a: Action): void
   startGame(): void
 }
@@ -39,6 +44,14 @@ function useComms(playerId: string): Comms {
         startGame() {
           socket.emit('start-game')
         },
+      })
+    })
+
+    socket.on('game-not-found', () => {
+      setComms({
+        uiState: { type: 'UIErrorState', text: (<div>Game not found. Click <a href='../'>here</a> to return to the main page.</div>) },
+        performAction() {},
+        startGame() {},
       })
     })
 
@@ -172,7 +185,7 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
 
   const uiState = comms.uiState
 
-  if (!uiState) {
+  if (uiState === null) {
     return (
       <div className="flex flex-column vh-100 w-100 justify-center items-center f1">
         Loading...
@@ -181,6 +194,12 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
   }
 
   switch (uiState.type) {
+    case 'UIErrorState':
+    return (
+      <div className="flex flex-column vh-100 w-100 justify-center items-center">
+        {uiState.text}
+      </div>
+    )
     case 'UILobbyState':
       return <Lobby players={uiState.playerIds} startGame={comms.startGame} />
     case 'UIGameState':

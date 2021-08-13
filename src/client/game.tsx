@@ -3,8 +3,8 @@ import _ from 'lodash'
 import { Action, UIGameState, UILobbyState } from '@shared-types'
 import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
-import { Board, BoardShip } from './board'
-import { Hand } from './hand'
+import { Board } from './board'
+import { Hand, ShipCardComponent, ShipCardSelector } from './hand'
 
 const gameId = _.last(window.location.pathname.split('/')) as string
 
@@ -94,16 +94,16 @@ const Game: React.FunctionComponent<{ comms: Comms; uiState: UIGameState }> = ({
 
         {prompt && <h3 className="ma1 mv2">{prompt.text}</h3>}
         {prompt && prompt.type === 'PlaceShipPrompt' && (
-          <BoardShip
-            ship={{
-              location: 'n',
-              shipType: prompt.newShip,
-              damage: 0,
-            }}
-            prompt={undefined}
-            performAction={_.noop}
-            index={0}
-            playerId=""
+          <ShipCardComponent
+            shipType={prompt.newShip}
+            onClick={_.noop}
+            selected={false}
+          />
+        )}
+        {prompt && prompt.type === 'ChooseShipCardPrompt' && (
+          <ShipCardSelector
+            prompt={prompt}
+            performAction={comms.performAction}
           />
         )}
 
@@ -171,7 +171,11 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
   const uiState = comms.uiState
 
   if (!uiState) {
-    return <div>Loading...</div>
+    return (
+      <div className="flex flex-column vh-100 w-100 justify-center items-center f1">
+        Loading...
+      </div>
+    )
   }
 
   switch (uiState.type) {

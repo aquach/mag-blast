@@ -17,7 +17,9 @@ export interface ShipCard {
 export interface CommandShipCard {
   type: 'CommandShipCard'
   name: string
+  commandType: string
   hp: number
+  text: string
 }
 
 export interface Resources {
@@ -37,10 +39,11 @@ export interface ActionCard {
   isSquadron: boolean
   isDirectHit: boolean
   isDirectHitEffect: boolean
+  isInstant: boolean
 }
 
-export interface SelectCardPrompt {
-  type: 'SelectCardPrompt'
+export interface ChooseCardPrompt {
+  type: 'ChooseCardPrompt'
   selectableCardIndices: number[]
   multiselect: { actionText: string } | undefined
   pass: { actionText: string } | undefined
@@ -69,11 +72,19 @@ export interface PlaceShipPrompt {
   allowableZones: Location[]
 }
 
+export interface ChooseShipCardPrompt {
+  type: 'ChooseShipCardPrompt'
+  ships: ShipCard[]
+  text: string
+  multiselect: { actionText: string } | undefined
+}
+
 export type Prompt =
-  | SelectCardPrompt
+  | ChooseCardPrompt
   | ChooseShipPrompt
   | PlaceShipPrompt
   | ChooseZonePrompt
+  | ChooseShipCardPrompt
 
 export interface UIPlayerState {
   ships: UIShip[]
@@ -100,7 +111,7 @@ export interface UILobbyState {
 export interface UIGameState {
   type: 'UIGameState'
   playerHand: ActionCard[]
-  playerState: Record<PlayerId, UIPlayerState>
+  playerState: [PlayerId, UIPlayerState][]
   deckSize: number
   isActivePlayer: boolean
   eventLog: string[]

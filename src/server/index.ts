@@ -31,7 +31,14 @@ const app = express()
 const server = http.createServer(app)
 const io = new Server(server)
 
-const games: Game[] = []
+const games: Game[] = [
+  {
+    gameId: 'test',
+    bindings: [],
+    gameState: { type: 'LobbyState' },
+    lastUpdated: new Date().getTime(),
+  },
+]
 
 setInterval(() => {
   const removedGames = _.remove(
@@ -39,7 +46,7 @@ setInterval(() => {
     (g) => g.lastUpdated < new Date().getTime() - 1000 * 3600 * 24 * 7
   )
   console.log(`Removed ${removedGames.length} orphaned games.`)
-}, 1000 * 60)
+}, 1000 * 60 * 60)
 
 app.set('etag', false)
 
@@ -116,7 +123,7 @@ io.on('connection', (socket) => {
       return
     }
 
-    applyAction(game.gameState, a)
+    applyAction(game.gameState, binding.id, a)
     game.lastUpdated = new Date().getTime()
 
     broadcastUpdates()

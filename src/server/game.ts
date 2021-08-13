@@ -1,137 +1,75 @@
 import * as _ from 'lodash'
-import { LobbyState } from '.'
-import { actionCards, shipCards } from './cards'
+import { actionCards, commandShipCards, shipCards } from './cards'
 import { canFire, movableZones } from './logic'
 import {
   ChooseShipPrompt,
   ChooseZonePrompt,
-  CommandShipCard,
   LOCATIONS,
   PlaceShipPrompt,
   PlayerId,
   Prompt,
-  SelectCardPrompt,
+  ChooseCardPrompt,
   UIGameState,
   UILobbyState,
+  ShipCard,
+  ChooseShipCardPrompt,
 } from './shared-types'
-import { GameState, MAX_ZONE_SHIPS } from './types'
-import { ascribe, assert, filterIndices, mapToObject, mapValues } from './utils'
+import { GameState, MAX_ZONE_SHIPS, PlayerState } from './types'
+import { ascribe, assert, filterIndices, mapValues } from './utils'
 
-const commandShip: CommandShipCard = {
-  type: 'CommandShipCard',
-  name: 'The Glorp',
-  hp: 9,
-}
+const NUM_STARTING_SHIP_CARDS = 6
 
-export function newGameState(playerIds: Set<string>): GameState {
+export function newGameState(playerIdSet: Set<PlayerId>): GameState {
+  const playerIds = _.shuffle(Array.from(playerIdSet.values()))
+  const randomizedCommandShipCards = _.shuffle(commandShipCards)
+
+  const shipDeck = _.shuffle(shipCards)
+
+  const playerIdsWithStartingShips = _.zip(
+    playerIds,
+    _.take(_.chunk(shipDeck, NUM_STARTING_SHIP_CARDS), playerIds.length)
+  )
+  const startingShipAssignments = new Map(
+    playerIdsWithStartingShips as [PlayerId, ShipCard[]][]
+  )
+  shipDeck.splice(0, NUM_STARTING_SHIP_CARDS * playerIds.length)
+
+  const players = playerIds.map((playerId, i) => {
+    const playerState: PlayerState = {
+      hand: [],
+      ships: [],
+      commandShip: {
+        type: 'CommandShip',
+        shipType: randomizedCommandShipCards[i],
+        damage: 0,
+      },
+      isAlive: true,
+    }
+
+    const t: [PlayerId, PlayerState] = [playerId, playerState]
+    return t
+  })
+
   return {
     type: 'GameState',
 
     actionDeck: _.shuffle(actionCards),
     actionDiscardDeck: [],
 
-    shipDeck: _.shuffle(shipCards),
+    shipDeck,
     shipDiscardDeck: [],
 
-    playerState: new Map([
-      [
-        '#1',
-        {
-          hand: [],
-          ships: [
-            {
-              type: 'Ship',
-              location: 'n',
-              shipType: shipCards[0],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-            {
-              type: 'Ship',
-              location: 'e',
-              shipType: shipCards[1],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-            {
-              type: 'Ship',
-              location: 's',
-              shipType: shipCards[10],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-            {
-              type: 'Ship',
-              location: 'w',
-              shipType: shipCards[20],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-            {
-              type: 'Ship',
-              location: 'n',
-              shipType: shipCards[21],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-            {
-              type: 'Ship',
-              location: 'e',
-              shipType: shipCards[22],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-            {
-              type: 'Ship',
-              location: 's',
-              shipType: shipCards[25],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-            {
-              type: 'Ship',
-              location: 'w',
-              shipType: shipCards[30],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-          ],
-          commandShip: {
-            type: 'CommandShip',
-            shipType: commandShip,
-            damage: 0,
-          },
-          isAlive: true,
-        },
-      ],
-      [
-        '#2',
-        {
-          hand: [],
-          ships: [
-            {
-              type: 'Ship',
-              location: 'n',
-              shipType: shipCards[0],
-              damage: 0,
-              hasFiredThisTurn: false,
-            },
-          ],
-          commandShip: {
-            type: 'CommandShip',
-            shipType: commandShip,
-            damage: 0,
-          },
-          isAlive: true,
-        },
-      ],
-    ]),
-    activePlayer: '#1',
-    turnState: { type: 'DiscardTurnState' },
-    playerTurnOrder: ['#1', '#2'],
+    playerState: new Map(players),
+    activePlayer: '',
+    turnState: {
+      type: 'ChooseStartingShipsState',
+      dealtShipCards: startingShipAssignments,
+      chosenShipCards: new Map(),
+    },
+    playerTurnOrder: playerIds,
 
     turnNumber: 1,
-    eventLog: [],
+    eventLog: ['Welcome to Mag Blast!'],
   }
 }
 
@@ -150,8 +88,8 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
     if (state.activePlayer === playerId) {
       switch (state.turnState.type) {
         case 'DiscardTurnState': {
-          return ascribe<SelectCardPrompt>({
-            type: 'SelectCardPrompt',
+          return ascribe<ChooseCardPrompt>({
+            type: 'ChooseCardPrompt',
             selectableCardIndices: filterIndices(playerState.hand, () => true),
             text: 'Choose cards to discard.',
             pass: undefined,
@@ -162,8 +100,8 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
         }
 
         case 'ReinforceTurnState': {
-          return ascribe<SelectCardPrompt>({
-            type: 'SelectCardPrompt',
+          return ascribe<ChooseCardPrompt>({
+            type: 'ChooseCardPrompt',
             selectableCardIndices: filterIndices(
               playerState.hand,
               (c) =>
@@ -235,8 +173,8 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
             (c) => c.isBlast // TODO
           )
 
-          return ascribe<SelectCardPrompt>({
-            type: 'SelectCardPrompt',
+          return ascribe<ChooseCardPrompt>({
+            type: 'ChooseCardPrompt',
             selectableCardIndices: playableCardIndices,
             text: 'Choose a card to play.',
             multiselect: undefined,
@@ -302,6 +240,16 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
             canCancel: true,
           })
       }
+    } else if (
+      state.turnState.type === 'ChooseStartingShipsState' &&
+      !state.turnState.chosenShipCards.has(playerId)
+    ) {
+      return ascribe<ChooseShipCardPrompt>({
+        type: 'ChooseShipCardPrompt',
+        ships: state.turnState.dealtShipCards.get(playerId)!,
+        text: 'Choose four starting ships.',
+        multiselect: { actionText: 'Confirm' },
+      })
     } else if (state.turnState.type === 'PlayBlastRespondState') {
       const targetShip = state.turnState.targetShip
       if (
@@ -311,7 +259,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
       ) {
         const playableCardIndices = filterIndices(
           playerState.hand,
-          (c) => false // TODO
+          () => false // TODO
         )
 
         const firingShip = state.turnState.firingShip
@@ -319,8 +267,8 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
           (pid) => state.playerState.get(pid)?.ships?.includes(firingShip)
         )
 
-        return ascribe<SelectCardPrompt>({
-          type: 'SelectCardPrompt',
+        return ascribe<ChooseCardPrompt>({
+          type: 'ChooseCardPrompt',
           text: `${attackingPlayer} is attempting to play a ${state.turnState.blast.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
           selectableCardIndices: playableCardIndices,
           multiselect: undefined,
@@ -335,12 +283,14 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
   return {
     type: 'UIGameState',
     playerHand: playerState.hand,
-    playerState: mapToObject(
-      mapValues(state.playerState, (s) => ({
-        ships: s.ships,
-        commandShip: s.commandShip,
-        isAlive: s.isAlive,
-      }))
+    playerState: Array.from(
+      Object.entries(
+        mapValues(state.playerState, (s) => ({
+          ships: s.ships,
+          commandShip: s.commandShip,
+          isAlive: s.isAlive,
+        }))
+      )
     ),
     deckSize: state.actionDeck.length,
     isActivePlayer: state.activePlayer === playerId,

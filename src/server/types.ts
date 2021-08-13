@@ -48,6 +48,17 @@ export interface GameState {
   eventLog: string[]
 }
 
+export interface ChooseStartingShipsState {
+  type: 'ChooseStartingShipsState'
+  dealtShipCards: Map<PlayerId, ShipCard[]>
+  chosenShipCards: Map<PlayerId, ShipCard[]>
+}
+
+export interface PlaceStartingShipsState {
+  type: 'PlaceStartingShipsState'
+  chosenShipCards: Map<PlayerId, ShipCard[]>
+}
+
 export interface DiscardTurnState {
   type: 'DiscardTurnState'
 }
@@ -99,6 +110,8 @@ export interface EndGameState {
 }
 
 export type TurnState =
+  | ChooseStartingShipsState
+  | PlaceStartingShipsState
   | DiscardTurnState
   | ReinforceTurnState
   | ReinforcePlaceShipState

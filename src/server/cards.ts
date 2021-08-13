@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import * as parse from 'csv-parse/lib/sync'
 import * as fs from 'fs'
-import { ActionCard, ShipCard } from './shared-types'
+import { ActionCard, CommandShipCard, ShipCard } from './shared-types'
 
 interface ShipCSVRow {
   Type: string
@@ -44,6 +44,7 @@ interface ActionCSVRow {
   'Is Squadron': string
   'Is Direct Hit': string
   'Is Direct Hit Effect': string
+  'Is Instant': string
 }
 
 const actionCSVRows: ActionCSVRow[] = parse(
@@ -66,6 +67,7 @@ export const actionCards: ActionCard[] = _.flatMap(actionCSVRows, (row) => {
     isSquadron: row['Is Squadron'] === 'TRUE',
     isDirectHit: row['Is Direct Hit'] === 'TRUE',
     isDirectHitEffect: row['Is Direct Hit Effect'] === 'TRUE',
+    isInstant: row['Is Instant'] === 'TRUE',
   }
 
   const noResources = { stars: 0, diamonds: 0, circles: 0 }
@@ -87,3 +89,31 @@ export const actionCards: ActionCard[] = _.flatMap(actionCSVRows, (row) => {
     ...variants.map((resources) => ({ ...card, resources })),
   ]
 })
+
+interface CommandShipCSVRow {
+  Name: string
+  Type: string
+  Text: string
+}
+
+const commandShipCSVRows: CommandShipCSVRow[] = parse(
+  fs.readFileSync('cards/command-ships.csv', 'utf-8'),
+  {
+    skipEmptyLines: true,
+    skipLinesWithEmptyValues: true,
+    columns: true,
+    cast: true,
+  }
+)
+
+const COMMAND_SHIP_HP = 9
+
+export const commandShipCards: CommandShipCard[] = commandShipCSVRows.map(
+  (row) => ({
+    type: 'CommandShipCard',
+    name: row.Name,
+    commandType: row.Type,
+    text: row.Text,
+    hp: COMMAND_SHIP_HP,
+  })
+)

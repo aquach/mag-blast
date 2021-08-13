@@ -10,7 +10,7 @@ import {
 } from '@shared-types'
 import React, { Fragment } from 'react'
 
-const TurretMarker: React.FunctionComponent<{
+export const TurretMarker: React.FunctionComponent<{
   type: 'laser' | 'beam' | 'mag'
   active: boolean
 }> = ({ type, active }) => {
@@ -280,13 +280,13 @@ const BoardPlayer: React.FunctionComponent<{
 }
 
 export const Board: React.FunctionComponent<{
-  board: Record<PlayerId, UIPlayerState>
+  board: [PlayerId, UIPlayerState][]
   prompt: Prompt | undefined
   performAction: (a: Action) => void
 }> = ({ board, prompt, performAction }) => {
   return (
     <div className="flex">
-      {Object.entries(board).map(([playerId, playerState]) => (
+      {board.map(([playerId, playerState]) => (
         <BoardPlayer
           key={playerId}
           playerId={playerId}

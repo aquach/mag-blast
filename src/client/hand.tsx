@@ -1,6 +1,13 @@
 import _ from 'lodash'
-import { Action, Prompt, ActionCard } from '@shared-types'
-import React, { useState } from 'react'
+import {
+  Action,
+  Prompt,
+  ActionCard,
+  ShipCard,
+  ChooseShipCardPrompt,
+} from '@shared-types'
+import React, { Fragment, useState } from 'react'
+import { TurretMarker } from './board'
 
 const ActionCard: React.FunctionComponent<{
   card: ActionCard
@@ -81,13 +88,13 @@ export const Hand: React.FunctionComponent<{
   const [selectedCards, setSelectedCards] = useState<number[]>([])
 
   const passOptions =
-    prompt !== undefined && prompt.type === 'SelectCardPrompt'
+    prompt !== undefined && prompt.type === 'ChooseCardPrompt'
       ? prompt.pass
       : undefined
   const canPass = passOptions !== undefined
 
   const multiSelectOptions =
-    prompt !== undefined && prompt.type === 'SelectCardPrompt'
+    prompt !== undefined && prompt.type === 'ChooseCardPrompt'
       ? prompt.multiselect
       : undefined
   const canMultiselect = multiSelectOptions !== undefined
@@ -128,7 +135,7 @@ export const Hand: React.FunctionComponent<{
         {hand.map((c, i) => {
           const clickable =
             prompt !== undefined &&
-            prompt.type === 'SelectCardPrompt' &&
+            prompt.type === 'ChooseCardPrompt' &&
             prompt.selectableCardIndices.includes(i)
 
           const toggleSelected = () => {
@@ -152,6 +159,128 @@ export const Hand: React.FunctionComponent<{
               clickable={clickable}
               selected={canMultiselect && selectedCards.includes(i)}
               onClick={clickable ? onClick : _.noop}
+            />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export const ShipCardComponent: React.FunctionComponent<{
+  shipType: ShipCard
+  onClick: () => void
+  selected: boolean
+}> = ({ shipType, onClick, selected }) => {
+  return (
+    <div
+      className={`ba br1 ma1 pa1 bg-light-gray relative clickable pointer ${
+        selected ? 'selected' : ''
+      }`}
+      style={{ width: '4rem', height: '7.2rem' }}
+      onClick={onClick}
+    >
+      <p className="f7 tc mb1 b" style={{ marginTop: '1.75rem' }}>
+        {shipType.name}
+      </p>
+      <p className="f7 tc mt1">
+        {shipType.shipClass === 'Dreadnought' ? (
+          <Fragment>
+            Dread
+            <br />
+            nought
+          </Fragment>
+        ) : (
+          shipType.shipClass
+        )}
+      </p>
+      <div
+        className="absolute bg-near-black"
+        style={{
+          top: 0,
+          left: 0,
+          padding: '0.125rem 0.25rem',
+          color: 'white',
+        }}
+      >
+        {shipType.movement}
+      </div>
+      <div
+        className="absolute red"
+        style={{
+          bottom: 0,
+          right: 0,
+          padding: '0.125rem 0.25rem',
+          borderLeft: '1px solid',
+          borderTop: '1px solid',
+          background: 'white',
+        }}
+      >
+        {shipType.hp}
+      </div>
+      <div
+        className="absolute"
+        style={{
+          bottom: 0,
+          left: 0,
+        }}
+      >
+        <TurretMarker type="laser" active={shipType.firesLasers} />
+        <TurretMarker type="beam" active={shipType.firesBeams} />
+        <TurretMarker type="mag" active={shipType.firesMags} />
+      </div>
+    </div>
+  )
+}
+
+export const ShipCardSelector: React.FunctionComponent<{
+  prompt: ChooseShipCardPrompt
+  performAction: (a: Action) => void
+}> = ({ prompt, performAction }) => {
+  const [selectedCards, setSelectedCards] = useState<number[]>([])
+
+  const canMultiselect = prompt.multiselect !== undefined
+  const actionText = prompt.multiselect?.actionText
+
+  return (
+    <div>
+      {canMultiselect ? (
+        <button
+          className="ma1 pa1 f5"
+          onClick={() => {
+            performAction({
+              type: 'SelectCardAction',
+              handIndex: selectedCards,
+            })
+            setSelectedCards([])
+          }}
+        >
+          {actionText}
+        </button>
+      ) : null}
+
+      <div className="flex mv1">
+        {prompt.ships.map((s, i) => {
+          const toggleSelected = () => {
+            setSelectedCards(
+              selectedCards.includes(i)
+                ? _.without(selectedCards, i)
+                : selectedCards.concat(i)
+            )
+          }
+
+          const onClick = () => {
+            canMultiselect
+              ? toggleSelected()
+              : performAction({ type: 'SelectCardAction', handIndex: i })
+          }
+
+          return (
+            <ShipCardComponent
+              key={i}
+              shipType={s}
+              selected={canMultiselect && selectedCards.includes(i)}
+              onClick={onClick}
             />
           )
         })}

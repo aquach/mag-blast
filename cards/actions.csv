@@ -1,19 +1,19 @@
-Name,Type,Num No Resources,Resource Variants,Count,Damage,Is Blast,Is Squadron,Is Direct Hit,Is Direct Hit Effect
-Temporal Flux,TemporalFluxCard,2,,0,0,FALSE,FALSE,FALSE,FALSE
-Strategic Allocation,StrategicAllocationCard,2,,0,0,FALSE,FALSE,FALSE,FALSE
-Catastrophic Damage,CatastrophicDamageCard,1,S,1,0,FALSE,FALSE,FALSE,TRUE
-Boarding Party,BoardingPartyCard,1,D,1,0,FALSE,FALSE,FALSE,TRUE
-Reinforcements,ReinforcementsCard,4,,0,0,FALSE,FALSE,FALSE,FALSE
-Concussive Blast,ConcussiveBlastCard,1,C,1,0,FALSE,FALSE,FALSE,TRUE
-Evasive Action,EvasiveActionCard,2,,0,0,FALSE,FALSE,FALSE,FALSE
-Minefield,MinefieldCard,0,"S,D,C",3,0,FALSE,FALSE,FALSE,FALSE
-Fighter,FighterCard,0,"S,S,D,D,C,C,SD,DC,SC",9,2,FALSE,FALSE,FALSE,FALSE
-Bridge Hit,BridgeHitCard,0,"SS,CC",2,0,FALSE,FALSE,FALSE,TRUE
-Spacedock,SpacedockCard,4,,0,0,FALSE,FALSE,FALSE,FALSE
-Ramming Speed,RammingSpeedCard,2,,0,0,FALSE,FALSE,FALSE,FALSE
-Asteroids,AsteroidsCard,0,"S,D,C",3,0,FALSE,FALSE,FALSE,FALSE
-Mag Blast,MagBlastCard,7,"S,D,C",3,5,TRUE,FALSE,FALSE,FALSE
-Beam Blast,BeamBlastCard,19,"S,C,C",3,3,TRUE,FALSE,FALSE,FALSE
-Laser Blast,LaserBlastCard,12,"S,S,C,C,D,D",6,1,TRUE,FALSE,FALSE,FALSE
-Bomber,BomberCard,0,"S,C,D,DD",4,4,FALSE,TRUE,FALSE,FALSE
-Direct Hit,DirectHitCard,2,"S,S,C,C,D,D",6,0,FALSE,TRUE,TRUE,FALSE
+Name,Type,Num No Resources,Resource Variants,Count,Damage,Is Blast,Is Squadron,Is Direct Hit,Is Direct Hit Effect,Is Instant
+Temporal Flux,TemporalFluxCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,TRUE
+Strategic Allocation,StrategicAllocationCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE
+Catastrophic Damage,CatastrophicDamageCard,1,S,1,0,FALSE,FALSE,FALSE,TRUE,FALSE
+Boarding Party,BoardingPartyCard,1,D,1,0,FALSE,FALSE,FALSE,TRUE,FALSE
+Reinforcements,ReinforcementsCard,4,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE
+Concussive Blast,ConcussiveBlastCard,1,C,1,0,FALSE,FALSE,FALSE,TRUE,FALSE
+Evasive Action,EvasiveActionCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,TRUE
+Minefield,MinefieldCard,0,"S,D,C",3,0,FALSE,FALSE,FALSE,FALSE,FALSE
+Fighter,FighterCard,0,"S,S,D,D,C,C,SD,DC,SC",9,2,FALSE,FALSE,FALSE,FALSE,FALSE
+Bridge Hit,BridgeHitCard,0,"SS,CC",2,0,FALSE,FALSE,FALSE,TRUE,FALSE
+Spacedock,SpacedockCard,4,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE
+Ramming Speed,RammingSpeedCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE
+Asteroids,AsteroidsCard,0,"S,D,C",3,0,FALSE,FALSE,FALSE,FALSE,FALSE
+Mag Blast,MagBlastCard,7,"S,D,C",3,5,TRUE,FALSE,FALSE,FALSE,FALSE
+Beam Blast,BeamBlastCard,19,"S,C,C",3,3,TRUE,FALSE,FALSE,FALSE,FALSE
+Laser Blast,LaserBlastCard,12,"S,S,C,C,D,D",6,1,TRUE,FALSE,FALSE,FALSE,FALSE
+Bomber,BomberCard,0,"S,C,D,DD",4,4,FALSE,TRUE,FALSE,FALSE,FALSE
+Direct Hit,DirectHitCard,2,"S,S,C,C,D,D",6,0,FALSE,TRUE,TRUE,FALSE,FALSE

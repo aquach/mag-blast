@@ -16,7 +16,7 @@ import {
   PassAction,
   SelectCardAction,
 } from './shared-types'
-import { assert } from './utils'
+import { assert, partition } from './utils'
 import {
   canFire,
   discardActivePlayerCards,
@@ -30,8 +30,51 @@ import {
 
 function applySelectCardAction(
   state: GameState,
+  playerId: string,
   action: SelectCardAction
 ): void {
+  if (state.turnState.type === 'ChooseStartingShipsState') {
+    const dealtShipCards = state.turnState.dealtShipCards.get(playerId)
+    assert(
+      dealtShipCards !== undefined,
+      `Ship cards for player ${playerId} not found.`
+    )
+    assert(
+      Array.isArray(action.handIndex),
+      'handIndex should be an array for choosing starting ships.'
+    )
+
+    if (state.turnState.chosenShipCards.has(playerId)) {
+      // TODO
+      return
+    }
+
+    const chosenCardIndices = action.handIndex
+
+    const [chosenCards, notChosenCards] = partition(dealtShipCards, (v, i) =>
+      chosenCardIndices.includes(i)
+    )
+
+    state.turnState.chosenShipCards.set(playerId, chosenCards)
+    notChosenCards.forEach((c) => state.shipDiscardDeck.push(c))
+
+    state.eventLog.push(`${playerId} chooses their ships.`)
+
+    if (state.turnState.chosenShipCards.size === state.playerTurnOrder.length) {
+      state.turnState = {
+        type: 'PlaceStartingShipsState',
+        chosenShipCards: state.turnState.chosenShipCards,
+      }
+    }
+
+    return
+  }
+
+  assert(
+    state.activePlayer === playerId,
+    'A player acted that was not the active player.'
+  )
+
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
@@ -133,8 +176,13 @@ function applySelectCardAction(
 
 function applyChooseShipAction(
   state: GameState,
+  playerId: string,
   action: ChooseShipAction
 ): void {
+  assert(
+    state.activePlayer === playerId,
+    'A player acted that was not the active player.'
+  )
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
@@ -296,7 +344,16 @@ function applyChooseShipAction(
   }
 }
 
-function applyPassAction(state: GameState, action: PassAction): void {
+function applyPassAction(
+  state: GameState,
+
+  playerId: string,
+  action: PassAction
+): void {
+  assert(
+    state.activePlayer === playerId,
+    'A player acted that was not the active player.'
+  )
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
@@ -416,8 +473,13 @@ function applyPassAction(state: GameState, action: PassAction): void {
 
 function applyChooseZoneAction(
   state: GameState,
+  playerId: string,
   action: ChooseZoneAction
 ): void {
+  assert(
+    state.activePlayer === playerId,
+    'A player acted that was not the active player.'
+  )
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
@@ -489,10 +551,15 @@ function applyChooseZoneAction(
   }
 }
 
-export function applyCancelAction(
+function applyCancelAction(
   state: GameState,
+  playerId: string,
   action: CancelAction
 ): void {
+  assert(
+    state.activePlayer === playerId,
+    'A player acted that was not the active player.'
+  )
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
@@ -510,26 +577,30 @@ export function applyCancelAction(
   }
 }
 
-export function applyAction(state: GameState, action: Action): void {
+export function applyAction(
+  state: GameState,
+  playerId: string,
+  action: Action
+): void {
   switch (action.type) {
     case 'SelectCardAction':
-      applySelectCardAction(state, action)
+      applySelectCardAction(state, playerId, action)
       break
 
     case 'ChooseShipAction':
-      applyChooseShipAction(state, action)
+      applyChooseShipAction(state, playerId, action)
       break
 
     case 'PassAction':
-      applyPassAction(state, action)
+      applyPassAction(state, playerId, action)
       break
 
     case 'ChooseZoneAction':
-      applyChooseZoneAction(state, action)
+      applyChooseZoneAction(state, playerId, action)
       break
 
     case 'CancelAction':
-      applyCancelAction(state, action)
+      applyCancelAction(state, playerId, action)
       break
 
     default:

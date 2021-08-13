@@ -14,132 +14,24 @@ import {
   ChooseZoneAction,
   PassAction,
   ChooseCardAction,
-  ActionCard,
 } from './shared-types'
 import { assert, partition } from './utils'
 import {
   canFire,
-  destroyShip,
+  canRespondToAttack,
   discardActivePlayerCards,
   drawActivePlayerCards,
   drawShipCard,
+  executeCardEffect,
   locationToString,
   movableZones,
-  onePlayerLeft,
   owningPlayer,
+  resolveBlastAttack,
   sufficientForReinforcement,
 } from './logic'
 
 const STARTING_HAND_SIZE = 5
 const NUM_STARTING_SHIPS = 4
-
-function executeCardEffect(state: GameState, card: ActionCard): void {
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
-
-  if (card.isBlast) {
-    if (state.directHitStateMachine?.type === 'DirectHitPlayedDirectHitState') {
-      const firingShip = state.directHitStateMachine.firingShip
-      const targetShip = state.directHitStateMachine.targetShip
-      targetShip.damage += card.damage
-
-      const [targetPlayer, targetPlayerState] = owningPlayer(
-        state.playerState,
-        targetShip
-      )
-
-      state.eventLog.push(
-        `${state.activePlayer}'s ${firingShip.shipType.name} fires an additional ${card.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${card.damage} damage.`
-      )
-
-      if (targetShip.damage >= targetShip.shipType.hp) {
-        destroyShip(state, targetShip)
-      }
-
-      state.turnState = {
-        type: 'AttackTurnState',
-      }
-    } else {
-      state.turnState = {
-        type: 'PlayBlastChooseFiringShipState',
-        blast: card,
-      }
-    }
-  } else if (card.cardType === 'ReinforcementsCard') {
-    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
-    const newShip = drawShipCard(state)
-
-    state.turnState = {
-      type: 'AttackPlaceShipState',
-      newShip,
-    }
-  } else if (card.cardType === 'StrategicAllocationCard') {
-    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
-    drawActivePlayerCards(state, 3)
-  } else if (card.isDirectHit) {
-    if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
-      console.warn(
-        `Wrong state ${state.directHitStateMachine?.type} to play direct hit.`
-      )
-      return
-    }
-
-    state.eventLog.push(`${state.activePlayer} plays a Direct Hit!`)
-    state.directHitStateMachine = {
-      type: 'DirectHitPlayedDirectHitState',
-      firingShip: state.directHitStateMachine.firingShip,
-      targetShip: state.directHitStateMachine.targetShip,
-    }
-  } else if (card.isDirectHitEffect) {
-    if (state.directHitStateMachine?.type !== 'DirectHitPlayedDirectHitState') {
-      console.warn(
-        `Wrong state ${state.directHitStateMachine?.type} to play a direct hit effect.`
-      )
-      return
-    }
-
-    state.eventLog.push(`${state.activePlayer} plays a ${card.name}!`)
-
-    const [targetPlayer, targetPlayerState] = owningPlayer(
-      state.playerState,
-      state.directHitStateMachine.targetShip
-    )
-
-    switch (card.cardType) {
-      case 'CatastrophicDamageCard':
-        destroyShip(state, state.directHitStateMachine.targetShip)
-        break
-      case 'BoardingPartyCard':
-        // TODO
-        break
-      case 'ConcussiveBlastCard':
-        // TODO
-        break
-      case 'BridgeHitCard':
-        state.eventLog.push(
-          `${state.activePlayer} takes three cards at random from ${targetPlayer}'s hand.`
-        )
-        const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
-        stealCards.forEach((c) => {
-          activePlayerState.hand.push(c)
-        })
-        targetPlayerState.hand = targetPlayerState.hand.filter(
-          (c) => !stealCards.includes(c)
-        )
-        break
-      default:
-        console.warn(
-          `Don't know how to handle choosing a ${card.cardType} card.`
-        )
-        return
-    }
-  } else {
-    console.warn(`Don't know how to handle choosing a ${card.cardType} card.`)
-  }
-}
 
 function applyChooseCardAction(
   state: GameState,
@@ -489,11 +381,23 @@ function applyChooseShipAction(
 
         state.turnState.firingShip.hasFiredThisTurn = true
 
-        state.turnState = {
-          type: 'PlayBlastRespondState',
-          blast: state.turnState.blast,
-          firingShip: state.turnState.firingShip,
-          targetShip: designatedShip,
+        if (canRespondToAttack(targetPlayerState)) {
+          state.turnState = {
+            type: 'PlayBlastRespondState',
+            blast: state.turnState.blast,
+            firingShip: state.turnState.firingShip,
+            targetShip: designatedShip,
+          }
+        } else {
+          resolveBlastAttack(
+            state,
+            state.turnState.firingShip,
+            designatedShip,
+            state.turnState.blast
+          )
+          state.turnState = {
+            type: 'AttackTurnState',
+          }
         }
       }
       break
@@ -517,29 +421,12 @@ function applyPassAction(
 
   switch (state.turnState.type) {
     case 'PlayBlastRespondState':
-      // Resolve attack.
-      const targetShip = state.turnState.targetShip
-      targetShip.damage += state.turnState.blast.damage
-
-      const [targetPlayer, targetPlayerState] = owningPlayer(
-        state.playerState,
-        targetShip
+      resolveBlastAttack(
+        state,
+        state.turnState.firingShip,
+        state.turnState.targetShip,
+        state.turnState.blast
       )
-
-      state.eventLog.push(
-        `${state.activePlayer}'s ${state.turnState.firingShip.shipType.name} fires a ${state.turnState.blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${state.turnState.blast.damage} damage.`
-      )
-
-      if (targetShip.damage >= targetShip.shipType.hp) {
-        destroyShip(state, targetShip)
-      } else {
-        state.directHitStateMachine = {
-          type: 'BlastPlayedDirectHitState',
-          firingShip: state.turnState.firingShip,
-          targetShip,
-        }
-      }
-
       state.turnState = {
         type: 'AttackTurnState',
       }

@@ -48,7 +48,7 @@ export function drawShipCard(state: GameState): ShipCard {
 export function discardActivePlayerCards(
   state: GameState,
   cardIndices: number[]
-) {
+): void {
   const activePlayerState = state.playerState.get(state.activePlayer)
   assert(
     activePlayerState !== undefined,
@@ -167,4 +167,144 @@ export function destroyShip(state: GameState, ship: Ship | CommandShip): void {
       state.activePlayer = ''
     }
   }
+}
+
+export function resolveBlastAttack(
+  state: GameState,
+  firingShip: Ship,
+  targetShip: Ship | CommandShip,
+  blast: ActionCard
+): void {
+  targetShip.damage += blast.damage
+
+  const [targetPlayer, targetPlayerState] = owningPlayer(
+    state.playerState,
+    targetShip
+  )
+
+  state.eventLog.push(
+    `${state.activePlayer}'s ${firingShip.shipType.name} fires a ${blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${blast.damage} damage.`
+  )
+
+  if (targetShip.damage >= targetShip.shipType.hp) {
+    destroyShip(state, targetShip)
+  } else {
+    state.directHitStateMachine = {
+      type: 'BlastPlayedDirectHitState',
+      firingShip: firingShip,
+      targetShip,
+    }
+  }
+}
+
+export function executeCardEffect(state: GameState, card: ActionCard): void {
+  const activePlayerState = state.playerState.get(state.activePlayer)
+  assert(
+    activePlayerState !== undefined,
+    `Player ID ${state.activePlayer} not found.`
+  )
+
+  if (card.isBlast) {
+    if (state.directHitStateMachine?.type === 'DirectHitPlayedDirectHitState') {
+      const firingShip = state.directHitStateMachine.firingShip
+      const targetShip = state.directHitStateMachine.targetShip
+      targetShip.damage += card.damage
+
+      const [targetPlayer, targetPlayerState] = owningPlayer(
+        state.playerState,
+        targetShip
+      )
+
+      state.eventLog.push(
+        `${state.activePlayer}'s ${firingShip.shipType.name} fires an additional ${card.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${card.damage} damage.`
+      )
+
+      if (targetShip.damage >= targetShip.shipType.hp) {
+        destroyShip(state, targetShip)
+      }
+
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+    } else {
+      state.turnState = {
+        type: 'PlayBlastChooseFiringShipState',
+        blast: card,
+      }
+    }
+  } else if (card.cardType === 'ReinforcementsCard') {
+    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+    const newShip = drawShipCard(state)
+
+    state.turnState = {
+      type: 'AttackPlaceShipState',
+      newShip,
+    }
+  } else if (card.cardType === 'StrategicAllocationCard') {
+    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+    drawActivePlayerCards(state, 3)
+  } else if (card.isDirectHit) {
+    if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
+      console.warn(
+        `Wrong state ${state.directHitStateMachine?.type} to play direct hit.`
+      )
+      return
+    }
+
+    state.eventLog.push(`${state.activePlayer} plays a Direct Hit!`)
+    state.directHitStateMachine = {
+      type: 'DirectHitPlayedDirectHitState',
+      firingShip: state.directHitStateMachine.firingShip,
+      targetShip: state.directHitStateMachine.targetShip,
+    }
+  } else if (card.isDirectHitEffect) {
+    if (state.directHitStateMachine?.type !== 'DirectHitPlayedDirectHitState') {
+      console.warn(
+        `Wrong state ${state.directHitStateMachine?.type} to play a direct hit effect.`
+      )
+      return
+    }
+
+    state.eventLog.push(`${state.activePlayer} plays a ${card.name}!`)
+
+    const [targetPlayer, targetPlayerState] = owningPlayer(
+      state.playerState,
+      state.directHitStateMachine.targetShip
+    )
+
+    switch (card.cardType) {
+      case 'CatastrophicDamageCard':
+        destroyShip(state, state.directHitStateMachine.targetShip)
+        break
+      case 'BoardingPartyCard':
+        // TODO
+        break
+      case 'ConcussiveBlastCard':
+        // TODO
+        break
+      case 'BridgeHitCard':
+        state.eventLog.push(
+          `${state.activePlayer} takes three cards at random from ${targetPlayer}'s hand.`
+        )
+        const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
+        stealCards.forEach((c) => {
+          activePlayerState.hand.push(c)
+        })
+        targetPlayerState.hand = targetPlayerState.hand.filter(
+          (c) => !stealCards.includes(c)
+        )
+        break
+      default:
+        console.warn(
+          `Don't know how to handle choosing a ${card.cardType} card.`
+        )
+        return
+    }
+  } else {
+    console.warn(`Don't know how to handle choosing a ${card.cardType} card.`)
+  }
+}
+
+export function canRespondToAttack(targetPlayerState: PlayerState) {
+  return targetPlayerState.hand.some((c) => c.isInstant)
 }

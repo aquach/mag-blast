@@ -105,6 +105,25 @@ export const BoardShip: React.FunctionComponent<{
   )
 }
 
+const commandShipBreaks: Record<string, JSX.Element> = {
+  BZZGZZRT: (
+    <Fragment>
+      BZZG
+      <br />
+      ZZRT!
+    </Fragment>
+  ),
+  BrotherhoodOfPeace: (
+    <Fragment>
+      Brother
+      <br />
+      hood
+      <br />
+      of Peace
+    </Fragment>
+  ),
+}
+
 const CommandShip: React.FunctionComponent<{
   ship: UICommandShip
   prompt: Prompt | undefined
@@ -131,7 +150,9 @@ const CommandShip: React.FunctionComponent<{
           : undefined
       }
     >
-      <p className="f7 tc b">{ship.shipType.name}</p>
+      <p className="f7 tc b">
+        {commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
+      </p>
       <div
         className="absolute red"
         style={{

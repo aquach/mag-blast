@@ -33,6 +33,7 @@ export function assert(
 ): asserts pred {
   if (!pred) {
     console.error(`Assertion failed: ${m}`)
+    console.error(new Error().stack)
     process.exit(1)
   }
 }

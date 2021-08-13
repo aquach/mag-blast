@@ -29,6 +29,7 @@ import {
 } from './logic'
 
 const STARTING_HAND_SIZE = 5
+const NUM_STARTING_SHIPS = 4
 
 function applyChooseCardAction(
   state: GameState,
@@ -53,6 +54,10 @@ function applyChooseCardAction(
 
     const chosenCardIndices = action.handIndex
 
+    if (chosenCardIndices.length !== NUM_STARTING_SHIPS) {
+      return
+    }
+
     const [chosenCards, notChosenCards] = partition(dealtShipCards, (v, i) =>
       chosenCardIndices.includes(i)
     )
@@ -67,6 +72,53 @@ function applyChooseCardAction(
         type: 'PlaceStartingShipsState',
         chosenShipCards: state.turnState.chosenShipCards,
       }
+    }
+
+    return
+  }
+
+  if (state.turnState.type === 'PlayBlastRespondState') {
+    const playerState = state.playerState.get(playerId)
+    assert(playerState !== undefined, `Player ID ${playerId} not found.`)
+
+    assert(
+      typeof action.handIndex === 'number',
+      'handIndex should be a single number for playing cards.'
+    )
+    const card = playerState.hand[action.handIndex]
+
+    if (!card) {
+      console.warn(`Attempted to play a non-existent card ${action.handIndex}.`)
+      return
+    }
+
+    state.actionDiscardDeck.push(playerState.hand[action.handIndex])
+    playerState.hand.splice(action.handIndex, 1)
+
+    const firingShip = state.turnState.firingShip
+
+    if (
+      card.cardType === 'TemporalFluxCard' ||
+      card.cardType === 'EvasiveActionCard'
+    ) {
+      // Cancel effects by transitioning back to AttackTurnState without doing anything.
+      const firingPlayerEntry = Array.from(state.playerState.entries()).find(
+        ([_, p]) => p.ships.includes(firingShip)
+      )
+      assert(
+        firingPlayerEntry !== undefined,
+        'Firing ship must belong to a player.'
+      )
+      const [firingPlayer, firingPlayerState] = firingPlayerEntry
+      state.eventLog.push(
+        `${firingPlayer} attempts to play a ${state.turnState.blast.name} targeting ${playerId}'s ${state.turnState.targetShip.shipType.name}, but ${playerId} responds with ${card.name}, canceling its effect!`
+      )
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+      // TODO: if squadron and evasive action, return to hand.
+    } else {
+      console.warn(`Don't know what to do with card ${card.cardType}.`)
     }
 
     return

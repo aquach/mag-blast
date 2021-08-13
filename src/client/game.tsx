@@ -1,6 +1,12 @@
 import { io } from 'socket.io-client'
 import _ from 'lodash'
-import { Action, PlayerId, UIGameState, UILobbyState } from '@shared-types'
+import {
+  Action,
+  GameError,
+  PlayerId,
+  UIGameState,
+  UILobbyState,
+} from '@shared-types'
 import React, { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { Board } from './board'
@@ -47,16 +53,26 @@ function useComms(playerId: string): Comms {
       })
     })
 
-    socket.on('game-not-found', () => {
+    socket.on('error', (e: GameError) => {
+      const text = (() => {
+        switch (e.type) {
+          case 'GameNotFound':
+            return (
+              <div>
+                Game not found. Click <a href="../">here</a> to return to the
+                main page.
+              </div>
+            )
+          case 'TooManyPlayers':
+            return <div>This game is already full (8 players).</div>
+          case 'GameAlreadyStartedCantAddNewPlayer':
+            return <div>This game has already started, so you can't join.</div>
+        }
+      })()
       setComms({
         uiState: {
           type: 'UIErrorState',
-          text: (
-            <div>
-              Game not found. Click <a href="../">here</a> to return to the main
-              page.
-            </div>
-          ),
+          text,
         },
         performAction() {},
         startGame() {},
@@ -86,7 +102,7 @@ const EventLog: React.FunctionComponent<{ eventLog: string[] }> = ({
   return (
     <div
       className="code ba pa1 overflow-y-scroll"
-      style={{ width: '20em', height: 'calc(100vh - 1rem)' }}
+      style={{ width: '20em', flexShrink: 0, height: 'calc(100vh - 1rem)' }}
     >
       {eventLog.map((l, i) => (
         <p key={i}>{l}</p>

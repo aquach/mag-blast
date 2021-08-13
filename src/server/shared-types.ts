@@ -147,3 +147,7 @@ export type Action =
   | PassAction
   | ChooseZoneAction
   | CancelAction
+
+export interface GameError {
+  type: 'GameAlreadyStartedCantAddNewPlayer' | 'GameNotFound' | 'TooManyPlayers'
+}

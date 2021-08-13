@@ -6,10 +6,11 @@ import * as express from 'express'
 import * as _ from 'lodash'
 import { Server, Socket } from 'socket.io'
 
-import { Action, PlayerId } from './shared-types'
+import { Action, GameError, PlayerId } from './shared-types'
 import { gameUiState, lobbyUiState, newGameState } from './game'
 import { applyAction } from './actions'
 import { GameState } from './types'
+import { ascribe } from './utils'
 
 interface PlayerSocketBinding {
   id: PlayerId
@@ -86,6 +87,8 @@ app.get('/game.js', (req, res) => {
   })
 })
 
+const MAX_PLAYERS = 8
+
 io.on('connection', (socket) => {
   const gameId = socket.handshake.query.gameId as string
 
@@ -95,7 +98,7 @@ io.on('connection', (socket) => {
     console.warn(
       `A socket tried to connect to a game ${gameId} that doesn't exist.`
     )
-    socket.emit('game-not-found')
+    socket.emit('error', ascribe<GameError>({ type: 'GameNotFound' }))
     return
   }
 
@@ -105,6 +108,25 @@ io.on('connection', (socket) => {
     id: socket.handshake.query.playerId as string,
     socket,
   }
+
+  if (
+    game.gameState.type === 'GameState' &&
+    !game.gameState.playerTurnOrder.includes(binding.id)
+  ) {
+    socket.emit(
+      'error',
+      ascribe<GameError>({ type: 'GameAlreadyStartedCantAddNewPlayer' })
+    )
+    return
+  }
+
+  const uniquePlayers = new Set(game.bindings.map((b) => b.id))
+  uniquePlayers.add(binding.id)
+  if (uniquePlayers.size > MAX_PLAYERS) {
+    socket.emit('error', ascribe<GameError>({ type: 'TooManyPlayers' }))
+    return
+  }
+
   game.bindings.push(binding)
 
   const broadcastUpdates = () =>
@@ -120,7 +142,7 @@ io.on('connection', (socket) => {
 
   socket.on('action', (a: Action) => {
     if (game.gameState.type !== 'GameState') {
-      // TODO
+      console.warn(`Game must be in GameState to perform actions.`)
       return
     }
 
@@ -132,15 +154,9 @@ io.on('connection', (socket) => {
 
   socket.on('start-game', () => {
     if (game.gameState.type !== 'LobbyState') {
-      // TODO
+      console.warn(`Game must be in LobbyState to start game.`)
       return
     }
-    const uniquePlayers = new Set(game.bindings.map((b) => b.id))
-    if (uniquePlayers.size <= 1 || uniquePlayers.size > 8) {
-      // TODO
-      return
-    }
-
     game.gameState = newGameState(uniquePlayers)
     game.lastUpdated = new Date().getTime()
     broadcastUpdates()

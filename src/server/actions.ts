@@ -47,7 +47,7 @@ function applySelectCardAction(
     )
 
     if (state.turnState.chosenShipCards.has(playerId)) {
-      // TODO
+      console.warn(`Player ${playerId} has already chosen starting ships.`)
       return
     }
 
@@ -496,7 +496,7 @@ function applyChooseZoneAction(
     assert(playerState !== undefined, `Player ${playerId}'s state not found.`)
 
     if (chosenShipCards.length === 0) {
-      // TODO
+      console.warn(`Player ${playerId} has no more ships to place.`)
       return
     }
 

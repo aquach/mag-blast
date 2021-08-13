@@ -9,6 +9,7 @@ import {
   UIShip,
 } from '@shared-types'
 import React, { Fragment } from 'react'
+import { shipClassBreaks } from './hand'
 
 export const TurretMarker: React.FunctionComponent<{
   type: 'laser' | 'beam' | 'mag'
@@ -63,15 +64,7 @@ export const BoardShip: React.FunctionComponent<{
         {ship.shipType.name}
       </p>
       <p className="f7 tc mt1">
-        {ship.shipType.shipClass === 'Dreadnought' ? (
-          <Fragment>
-            Dread
-            <br />
-            nought
-          </Fragment>
-        ) : (
-          ship.shipType.shipClass
-        )}
+        {shipClassBreaks[ship.shipType.shipClass] ?? ship.shipType.shipClass}
       </p>
       <div
         className="absolute bg-near-black"
@@ -138,7 +131,7 @@ const CommandShip: React.FunctionComponent<{
           : undefined
       }
     >
-      <p className="f6 tc b">{ship.shipType.name}</p>
+      <p className="f7 tc b">{ship.shipType.name}</p>
       <div
         className="absolute red"
         style={{

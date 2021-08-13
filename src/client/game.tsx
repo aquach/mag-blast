@@ -155,6 +155,7 @@ const Game: React.FunctionComponent<{
           <ShipCardComponent
             shipType={prompt.newShip}
             onClick={_.noop}
+            clickable={false}
             selected={false}
           />
         )}
@@ -240,9 +241,7 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
     case 'UIErrorState':
       return (
         <div className="flex flex-column vh-100 w-100 justify-center items-center">
-          <div className="measure">
-            {uiState.text}
-          </div>
+          <div className="measure">{uiState.text}</div>
         </div>
       )
     case 'UILobbyState':

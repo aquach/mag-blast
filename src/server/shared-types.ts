@@ -149,5 +149,9 @@ export type Action =
   | CancelAction
 
 export interface GameError {
-  type: 'GameAlreadyStartedCantAddNewPlayer' | 'GameNotFound' | 'TooManyPlayers' | 'TooFewPlayers'
+  type:
+    | 'GameAlreadyStartedCantAddNewPlayer'
+    | 'GameNotFound'
+    | 'TooManyPlayers'
+    | 'TooFewPlayers'
 }

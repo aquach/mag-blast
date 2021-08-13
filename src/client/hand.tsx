@@ -9,6 +9,16 @@ import {
 import React, { Fragment, useState } from 'react'
 import { TurretMarker } from './board'
 
+const cardNameBreaks: Record<string, JSX.Element> = {
+  Reinforcements: (
+    <Fragment>
+      Reinforce
+      <br />
+      ments
+    </Fragment>
+  ),
+}
+
 const ActionCard: React.FunctionComponent<{
   card: ActionCard
   onClick: () => void
@@ -47,8 +57,10 @@ const ActionCard: React.FunctionComponent<{
       style={{ width: '5.5rem', height: '9.9rem' }}
       onClick={clickable ? onClick : _.noop}
     >
-      <p className="f6 tc mt4 mb1 b">{card.name}</p>
-      <p className="f7 tc">{card.text}</p>
+      <p className="f6 tc mt4 mb1 b">
+        {cardNameBreaks[card.name] ?? card.name}
+      </p>
+      <p className="f8 tc">{card.text}</p>
       {card.damage > 0 && (
         <div
           className="absolute red f4"
@@ -167,32 +179,42 @@ export const Hand: React.FunctionComponent<{
   )
 }
 
+export const shipClassBreaks: Record<string, JSX.Element> = {
+  Dreadnought: (
+    <Fragment>
+      Dread
+      <br />
+      nought
+    </Fragment>
+  ),
+  Minesweeper: (
+    <Fragment>
+      Mine
+      <br />
+      sweeper
+    </Fragment>
+  ),
+}
+
 export const ShipCardComponent: React.FunctionComponent<{
   shipType: ShipCard
   onClick: () => void
+  clickable: boolean
   selected: boolean
-}> = ({ shipType, onClick, selected }) => {
+}> = ({ shipType, onClick, clickable, selected }) => {
   return (
     <div
-      className={`ba br1 ma1 pa1 bg-light-gray relative clickable pointer ${
-        selected ? 'selected' : ''
-      }`}
+      className={`ba br1 ma1 pa1 bg-light-gray relative ${
+        clickable ? 'clickable' : ''
+      } pointer ${selected ? 'selected' : ''}`}
       style={{ width: '4rem', height: '7.2rem' }}
       onClick={onClick}
     >
       <p className="f7 tc mb1 b" style={{ marginTop: '1.75rem' }}>
         {shipType.name}
       </p>
-      <p className="f7 tc mt1">
-        {shipType.shipClass === 'Dreadnought' ? (
-          <Fragment>
-            Dread
-            <br />
-            nought
-          </Fragment>
-        ) : (
-          shipType.shipClass
-        )}
+      <p className="f8 tc mt1">
+        {shipClassBreaks[shipType.shipClass] ?? shipType.shipClass}
       </p>
       <div
         className="absolute bg-near-black"
@@ -279,6 +301,7 @@ export const ShipCardSelector: React.FunctionComponent<{
             <ShipCardComponent
               key={i}
               shipType={s}
+              clickable
               selected={canMultiselect && selectedCards.includes(i)}
               onClick={onClick}
             />

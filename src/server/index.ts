@@ -160,7 +160,7 @@ io.on('connection', (socket) => {
     const uniquePlayers = new Set(game.bindings.map((b) => b.id))
     if (uniquePlayers.size <= 1) {
       socket.emit('error', ascribe<GameError>({ type: 'TooFewPlayers' }))
-        return
+      return
     }
 
     game.gameState = newGameState(uniquePlayers)

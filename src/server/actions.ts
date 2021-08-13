@@ -159,15 +159,29 @@ function applyChooseCardAction(
         return
       }
 
+      state.actionDiscardDeck.push(activePlayerState.hand[action.handIndex])
+      activePlayerState.hand.splice(action.handIndex, 1)
+
       if (card.isBlast) {
-        state.actionDiscardDeck.push(activePlayerState.hand[action.handIndex])
-        activePlayerState.hand.splice(action.handIndex, 1)
         state.turnState = {
           type: 'PlayBlastChooseFiringShipState',
           blast: card,
         }
+      } else if (card.cardType === 'ReinforcementsCard') {
+        state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+        const newShip = drawShipCard(state)
+
+        state.turnState = {
+          type: 'AttackPlaceShipState',
+          newShip,
+        }
+      } else if (card.cardType === 'StrategicAllocationCard') {
+        state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+        drawActivePlayerCards(state, 3)
       } else {
-        // TODO
+        console.warn(
+          `Don't know how to handle choosing a ${card.cardType} card.`
+        )
       }
       break
 
@@ -561,6 +575,7 @@ function applyChooseZoneAction(
 
   switch (state.turnState.type) {
     case 'ReinforcePlaceShipState':
+    case 'AttackPlaceShipState':
       activePlayerState.ships.push({
         type: 'Ship',
         location: action.location,
@@ -575,13 +590,21 @@ function applyChooseZoneAction(
         } into their ${locationToString(action.location)} zone.`
       )
 
-      if (activePlayerState.ships.length == MAX_ZONE_SHIPS * 4) {
-        state.turnState = {
-          type: 'ManeuverTurnState',
-          originalLocations: new Map(),
-        }
-      } else {
-        state.turnState = { type: 'ReinforceTurnState' }
+      switch (state.turnState.type) {
+        case 'ReinforcePlaceShipState':
+          if (activePlayerState.ships.length == MAX_ZONE_SHIPS * 4) {
+            state.turnState = {
+              type: 'ManeuverTurnState',
+              originalLocations: new Map(),
+            }
+          } else {
+            state.turnState = { type: 'ReinforceTurnState' }
+          }
+          break
+
+        case 'AttackPlaceShipState':
+          state.turnState = { type: 'AttackTurnState' }
+          break
       }
       break
 

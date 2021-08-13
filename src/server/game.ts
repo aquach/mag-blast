@@ -138,6 +138,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
           })
         }
 
+        case 'AttackPlaceShipState':
         case 'ReinforcePlaceShipState': {
           const shipsByLocation = _.groupBy(
             playerState.ships,
@@ -298,7 +299,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
       ) {
         const playableCardIndices = filterIndices(
           playerState.hand,
-          c => c.isInstant
+          (c) => c.isInstant
         )
 
         const firingShip = state.turnState.firingShip

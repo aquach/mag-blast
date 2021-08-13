@@ -87,6 +87,11 @@ export interface AttackTurnState {
   type: 'AttackTurnState'
 }
 
+export interface AttackPlaceShipState {
+  type: 'AttackPlaceShipState'
+  newShip: ShipCard
+}
+
 export interface PlayBlastChooseFiringShipState {
   type: 'PlayBlastChooseFiringShipState'
   blast: ActionCard
@@ -118,6 +123,7 @@ export type TurnState =
   | ManeuverTurnState
   | ManeuverChooseTargetZoneState
   | AttackTurnState
+  | AttackPlaceShipState
   | PlayBlastChooseTargetShipState
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState

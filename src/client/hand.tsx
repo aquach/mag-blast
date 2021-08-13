@@ -133,7 +133,7 @@ export const Hand: React.FunctionComponent<{
           className="ma1 pa1 f5"
           onClick={() => {
             performAction({
-              type: 'SelectCardAction',
+              type: 'ChooseCardAction',
               handIndex: selectedCards,
             })
             setSelectedCards([])
@@ -161,7 +161,7 @@ export const Hand: React.FunctionComponent<{
           const onClick = () => {
             canMultiselect
               ? toggleSelected()
-              : performAction({ type: 'SelectCardAction', handIndex: i })
+              : performAction({ type: 'ChooseCardAction', handIndex: i })
           }
 
           return (
@@ -271,7 +271,7 @@ export const ShipCardSelector: React.FunctionComponent<{
           className="ma1 pa1 f5"
           onClick={() => {
             performAction({
-              type: 'SelectCardAction',
+              type: 'ChooseCardAction',
               handIndex: selectedCards,
             })
             setSelectedCards([])
@@ -294,7 +294,7 @@ export const ShipCardSelector: React.FunctionComponent<{
           const onClick = () => {
             canMultiselect
               ? toggleSelected()
-              : performAction({ type: 'SelectCardAction', handIndex: i })
+              : performAction({ type: 'ChooseCardAction', handIndex: i })
           }
 
           return (

@@ -118,8 +118,8 @@ export interface UIGameState {
   prompt: Prompt | undefined
 }
 
-export interface SelectCardAction {
-  type: 'SelectCardAction'
+export interface ChooseCardAction {
+  type: 'ChooseCardAction'
   handIndex: number | number[]
 }
 
@@ -142,7 +142,7 @@ export interface CancelAction {
 }
 
 export type Action =
-  | SelectCardAction
+  | ChooseCardAction
   | ChooseShipAction
   | PassAction
   | ChooseZoneAction

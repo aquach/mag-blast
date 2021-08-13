@@ -14,7 +14,7 @@ import {
   ChooseShipAction,
   ChooseZoneAction,
   PassAction,
-  SelectCardAction,
+  ChooseCardAction,
 } from './shared-types'
 import { assert, partition } from './utils'
 import {
@@ -30,10 +30,10 @@ import {
 
 const STARTING_HAND_SIZE = 5
 
-function applySelectCardAction(
+function applyChooseCardAction(
   state: GameState,
   playerId: string,
-  action: SelectCardAction
+  action: ChooseCardAction
 ): void {
   if (state.turnState.type === 'ChooseStartingShipsState') {
     const dealtShipCards = state.turnState.dealtShipCards.get(playerId)
@@ -656,8 +656,8 @@ export function applyAction(
   action: Action
 ): void {
   switch (action.type) {
-    case 'SelectCardAction':
-      applySelectCardAction(state, playerId, action)
+    case 'ChooseCardAction':
+      applyChooseCardAction(state, playerId, action)
       break
 
     case 'ChooseShipAction':

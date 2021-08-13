@@ -189,7 +189,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
         case 'AttackTurnState': {
           const playableCardIndices = filterIndices(
             playerState.hand,
-            (c) => c.isBlast // TODO
+            (c) => !c.isInstant
           )
 
           return ascribe<ChooseCardPrompt>({
@@ -298,7 +298,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
       ) {
         const playableCardIndices = filterIndices(
           playerState.hand,
-          () => false // TODO
+          c => c.isInstant
         )
 
         const firingShip = state.turnState.firingShip

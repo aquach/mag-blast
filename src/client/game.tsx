@@ -49,7 +49,15 @@ function useComms(playerId: string): Comms {
 
     socket.on('game-not-found', () => {
       setComms({
-        uiState: { type: 'UIErrorState', text: (<div>Game not found. Click <a href='../'>here</a> to return to the main page.</div>) },
+        uiState: {
+          type: 'UIErrorState',
+          text: (
+            <div>
+              Game not found. Click <a href="../">here</a> to return to the main
+              page.
+            </div>
+          ),
+        },
         performAction() {},
         startGame() {},
       })
@@ -195,11 +203,11 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
 
   switch (uiState.type) {
     case 'UIErrorState':
-    return (
-      <div className="flex flex-column vh-100 w-100 justify-center items-center">
-        {uiState.text}
-      </div>
-    )
+      return (
+        <div className="flex flex-column vh-100 w-100 justify-center items-center">
+          {uiState.text}
+        </div>
+      )
     case 'UILobbyState':
       return <Lobby players={uiState.playerIds} startGame={comms.startGame} />
     case 'UIGameState':

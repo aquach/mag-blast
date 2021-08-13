@@ -32,7 +32,8 @@ export function assert(
   m: string = 'no message provided'
 ): asserts pred {
   if (!pred) {
-    throw new Error(`Assertion failed: ${m}`)
+    console.error(`Assertion failed: ${m}`)
+    process.exit(1)
   }
 }
 

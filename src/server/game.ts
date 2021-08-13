@@ -144,7 +144,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
             (s) => s.location
           )
           const allowableZones = LOCATIONS.filter(
-            (l) => (shipsByLocation[l] ?? []).length <= MAX_ZONE_SHIPS
+            (l) => (shipsByLocation[l] ?? []).length < MAX_ZONE_SHIPS
           )
 
           return ascribe<PlaceShipPrompt>({
@@ -279,7 +279,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
       if (chosenCards.length > 0) {
         const shipsByLocation = _.groupBy(playerState.ships, (s) => s.location)
         const allowableZones = LOCATIONS.filter(
-          (l) => (shipsByLocation[l] ?? []).length <= MAX_ZONE_SHIPS
+          (l) => (shipsByLocation[l] ?? []).length < MAX_ZONE_SHIPS
         )
 
         return ascribe<PlaceShipPrompt>({

@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client'
 import _ from 'lodash'
 import { Action, PlayerId, UIGameState, UILobbyState } from '@shared-types'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { Board } from './board'
 import { Hand, ShipCardComponent, ShipCardSelector } from './hand'
@@ -74,6 +74,15 @@ function useComms(playerId: string): Comms {
 const EventLog: React.FunctionComponent<{ eventLog: string[] }> = ({
   eventLog,
 }) => {
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }, [eventLog])
+
   return (
     <div
       className="code ba pa1 overflow-y-scroll"
@@ -82,6 +91,8 @@ const EventLog: React.FunctionComponent<{ eventLog: string[] }> = ({
       {eventLog.map((l, i) => (
         <p key={i}>{l}</p>
       ))}
+
+      <div ref={bottomRef} />
     </div>
   )
 }

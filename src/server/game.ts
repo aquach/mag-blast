@@ -284,7 +284,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
 
         return ascribe<PlaceShipPrompt>({
           type: 'PlaceShipPrompt',
-          text: `Choose a location to place your starting ${chosenCards[0].name}`,
+          text: `Choose a location to place your starting ${chosenCards[0].name}.`,
           newShip: chosenCards[0],
           allowableZones,
         })

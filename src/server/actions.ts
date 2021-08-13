@@ -541,8 +541,7 @@ function applyChooseZoneAction(
       )
       state.eventLog.push(`=== Turn 1 ===`)
       state.turnState = {
-        type: 'ManeuverTurnState',
-        originalLocations: new Map(),
+        type: 'ReinforceTurnState',
       }
       state.activePlayer = state.playerTurnOrder[0]
     }

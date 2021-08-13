@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
 
 app.post('/create-game', (req, res) => {
   const g: Game = {
-    gameId: crypto.randomBytes(4).toString('hex'),
+    gameId: crypto.randomBytes(3).toString('hex'),
     bindings: [],
     gameState: { type: 'LobbyState' },
     lastUpdated: new Date().getTime(),
@@ -157,6 +157,12 @@ io.on('connection', (socket) => {
       console.warn(`Game must be in LobbyState to start game.`)
       return
     }
+    const uniquePlayers = new Set(game.bindings.map((b) => b.id))
+    if (uniquePlayers.size <= 1) {
+      socket.emit('error', ascribe<GameError>({ type: 'TooFewPlayers' }))
+        return
+    }
+
     game.gameState = newGameState(uniquePlayers)
     game.lastUpdated = new Date().getTime()
     broadcastUpdates()

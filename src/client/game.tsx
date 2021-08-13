@@ -65,6 +65,14 @@ function useComms(playerId: string): Comms {
             )
           case 'TooManyPlayers':
             return <div>This game is already full (8 players).</div>
+          case 'TooFewPlayers':
+            return (
+              <div>
+                Can't start a game with just one player. Hope you can find
+                someone to play with! Click <a href="../">here</a> to return to
+                the main page.
+              </div>
+            )
           case 'GameAlreadyStartedCantAddNewPlayer':
             return <div>This game has already started, so you can't join.</div>
         }
@@ -232,7 +240,9 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
     case 'UIErrorState':
       return (
         <div className="flex flex-column vh-100 w-100 justify-center items-center">
-          {uiState.text}
+          <div className="measure">
+            {uiState.text}
+          </div>
         </div>
       )
     case 'UILobbyState':

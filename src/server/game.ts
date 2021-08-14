@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import { actionCards, commandShipCards, shipCards } from './cards'
-import { canFire, movableZones } from './logic'
+import { canFire, movableZones, nonfullZones } from './logic'
 import {
   ChooseShipPrompt,
   ChooseZonePrompt,
@@ -141,19 +141,20 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
 
         case 'AttackPlaceShipState':
         case 'ReinforcePlaceShipState': {
-          const shipsByLocation = _.groupBy(
-            playerState.ships,
-            (s) => s.location
-          )
-          const allowableZones = LOCATIONS.filter(
-            (l) => (shipsByLocation[l] ?? []).length < MAX_ZONE_SHIPS
-          )
-
           return ascribe<PlaceShipPrompt>({
             type: 'PlaceShipPrompt',
             newShip: state.turnState.newShip,
             text: `Choose a zone to place your new ${state.turnState.newShip.name}.`,
-            allowableZones,
+            allowableZones: nonfullZones(playerState.ships),
+          })
+        }
+
+        case 'AttackPlaceStolenShipState': {
+          return ascribe<PlaceShipPrompt>({
+            type: 'PlaceShipPrompt',
+            newShip: state.turnState.stolenShip.shipType,
+            text: `Choose a zone to place your stolen ${state.turnState.stolenShip.shipType.name}.`,
+            allowableZones: nonfullZones(playerState.ships),
           })
         }
 
@@ -202,9 +203,19 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
             }
 
             if (c.isDirectHitEffect) {
-              return (
-                state.directHitStateMachine?.type ===
+              if (
+                state.directHitStateMachine?.type !==
                 'DirectHitPlayedDirectHitState'
+              ) {
+                return false
+              }
+
+              // These can't target command ships. All other cards can target all ships.
+              // TODO: boarding party when have 12 ships
+              return !(
+                state.directHitStateMachine.targetShip.type === 'CommandShip' &&
+                (c.cardType === 'BoardingPartyCard' ||
+                  c.cardType === 'ConcussiveBlastCard')
               )
             }
 
@@ -296,16 +307,11 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
       )
 
       if (chosenCards.length > 0) {
-        const shipsByLocation = _.groupBy(playerState.ships, (s) => s.location)
-        const allowableZones = LOCATIONS.filter(
-          (l) => (shipsByLocation[l] ?? []).length < MAX_ZONE_SHIPS
-        )
-
         return ascribe<PlaceShipPrompt>({
           type: 'PlaceShipPrompt',
           text: `Choose a location to place your starting ${chosenCards[0].name}.`,
           newShip: chosenCards[0],
-          allowableZones,
+          allowableZones: nonfullZones(playerState.ships),
         })
       }
     } else if (state.turnState.type === 'PlayBlastRespondState') {

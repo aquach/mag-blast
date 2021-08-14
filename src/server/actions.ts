@@ -620,6 +620,18 @@ function applyChooseZoneAction(
       }
       break
 
+    case 'AttackPlaceStolenShipState':
+      state.turnState.stolenShip.location = action.location
+      activePlayerState.ships.push(state.turnState.stolenShip)
+
+      state.eventLog.push(
+        `${state.activePlayer} places the stolen ${
+          state.turnState.stolenShip.shipType.name
+        } into their ${locationToString(action.location)} zone.`
+      )
+      state.turnState = { type: 'AttackTurnState' }
+      break
+
     case 'ManeuverChooseTargetZoneState':
       const originalLocation = state.turnState.originalLocations.get(
         state.turnState.ship

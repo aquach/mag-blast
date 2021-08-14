@@ -1,4 +1,10 @@
-import { CommandShip, GameState, PlayerState, Ship } from './types'
+import {
+  CommandShip,
+  GameState,
+  MAX_ZONE_SHIPS,
+  PlayerState,
+  Ship,
+} from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
 import { ActionCard, Location, LOCATIONS, ShipCard } from './shared-types'
@@ -266,22 +272,40 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
     }
 
     state.eventLog.push(`${state.activePlayer} plays a ${card.name}!`)
+    const targetShip = state.directHitStateMachine.targetShip
 
     const [targetPlayer, targetPlayerState] = owningPlayer(
       state.playerState,
-      state.directHitStateMachine.targetShip
+      targetShip
     )
 
     switch (card.cardType) {
       case 'CatastrophicDamageCard':
-        destroyShip(state, state.directHitStateMachine.targetShip)
+        destroyShip(state, targetShip)
         break
+
       case 'BoardingPartyCard':
-        // TODO
+        if (targetShip.type !== 'Ship') {
+          console.warn(
+            `Can only play Boarding Party on a Ship, not a ${targetShip.type}.`
+          )
+          break
+        }
+        // TODO: boarding party when have 12 ships
+        state.eventLog.push(
+          `${state.activePlayer} steals ${targetPlayer}'s ${targetShip.shipType.name}!`
+        )
+        _.remove(targetPlayerState.ships, (s) => s === targetShip)
+        state.turnState = {
+          type: 'AttackPlaceStolenShipState',
+          stolenShip: targetShip,
+        }
         break
+
       case 'ConcussiveBlastCard':
         // TODO
         break
+
       case 'BridgeHitCard':
         state.eventLog.push(
           `${state.activePlayer} takes three cards at random from ${targetPlayer}'s hand.`
@@ -294,11 +318,11 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
           (c) => !stealCards.includes(c)
         )
         break
+
       default:
         console.warn(
           `Don't know how to handle choosing a ${card.cardType} card.`
         )
-        return
     }
   } else {
     console.warn(`Don't know how to handle choosing a ${card.cardType} card.`)
@@ -307,4 +331,11 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
 
 export function canRespondToAttack(targetPlayerState: PlayerState) {
   return targetPlayerState.hand.some((c) => c.isInstant)
+}
+
+export function nonfullZones(ships: Ship[]): Location[] {
+  const shipsByLocation = _.groupBy(ships, (s) => s.location)
+  return LOCATIONS.filter(
+    (l) => (shipsByLocation[l] ?? []).length < MAX_ZONE_SHIPS
+  )
 }

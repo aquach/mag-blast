@@ -79,17 +79,25 @@ export interface ChooseShipCardPrompt {
   multiselect: { actionText: string } | undefined
 }
 
+export interface NoPrompt {
+  type: 'NoPrompt'
+  text: string
+}
+
 export type Prompt =
   | ChooseCardPrompt
   | ChooseShipPrompt
   | PlaceShipPrompt
   | ChooseZonePrompt
   | ChooseShipCardPrompt
+  | NoPrompt
 
 export interface UIPlayerState {
   ships: UIShip[]
   commandShip: UICommandShip
   isAlive: boolean
+  hasAsteroids: boolean
+  hasMinefield: boolean
 }
 
 export interface UIShip {
@@ -115,7 +123,7 @@ export interface UIGameState {
   deckSize: number
   isActivePlayer: boolean
   eventLog: string[]
-  prompt: Prompt | undefined
+  prompt: Prompt
 }
 
 export interface ChooseCardAction {

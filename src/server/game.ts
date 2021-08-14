@@ -4,9 +4,9 @@ import {
   canFire,
   canPlayCard,
   canTargetPlayerWithBlastsOrSquadrons,
-  fullOnShips,
   movableZones,
   nonfullZones,
+  owningPlayer,
 } from './logic'
 import {
   ChooseShipPrompt,
@@ -19,6 +19,7 @@ import {
   UILobbyState,
   ShipCard,
   ChooseShipCardPrompt,
+  NoPrompt,
 } from './shared-types'
 import { GameState, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
@@ -114,256 +115,292 @@ export function lobbyUiState(playerIds: PlayerId[]): UILobbyState {
   }
 }
 
-export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
+export function prompt(state: GameState, playerId: PlayerId): Prompt {
+  if (state.turnState.type === 'EndGameState') {
+    return ascribe<NoPrompt>({
+      type: 'NoPrompt',
+      text: 'Game is over!',
+    })
+  }
+
   const playerState = state.getPlayerState(playerId)
 
-  const prompt: Prompt | undefined = (() => {
-    if (state.activePlayer === playerId) {
-      switch (state.turnState.type) {
-        case 'DiscardTurnState': {
-          return ascribe<ChooseCardPrompt>({
-            type: 'ChooseCardPrompt',
-            selectableCardIndices: filterIndices(playerState.hand, () => true),
-            text: 'Choose cards to discard.',
-            pass: undefined,
-            multiselect: {
-              actionText: 'Discard 🗑',
-            },
-          })
-        }
-
-        case 'ReinforceTurnState': {
-          return ascribe<ChooseCardPrompt>({
-            type: 'ChooseCardPrompt',
-            selectableCardIndices: filterIndices(
-              playerState.hand,
-              (c) =>
-                c.resources.diamonds > 0 ||
-                c.resources.circles > 0 ||
-                c.resources.stars > 0
-            ),
-            text: 'Choose cards to use for reinforcements.',
-            pass: {
-              actionText: "I'm done ⏭️",
-            },
-            multiselect: {
-              actionText: 'Reinforce 🚀',
-            },
-          })
-        }
-
-        case 'AttackPlaceShipState':
-        case 'ReinforcePlaceShipState': {
-          return ascribe<PlaceShipPrompt>({
-            type: 'PlaceShipPrompt',
-            newShip: state.turnState.newShip,
-            text: `Choose a zone to place your new ${state.turnState.newShip.name}.`,
-            allowableZones: nonfullZones(playerState.ships),
-          })
-        }
-
-        case 'AttackPlaceStolenShipState': {
-          return ascribe<PlaceShipPrompt>({
-            type: 'PlaceShipPrompt',
-            newShip: state.turnState.stolenShip.shipType,
-            text: `Choose a zone to place your stolen ${state.turnState.stolenShip.shipType.name}.`,
-            allowableZones: nonfullZones(playerState.ships),
-          })
-        }
-
-        case 'AttackChooseAsteroidsPlayerTurnState': {
-          return ascribe<ChooseShipPrompt>({
-            type: 'ChooseShipPrompt',
-            text: 'Choose a player on which to play Asteroids.',
-            pass: undefined,
-            canCancel: false,
-            allowableShipIndices: [],
-            allowableCommandShips: state.playerTurnOrder,
-          })
-        }
-
-        case 'AttackChooseMinefieldPlayerTurnState': {
-          return ascribe<ChooseShipPrompt>({
-            type: 'ChooseShipPrompt',
-            text: 'Choose a player on which to play a Minefield.',
-            pass: undefined,
-            canCancel: false,
-            allowableShipIndices: [],
-            allowableCommandShips: state.playerTurnOrder,
-          })
-        }
-
-        case 'ManeuverTurnState': {
-          const allowableShipIndices =
-            playerState.minefieldUntilBeginningOfPlayerTurn
-              ? []
-              : filterIndices(
-                  playerState.ships,
-                  (s) => s.shipType.movement > 0
-                ).map((i) => ascribe<[string, number]>([playerId, i]))
-
-          return ascribe<ChooseShipPrompt>({
-            type: 'ChooseShipPrompt',
-            text: 'Choose a ship to move.',
-            allowableShipIndices,
-            allowableCommandShips: [],
-            pass: {
-              actionText: "I'm done ⏭️",
-            },
-            canCancel: false,
-          })
-        }
-
-        case 'ManeuverChooseTargetZoneState': {
-          const location =
-            state.turnState.originalLocations.get(state.turnState.ship) ??
-            state.turnState.ship.location
-          const zones = movableZones(
-            location,
-            state.turnState.ship.shipType.movement
-          )
-
-          return ascribe<ChooseZonePrompt>({
-            type: 'ChooseZonePrompt',
-            text: `Choose a zone to move ${state.turnState.ship.shipType.name} to.`,
-            allowableZones: zones,
-          })
-        }
-
-        case 'AttackTurnState': {
-          const playableCardIndices = filterIndices(playerState.hand, (c) =>
-            canPlayCard(state, playerState, c)
-          )
-
-          return ascribe<ChooseCardPrompt>({
-            type: 'ChooseCardPrompt',
-            selectableCardIndices: playableCardIndices,
-            text: 'Choose a card to play.',
-            multiselect: undefined,
-            pass: {
-              actionText: "I'm done ⏭️",
-            },
-          })
-        }
-
-        case 'PlayBlastChooseFiringShipState':
-          const turnState = state.turnState
-          return ascribe<ChooseShipPrompt>({
-            type: 'ChooseShipPrompt',
-            text: `Choose a ship to fire a ${turnState.blast.name} from.`,
-            allowableShipIndices: filterIndices(
-              playerState.ships,
-              (s) =>
-                !s.hasFiredThisTurn &&
-                canFire(s.shipType, turnState.blast.cardType)
-            ).map((i) => ascribe<[string, number]>([playerId, i])),
-            allowableCommandShips: [],
-            pass: undefined,
-            canCancel: true,
-          })
-
-        case 'PlayBlastChooseTargetShipState':
-          const firingShip = state.turnState.firingShip
-          const allowableShipIndices: [string, number][] = _.flatMap(
-            Array.from(state.playerState.entries()),
-            ([pid, playerState]) => {
-              if (pid === playerId) {
-                return []
-              }
-
-              if (!canTargetPlayerWithBlastsOrSquadrons(state, playerId, pid)) {
-                return []
-              }
-
-              return filterIndices(
-                playerState.ships,
-                (s) => s.location === firingShip.location
-              ).map<[string, number]>((shipIndex) => [pid, shipIndex])
-            }
-          )
-
-          const allowableCommandShips: string[] = _.flatMap(
-            Array.from(state.playerState.entries()),
-            ([pid, playerState]) => {
-              if (pid === playerId) {
-                return []
-              }
-
-              if (!canTargetPlayerWithBlastsOrSquadrons(state, playerId, pid)) {
-                return []
-              }
-
-              const shipInTheWay = playerState.ships.some(
-                (s) => s.location === firingShip.location
-              )
-
-              return shipInTheWay ? [] : [pid]
-            }
-          )
-
-          return ascribe<ChooseShipPrompt>({
-            type: 'ChooseShipPrompt',
-            text: 'Choose a target ship.',
-            allowableShipIndices,
-            allowableCommandShips,
-            pass: undefined,
-            canCancel: true,
-          })
-      }
-    } else if (
-      state.turnState.type === 'ChooseStartingShipsState' &&
-      !state.turnState.chosenShipCards.has(playerId)
-    ) {
+  if (state.turnState.type === 'ChooseStartingShipsState') {
+    if (!state.turnState.chosenShipCards.has(playerId)) {
       return ascribe<ChooseShipCardPrompt>({
         type: 'ChooseShipCardPrompt',
         ships: state.turnState.dealtShipCards.get(playerId)!,
         text: 'Choose four starting ships.',
         multiselect: { actionText: 'Confirm' },
       })
-    } else if (state.turnState.type === 'PlaceStartingShipsState') {
-      const chosenCards = state.turnState.chosenShipCards.get(playerId)
-      assert(
-        chosenCards !== undefined,
-        'PlaceStartingShipsState must have chosen cards.'
+    }
+
+    return ascribe<NoPrompt>({
+      type: 'NoPrompt',
+      text: 'Waiting for other players to choose their ships...',
+    })
+  }
+
+  if (state.turnState.type === 'PlaceStartingShipsState') {
+    const chosenCards = state.turnState.chosenShipCards.get(playerId)
+    assert(
+      chosenCards !== undefined,
+      'PlaceStartingShipsState must have chosen cards.'
+    )
+
+    if (chosenCards.length > 0) {
+      return ascribe<PlaceShipPrompt>({
+        type: 'PlaceShipPrompt',
+        text: `Choose a location to place your starting ${chosenCards[0].name}.`,
+        newShip: chosenCards[0],
+        allowableZones: nonfullZones(playerState.ships),
+      })
+    }
+
+    return ascribe<NoPrompt>({
+      type: 'NoPrompt',
+      text: 'Waiting for other players to place their ships...',
+    })
+  }
+
+  if (state.turnState.type === 'PlayBlastRespondState') {
+    const targetShip = state.turnState.targetShip
+    if (
+      (targetShip.type === 'Ship' && playerState.ships.includes(targetShip)) ||
+      playerState.commandShip === targetShip
+    ) {
+      const playableCardIndices = filterIndices(
+        playerState.hand,
+        (c) => c.isInstant
       )
 
-      if (chosenCards.length > 0) {
+      const firingShip = state.turnState.firingShip
+      const attackingPlayer = Array.from(state.playerState.keys()).find((pid) =>
+        state.playerState.get(pid)?.ships?.includes(firingShip)
+      )
+
+      return ascribe<ChooseCardPrompt>({
+        type: 'ChooseCardPrompt',
+        text: `${attackingPlayer} is attempting to play a ${state.turnState.blast.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
+        selectableCardIndices: playableCardIndices,
+        multiselect: undefined,
+        pass: {
+          actionText: 'Do nothing',
+        },
+      })
+    }
+  }
+
+  if (state.activePlayer === playerId) {
+    switch (state.turnState.type) {
+      case 'DiscardTurnState': {
+        return ascribe<ChooseCardPrompt>({
+          type: 'ChooseCardPrompt',
+          selectableCardIndices: filterIndices(playerState.hand, () => true),
+          text: 'Choose cards to discard.',
+          pass: undefined,
+          multiselect: {
+            actionText: 'Discard 🗑',
+          },
+        })
+      }
+
+      case 'ReinforceTurnState': {
+        return ascribe<ChooseCardPrompt>({
+          type: 'ChooseCardPrompt',
+          selectableCardIndices: filterIndices(
+            playerState.hand,
+            (c) =>
+              c.resources.diamonds > 0 ||
+              c.resources.circles > 0 ||
+              c.resources.stars > 0
+          ),
+          text: 'Choose cards to use for reinforcements.',
+          pass: {
+            actionText: "I'm done ⏭️",
+          },
+          multiselect: {
+            actionText: 'Reinforce 🚀',
+          },
+        })
+      }
+
+      case 'AttackPlaceShipState':
+      case 'ReinforcePlaceShipState': {
         return ascribe<PlaceShipPrompt>({
           type: 'PlaceShipPrompt',
-          text: `Choose a location to place your starting ${chosenCards[0].name}.`,
-          newShip: chosenCards[0],
+          newShip: state.turnState.newShip,
+          text: `Choose a zone to place your new ${state.turnState.newShip.name}.`,
           allowableZones: nonfullZones(playerState.ships),
         })
       }
-    } else if (state.turnState.type === 'PlayBlastRespondState') {
-      const targetShip = state.turnState.targetShip
-      if (
-        (targetShip.type === 'Ship' &&
-          playerState.ships.includes(targetShip)) ||
-        playerState.commandShip === targetShip
-      ) {
-        const playableCardIndices = filterIndices(
-          playerState.hand,
-          (c) => c.isInstant
+
+      case 'AttackPlaceStolenShipState': {
+        return ascribe<PlaceShipPrompt>({
+          type: 'PlaceShipPrompt',
+          newShip: state.turnState.stolenShip.shipType,
+          text: `Choose a zone to place your stolen ${state.turnState.stolenShip.shipType.name}.`,
+          allowableZones: nonfullZones(playerState.ships),
+        })
+      }
+
+      case 'AttackChooseAsteroidsPlayerTurnState': {
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a player on which to play Asteroids.',
+          pass: undefined,
+          canCancel: false,
+          allowableShipIndices: [],
+          allowableCommandShips: state.playerTurnOrder,
+        })
+      }
+
+      case 'AttackChooseMinefieldPlayerTurnState': {
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a player on which to play a Minefield.',
+          pass: undefined,
+          canCancel: false,
+          allowableShipIndices: [],
+          allowableCommandShips: state.playerTurnOrder,
+        })
+      }
+
+      case 'ManeuverTurnState': {
+        const allowableShipIndices =
+          playerState.minefieldUntilBeginningOfPlayerTurn
+            ? []
+            : filterIndices(
+                playerState.ships,
+                (s) => s.shipType.movement > 0
+              ).map((i) => ascribe<[string, number]>([playerId, i]))
+
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a ship to move.',
+          allowableShipIndices,
+          allowableCommandShips: [],
+          pass: {
+            actionText: "I'm done ⏭️",
+          },
+          canCancel: false,
+        })
+      }
+
+      case 'ManeuverChooseTargetZoneState': {
+        const location =
+          state.turnState.originalLocations.get(state.turnState.ship) ??
+          state.turnState.ship.location
+        const zones = movableZones(
+          location,
+          state.turnState.ship.shipType.movement
         )
 
-        const firingShip = state.turnState.firingShip
-        const attackingPlayer = Array.from(state.playerState.keys()).find(
-          (pid) => state.playerState.get(pid)?.ships?.includes(firingShip)
+        return ascribe<ChooseZonePrompt>({
+          type: 'ChooseZonePrompt',
+          text: `Choose a zone to move ${state.turnState.ship.shipType.name} to.`,
+          allowableZones: zones,
+        })
+      }
+
+      case 'AttackTurnState': {
+        const playableCardIndices = filterIndices(playerState.hand, (c) =>
+          canPlayCard(state, playerState, c)
         )
 
         return ascribe<ChooseCardPrompt>({
           type: 'ChooseCardPrompt',
-          text: `${attackingPlayer} is attempting to play a ${state.turnState.blast.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
           selectableCardIndices: playableCardIndices,
+          text: 'Choose a card to play.',
           multiselect: undefined,
           pass: {
-            actionText: 'Do nothing',
+            actionText: "I'm done ⏭️",
           },
         })
       }
+
+      case 'PlayBlastChooseFiringShipState':
+        const turnState = state.turnState
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: `Choose a ship to fire a ${turnState.blast.name} from.`,
+          allowableShipIndices: filterIndices(
+            playerState.ships,
+            (s) =>
+              !s.hasFiredThisTurn &&
+              canFire(s.shipType, turnState.blast.cardType)
+          ).map((i) => ascribe<[string, number]>([playerId, i])),
+          allowableCommandShips: [],
+          pass: undefined,
+          canCancel: true,
+        })
+
+      case 'PlayBlastChooseTargetShipState':
+        const firingShip = state.turnState.firingShip
+        const allowableShipIndices: [string, number][] = _.flatMap(
+          Array.from(state.playerState.entries()),
+          ([pid, playerState]) => {
+            if (pid === playerId) {
+              return []
+            }
+
+            if (!canTargetPlayerWithBlastsOrSquadrons(state, playerId, pid)) {
+              return []
+            }
+
+            return filterIndices(
+              playerState.ships,
+              (s) => s.location === firingShip.location
+            ).map<[string, number]>((shipIndex) => [pid, shipIndex])
+          }
+        )
+
+        const allowableCommandShips: string[] = _.flatMap(
+          Array.from(state.playerState.entries()),
+          ([pid, playerState]) => {
+            if (pid === playerId) {
+              return []
+            }
+
+            if (!canTargetPlayerWithBlastsOrSquadrons(state, playerId, pid)) {
+              return []
+            }
+
+            const shipInTheWay = playerState.ships.some(
+              (s) => s.location === firingShip.location
+            )
+
+            return shipInTheWay ? [] : [pid]
+          }
+        )
+
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a target ship.',
+          allowableShipIndices,
+          allowableCommandShips,
+          pass: undefined,
+          canCancel: true,
+        })
+
+      case 'PlayBlastRespondState':
+        return ascribe<NoPrompt>({
+          type: 'NoPrompt',
+          text: `Waiting for ${
+            owningPlayer(state.playerState, state.turnState.targetShip)[0]
+          } to respond...`,
+        })
     }
-  })()
+  } else {
+    return ascribe<NoPrompt>({
+      type: 'NoPrompt',
+      text: `Waiting for ${state.activePlayer} to take their turn...`,
+    })
+  }
+}
+
+export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
+  const playerState = state.getPlayerState(playerId)
 
   return {
     type: 'UIGameState',
@@ -376,11 +413,15 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
             : playerState.ships,
         commandShip: playerState.commandShip,
         isAlive: playerState.isAlive,
+        hasAsteroids:
+          playerState.asteroidsUntilBeginningOfPlayerTurn !== undefined,
+        hasMinefield:
+          playerState.minefieldUntilBeginningOfPlayerTurn !== undefined,
       })).entries()
     ),
     deckSize: state.actionDeck.length,
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,
-    prompt,
+    prompt: prompt(state, playerId),
   }
 }

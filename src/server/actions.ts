@@ -23,6 +23,7 @@ import {
   drawActivePlayerCards,
   drawShipCard,
   executeCardEffect,
+  fullOnShips,
   locationToString,
   movableZones,
   owningPlayer,
@@ -155,7 +156,7 @@ function applyChooseCardAction(
         )
       }
 
-      if (activePlayerState.ships.length == MAX_ZONE_SHIPS * 4) {
+      if (fullOnShips(activePlayerState.ships)) {
         state.turnState = {
           type: 'ManeuverTurnState',
           originalLocations: new Map(),
@@ -604,7 +605,7 @@ function applyChooseZoneAction(
 
       switch (state.turnState.type) {
         case 'ReinforcePlaceShipState':
-          if (activePlayerState.ships.length == MAX_ZONE_SHIPS * 4) {
+          if (fullOnShips(activePlayerState.ships)) {
             state.turnState = {
               type: 'ManeuverTurnState',
               originalLocations: new Map(),

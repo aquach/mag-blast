@@ -1,10 +1,9 @@
 import * as _ from 'lodash'
 import { actionCards, commandShipCards, shipCards } from './cards'
-import { canFire, movableZones, nonfullZones } from './logic'
+import { canFire, fullOnShips, movableZones, nonfullZones } from './logic'
 import {
   ChooseShipPrompt,
   ChooseZonePrompt,
-  LOCATIONS,
   PlaceShipPrompt,
   PlayerId,
   Prompt,
@@ -14,7 +13,7 @@ import {
   ShipCard,
   ChooseShipCardPrompt,
 } from './shared-types'
-import { GameState, MAX_ZONE_SHIPS, PlayerState, Ship } from './types'
+import { GameState, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
 
 const NUM_STARTING_SHIP_CARDS = 6
@@ -211,12 +210,22 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
               }
 
               // These can't target command ships. All other cards can target all ships.
-              // TODO: boarding party when have 12 ships
-              return !(
+              if (
                 state.directHitStateMachine.targetShip.type === 'CommandShip' &&
                 (c.cardType === 'BoardingPartyCard' ||
                   c.cardType === 'ConcussiveBlastCard')
-              )
+              ) {
+                return false
+              }
+
+              if (
+                c.cardType === 'BoardingPartyCard' &&
+                fullOnShips(playerState.ships)
+              ) {
+                return false
+              }
+
+              return true
             }
 
             return true

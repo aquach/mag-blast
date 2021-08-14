@@ -339,3 +339,7 @@ export function nonfullZones(ships: Ship[]): Location[] {
     (l) => (shipsByLocation[l] ?? []).length < MAX_ZONE_SHIPS
   )
 }
+
+export function fullOnShips(ships: Ship[]): boolean {
+  return ships.length == MAX_ZONE_SHIPS * 4
+}

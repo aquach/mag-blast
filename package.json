@@ -8,7 +8,7 @@
     "build": "npm run build-client && npm run build-server && cp src/client/*.html dist/client",
     "build-server": "cd src/server && tsc",
     "client": "cd src/client && webpack --watch",
-    "server": "ts-node-dev src/server/index.ts",
+    "server": "ts-node-dev -P src/server/tsconfig.json src/server/index.ts",
     "start:prod": "NODE_ENV=production node dist/server/index.js",
     "format": "prettier --write 'src/**/*.ts' 'src/**/*.tsx'"
   },

@@ -18,6 +18,7 @@ import {
 import { assert, partition } from './utils'
 import {
   canFire,
+  canPlayCard,
   canRespondToAttack,
   discardActivePlayerCards,
   drawActivePlayerCards,
@@ -81,8 +82,7 @@ function applyChooseCardAction(
   }
 
   if (state.turnState.type === 'PlayBlastRespondState') {
-    const playerState = state.playerState.get(playerId)
-    assert(playerState !== undefined, `Player ID ${playerId} not found.`)
+    const playerState = state.getPlayerState(playerId)
 
     assert(
       typeof action.handIndex === 'number',
@@ -128,11 +128,7 @@ function applyChooseCardAction(
     'A player acted that was not the active player.'
   )
 
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
     case 'DiscardTurnState':
@@ -210,6 +206,11 @@ function applyChooseCardAction(
         return
       }
 
+      if (!canPlayCard(state, activePlayerState, card)) {
+        console.warn(`${state.activePlayer} current can't play ${card.name}.`)
+        return
+      }
+
       executeCardEffect(state, card)
 
       // Consume the card.
@@ -235,11 +236,7 @@ function applyChooseShipAction(
     state.activePlayer === playerId,
     'A player acted that was not the active player.'
   )
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
     case 'ManeuverTurnState': {
@@ -289,6 +286,46 @@ function applyChooseShipAction(
 
       break
     }
+
+    case 'AttackChooseAsteroidsPlayerTurnState':
+      {
+        assert(
+          typeof action.choice === 'string',
+          'choice should be an index for deciding Asteroids.'
+        )
+        const targetPlayer = action.choice
+        const targetPlayerState = state.getPlayerState(action.choice)
+
+        state.eventLog.push(
+          `${state.activePlayer} plays Asteroids on ${
+            targetPlayer === state.activePlayer ? 'themselves' : targetPlayer
+          }.`
+        )
+        targetPlayerState.asteroidsUntilBeginningOfPlayerTurn =
+          state.activePlayer
+        state.turnState = { type: 'AttackTurnState' }
+      }
+      break
+
+    case 'AttackChooseMinefieldPlayerTurnState':
+      {
+        assert(
+          typeof action.choice === 'string',
+          'choice should be an index for deciding Minefield.'
+        )
+        const targetPlayer = action.choice
+        const targetPlayerState = state.getPlayerState(action.choice)
+
+        state.eventLog.push(
+          `${state.activePlayer} plays a Minefield on ${
+            targetPlayer === state.activePlayer ? 'themselves' : targetPlayer
+          }.`
+        )
+        targetPlayerState.minefieldUntilBeginningOfPlayerTurn =
+          state.activePlayer
+        state.turnState = { type: 'AttackTurnState' }
+      }
+      break
 
     case 'PlayBlastChooseFiringShipState':
       {
@@ -410,15 +447,10 @@ function applyChooseShipAction(
 
 function applyPassAction(
   state: GameState,
-
   playerId: string,
   action: PassAction
 ): void {
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
     case 'PlayBlastRespondState':
@@ -477,7 +509,7 @@ function applyPassAction(
 
       assert(
         currentPlayerIndex !== -1,
-        "Couldn't find active player in player turn order"
+        "Couldn't find active player in player turn order."
       )
 
       const nextPlayerIndex =
@@ -499,7 +531,19 @@ function applyPassAction(
 
       state.activePlayer = state.playerTurnOrder[nextPlayerIndex]
       state.directHitStateMachine = undefined
+
       state.eventLog.push(`It is now ${state.activePlayer}'s turn.`)
+
+      for (const [pid, ps] of state.playerState.entries()) {
+        if (ps.asteroidsUntilBeginningOfPlayerTurn === state.activePlayer) {
+          ps.asteroidsUntilBeginningOfPlayerTurn = undefined
+          state.eventLog.push(`${pid}'s Asteroids wears off.`)
+        }
+        if (ps.minefieldUntilBeginningOfPlayerTurn === state.activePlayer) {
+          ps.minefieldUntilBeginningOfPlayerTurn = undefined
+          state.eventLog.push(`${pid}'s Minefield wears off.`)
+        }
+      }
 
       break
 
@@ -519,8 +563,7 @@ function applyChooseZoneAction(
       chosenShipCards !== undefined,
       `Ship cards for player ${playerId} not found.`
     )
-    const playerState = state.playerState.get(playerId)
-    assert(playerState !== undefined, `Player ${playerId}'s state not found.`)
+    const playerState = state.getPlayerState(playerId)
 
     if (chosenShipCards.length === 0) {
       console.warn(`Player ${playerId} has no more ships to place.`)
@@ -580,11 +623,7 @@ function applyChooseZoneAction(
     state.activePlayer === playerId,
     'A player acted that was not the active player.'
   )
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
     case 'ReinforcePlaceShipState':
@@ -681,11 +720,7 @@ function applyCancelAction(
     state.activePlayer === playerId,
     'A player acted that was not the active player.'
   )
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
     case 'PlayBlastChooseFiringShipState':

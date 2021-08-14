@@ -1,6 +1,13 @@
 import * as _ from 'lodash'
 import { actionCards, commandShipCards, shipCards } from './cards'
-import { canFire, fullOnShips, movableZones, nonfullZones } from './logic'
+import {
+  canFire,
+  canPlayCard,
+  canTargetPlayerWithBlastsOrSquadrons,
+  fullOnShips,
+  movableZones,
+  nonfullZones,
+} from './logic'
 import {
   ChooseShipPrompt,
   ChooseZonePrompt,
@@ -62,6 +69,8 @@ export function newGameState(playerIdSet: Set<PlayerId>): GameState {
         damage: 0,
       },
       isAlive: true,
+      asteroidsUntilBeginningOfPlayerTurn: undefined,
+      minefieldUntilBeginningOfPlayerTurn: undefined,
     }
 
     const t: [PlayerId, PlayerState] = [playerId, playerState]
@@ -89,6 +98,12 @@ export function newGameState(playerIdSet: Set<PlayerId>): GameState {
 
     turnNumber: 1,
     eventLog: ['Welcome to Mag Blast!'],
+
+    getPlayerState(playerId: string): PlayerState {
+      const playerState = this.playerState.get(playerId)
+      assert(playerState !== undefined, `Player ID ${playerId} not found.`)
+      return playerState
+    },
   }
 }
 
@@ -100,8 +115,7 @@ export function lobbyUiState(playerIds: PlayerId[]): UILobbyState {
 }
 
 export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
-  const playerState = state.playerState.get(playerId)
-  assert(playerState !== undefined, `Player ID ${playerId} not found.`)
+  const playerState = state.getPlayerState(playerId)
 
   const prompt: Prompt | undefined = (() => {
     if (state.activePlayer === playerId) {
@@ -157,20 +171,48 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
           })
         }
 
-        case 'ManeuverTurnState':
+        case 'AttackChooseAsteroidsPlayerTurnState': {
+          return ascribe<ChooseShipPrompt>({
+            type: 'ChooseShipPrompt',
+            text: 'Choose a player on which to play Asteroids.',
+            pass: undefined,
+            canCancel: false,
+            allowableShipIndices: [],
+            allowableCommandShips: state.playerTurnOrder,
+          })
+        }
+
+        case 'AttackChooseMinefieldPlayerTurnState': {
+          return ascribe<ChooseShipPrompt>({
+            type: 'ChooseShipPrompt',
+            text: 'Choose a player on which to play a Minefield.',
+            pass: undefined,
+            canCancel: false,
+            allowableShipIndices: [],
+            allowableCommandShips: state.playerTurnOrder,
+          })
+        }
+
+        case 'ManeuverTurnState': {
+          const allowableShipIndices =
+            playerState.minefieldUntilBeginningOfPlayerTurn
+              ? []
+              : filterIndices(
+                  playerState.ships,
+                  (s) => s.shipType.movement > 0
+                ).map((i) => ascribe<[string, number]>([playerId, i]))
+
           return ascribe<ChooseShipPrompt>({
             type: 'ChooseShipPrompt',
             text: 'Choose a ship to move.',
-            allowableShipIndices: filterIndices(
-              playerState.ships,
-              (s) => s.shipType.movement > 0
-            ).map((i) => ascribe<[string, number]>([playerId, i])),
+            allowableShipIndices,
             allowableCommandShips: [],
             pass: {
               actionText: "I'm done ⏭️",
             },
             canCancel: false,
           })
+        }
 
         case 'ManeuverChooseTargetZoneState': {
           const location =
@@ -189,47 +231,9 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
         }
 
         case 'AttackTurnState': {
-          const playableCardIndices = filterIndices(playerState.hand, (c) => {
-            if (c.isInstant) {
-              return false
-            }
-
-            if (c.isDirectHit) {
-              return (
-                state.directHitStateMachine?.type ===
-                'BlastPlayedDirectHitState'
-              )
-            }
-
-            if (c.isDirectHitEffect) {
-              if (
-                state.directHitStateMachine?.type !==
-                'DirectHitPlayedDirectHitState'
-              ) {
-                return false
-              }
-
-              // These can't target command ships. All other cards can target all ships.
-              if (
-                state.directHitStateMachine.targetShip.type === 'CommandShip' &&
-                (c.cardType === 'BoardingPartyCard' ||
-                  c.cardType === 'ConcussiveBlastCard')
-              ) {
-                return false
-              }
-
-              if (
-                c.cardType === 'BoardingPartyCard' &&
-                fullOnShips(playerState.ships)
-              ) {
-                return false
-              }
-
-              return true
-            }
-
-            return true
-          })
+          const playableCardIndices = filterIndices(playerState.hand, (c) =>
+            canPlayCard(state, playerState, c)
+          )
 
           return ascribe<ChooseCardPrompt>({
             type: 'ChooseCardPrompt',
@@ -267,6 +271,10 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
                 return []
               }
 
+              if (!canTargetPlayerWithBlastsOrSquadrons(state, playerId, pid)) {
+                return []
+              }
+
               return filterIndices(
                 playerState.ships,
                 (s) => s.location === firingShip.location
@@ -278,6 +286,10 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
             Array.from(state.playerState.entries()),
             ([pid, playerState]) => {
               if (pid === playerId) {
+                return []
+              }
+
+              if (!canTargetPlayerWithBlastsOrSquadrons(state, playerId, pid)) {
                 return []
               }
 

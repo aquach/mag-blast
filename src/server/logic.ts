@@ -13,11 +13,7 @@ export function drawActivePlayerCards(
   state: GameState,
   numCards: number
 ): void {
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   state.eventLog.push(
     `${state.activePlayer} draws ${numCards} card${numCards > 1 ? 's' : ''}.`
@@ -55,11 +51,7 @@ export function discardActivePlayerCards(
   state: GameState,
   cardIndices: number[]
 ): void {
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   const [discardedCards, newHand] = partition(activePlayerState.hand, (c, i) =>
     cardIndices.includes(i)
@@ -204,11 +196,7 @@ export function resolveBlastAttack(
 }
 
 export function executeCardEffect(state: GameState, card: ActionCard): void {
-  const activePlayerState = state.playerState.get(state.activePlayer)
-  assert(
-    activePlayerState !== undefined,
-    `Player ID ${state.activePlayer} not found.`
-  )
+  const activePlayerState = state.getPlayerState(state.activePlayer)
 
   if (card.isBlast) {
     if (state.directHitStateMachine?.type === 'DirectHitPlayedDirectHitState') {
@@ -291,7 +279,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
           )
           break
         }
-        // TODO: boarding party when have 12 ships
+
         state.eventLog.push(
           `${state.activePlayer} steals ${targetPlayer}'s ${targetShip.shipType.name}!`
         )
@@ -324,6 +312,14 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
           `Don't know how to handle choosing a ${card.cardType} card.`
         )
     }
+  } else if (card.cardType === 'AsteroidsCard') {
+    state.turnState = {
+      type: 'AttackChooseAsteroidsPlayerTurnState',
+    }
+  } else if (card.cardType === 'MinefieldCard') {
+    state.turnState = {
+      type: 'AttackChooseMinefieldPlayerTurnState',
+    }
   } else {
     console.warn(`Don't know how to handle choosing a ${card.cardType} card.`)
   }
@@ -342,4 +338,78 @@ export function nonfullZones(ships: Ship[]): Location[] {
 
 export function fullOnShips(ships: Ship[]): boolean {
   return ships.length == MAX_ZONE_SHIPS * 4
+}
+
+export function canTargetPlayerWithBlastsOrSquadrons(
+  state: GameState,
+  fromPlayerId: string,
+  toPlayerId: string
+): boolean {
+  const toPlayerState = state.getPlayerState(toPlayerId)
+
+  if (toPlayerState.asteroidsUntilBeginningOfPlayerTurn) {
+    return false
+  }
+
+  // Enforce attack-right.
+
+  const playerIndex = state.playerTurnOrder.indexOf(fromPlayerId)
+  assert(
+    playerIndex !== -1,
+    "Couldn't find active player in player turn order."
+  )
+  const playerIndexToTheRight = (playerIndex + 1) % state.playerTurnOrder.length
+
+  if (state.playerTurnOrder[playerIndexToTheRight] !== toPlayerId) {
+    return false
+  }
+
+  return true
+}
+
+export function canPlayCard(
+  state: GameState,
+  playerState: PlayerState,
+  card: ActionCard
+): boolean {
+  if (card.isInstant) {
+    return false
+  }
+
+  if (
+    (card.isBlast || card.isSquadron) &&
+    playerState.minefieldUntilBeginningOfPlayerTurn !== undefined
+  ) {
+    return false
+  }
+
+  if (card.isDirectHit) {
+    return state.directHitStateMachine?.type === 'BlastPlayedDirectHitState'
+  }
+
+  if (card.isDirectHitEffect) {
+    if (state.directHitStateMachine?.type !== 'DirectHitPlayedDirectHitState') {
+      return false
+    }
+
+    // These can't target command ships. All other cards can target all ships.
+    if (
+      state.directHitStateMachine.targetShip.type === 'CommandShip' &&
+      (card.cardType === 'BoardingPartyCard' ||
+        card.cardType === 'ConcussiveBlastCard')
+    ) {
+      return false
+    }
+
+    if (
+      card.cardType === 'BoardingPartyCard' &&
+      fullOnShips(playerState.ships)
+    ) {
+      return false
+    }
+
+    return true
+  }
+
+  return true
 }

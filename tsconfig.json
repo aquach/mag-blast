@@ -1,7 +1,0 @@
-{
-  "compilerOptions": {
-    "lib": [ "es2019" ],
-    "strict": true,
-    "outDir": "dist/server"
-  }
-}

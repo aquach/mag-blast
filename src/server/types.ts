@@ -28,6 +28,8 @@ export interface PlayerState {
   ships: Ship[]
   commandShip: CommandShip
   isAlive: boolean
+  asteroidsUntilBeginningOfPlayerTurn: PlayerId | undefined
+  minefieldUntilBeginningOfPlayerTurn: PlayerId | undefined
 }
 
 export interface BlastPlayedDirectHitState {
@@ -64,6 +66,8 @@ export interface GameState {
 
   turnNumber: number
   eventLog: string[]
+
+  getPlayerState(playerId: string): PlayerState
 }
 
 export interface ChooseStartingShipsState {
@@ -115,6 +119,14 @@ export interface AttackPlaceStolenShipState {
   stolenShip: Ship
 }
 
+export interface AttackChooseAsteroidsPlayerTurnState {
+  type: 'AttackChooseAsteroidsPlayerTurnState'
+}
+
+export interface AttackChooseMinefieldPlayerTurnState {
+  type: 'AttackChooseMinefieldPlayerTurnState'
+}
+
 export interface PlayBlastChooseFiringShipState {
   type: 'PlayBlastChooseFiringShipState'
   blast: ActionCard
@@ -148,6 +160,8 @@ export type TurnState =
   | AttackTurnState
   | AttackPlaceShipState
   | AttackPlaceStolenShipState
+  | AttackChooseAsteroidsPlayerTurnState
+  | AttackChooseMinefieldPlayerTurnState
   | PlayBlastChooseTargetShipState
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState

@@ -208,10 +208,12 @@ const Lobby: React.FunctionComponent<{
 }> = ({ players, startGame }) => {
   return (
     <div className="flex flex-column vh-100 w-100 justify-center items-center">
-      <h1>Lobby: {gameId}</h1>
-      <button onClick={startGame}>Start Game</button>
+      <h1 className="mv2">Lobby: {gameId}</h1>
+      <h3 className="mv2">Share this link: <a href={window.location.href}>{window.location.href}</a></h3>
 
-      <h3>Players</h3>
+      <button className="mv2 pa1" onClick={startGame}>Start Game</button>
+
+      <h3 className="mv2">Players</h3>
 
       {players.map((p, i) => (
         <p className="ma0" key={i}>

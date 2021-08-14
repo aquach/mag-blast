@@ -122,6 +122,15 @@ const commandShipBreaks: Record<string, JSX.Element> = {
       of Peace
     </Fragment>
   ),
+  CraniumConsortium: (
+    <Fragment>
+      Cranium
+      <br />
+      Consor
+      <br />
+      tium
+    </Fragment>
+  ),
 }
 
 const CommandShip: React.FunctionComponent<{

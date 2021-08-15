@@ -152,7 +152,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       return ascribe<PlaceShipPrompt>({
         type: 'PlaceShipPrompt',
         text: `Choose a location to place your starting ${chosenCards[0].name}.`,
-        newShip: chosenCards[0],
+        newShips: chosenCards,
         allowableZones: nonfullZones(playerState.ships),
       })
     }
@@ -229,7 +229,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       case 'ReinforcePlaceShipState': {
         return ascribe<PlaceShipPrompt>({
           type: 'PlaceShipPrompt',
-          newShip: state.turnState.newShip,
+          newShips: [state.turnState.newShip],
           text: `Choose a zone to place your new ${state.turnState.newShip.name}.`,
           allowableZones: nonfullZones(playerState.ships),
         })
@@ -238,7 +238,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       case 'AttackPlaceStolenShipState': {
         return ascribe<PlaceShipPrompt>({
           type: 'PlaceShipPrompt',
-          newShip: state.turnState.stolenShip.shipType,
+          newShips: [state.turnState.stolenShip.shipType],
           text: `Choose a zone to place your stolen ${state.turnState.stolenShip.shipType.name}.`,
           allowableZones: nonfullZones(playerState.ships),
         })

@@ -67,7 +67,7 @@ export interface ChooseZonePrompt {
 
 export interface PlaceShipPrompt {
   type: 'PlaceShipPrompt'
-  newShip: ShipCard
+  newShips: ShipCard[]
   text: string
   allowableZones: Location[]
 }

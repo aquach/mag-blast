@@ -152,12 +152,17 @@ const Game: React.FunctionComponent<{
 
         {prompt && <h3 className="ma1 mv2">{prompt.text}</h3>}
         {prompt && prompt.type === 'PlaceShipPrompt' && (
-          <ShipCardComponent
-            shipType={prompt.newShip}
-            onClick={_.noop}
-            clickable={false}
-            selected={false}
-          />
+          <div className="flex">
+            {prompt.newShips.map((s, i) => (
+              <ShipCardComponent
+                key={i}
+                shipType={s}
+                onClick={_.noop}
+                clickable={false}
+                selected={i === 0}
+              />
+            ))}
+          </div>
         )}
         {prompt && prompt.type === 'ChooseShipCardPrompt' && (
           <ShipCardSelector

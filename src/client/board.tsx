@@ -214,7 +214,7 @@ const ShipZone: React.FunctionComponent<{
       className={`ba ma1 flex ${clickable ? 'clickable pointer' : ''}`}
       style={{
         backgroundColor: colorToHex[color],
-        minHeight: '6.25rem',
+        minHeight: '7.75rem',
         minWidth: '4rem',
       }}
       onClick={() =>
@@ -253,9 +253,15 @@ const BoardPlayer: React.FunctionComponent<{
   ) as Record<ShipLocation, [UIShip, number][]>
 
   return (
-    <div className={`ph2 ${!playerState.isAlive ? 'o-50' : ''}`}>
+    <div
+      className={`ph2 pa1 ${!playerState.isAlive ? 'o-50' : ''} ${
+        playerState.hasAsteroids ? 'bg-washed-blue' : ''
+      } ${playerState.hasMinefield ? 'bg-washed-red' : ''}`}
+    >
       <h3 className="mt0">
-        {playerId} {!playerState.isAlive ? '(Eliminated)' : ''}
+        {playerId} {!playerState.isAlive ? '(Eliminated)' : ''}{' '}
+        {playerState.hasAsteroids ? '(Asteroids)' : ''}
+        {playerState.hasMinefield ? '(Minefielded)' : ''}
       </h3>
 
       <div className="flex justify-center">

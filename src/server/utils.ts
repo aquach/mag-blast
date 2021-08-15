@@ -55,3 +55,7 @@ export function partition<T>(
 
   return [trues, falses]
 }
+
+export function warn(m: string): void {
+  console.warn(`[${new Date()}] ${m}`)
+}

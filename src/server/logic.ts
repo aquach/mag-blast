@@ -1,6 +1,6 @@
 import { CommandShip, GameState, PlayerState, Ship } from './types'
 import * as _ from 'lodash'
-import { ascribe, assert, filterIndices, partition } from './utils'
+import { ascribe, assert, filterIndices, partition, warn } from './utils'
 import {
   ActionCard,
   Location,
@@ -268,7 +268,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
     drawActivePlayerCards(state, 3)
   } else if (card.isDirectHit) {
     if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
-      console.warn(
+      warn(
         `Wrong state ${state.directHitStateMachine?.type} to play direct hit.`
       )
       return
@@ -282,7 +282,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
     }
   } else if (card.isDirectHitEffect) {
     if (state.directHitStateMachine?.type !== 'DirectHitPlayedDirectHitState') {
-      console.warn(
+      warn(
         `Wrong state ${state.directHitStateMachine?.type} to play a direct hit effect.`
       )
       return
@@ -303,7 +303,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
 
       case 'BoardingPartyCard':
         if (targetShip.type !== 'Ship') {
-          console.warn(
+          warn(
             `Can only play Boarding Party on a Ship, not a ${targetShip.type}.`
           )
           break
@@ -321,7 +321,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
 
       case 'ConcussiveBlastCard':
         if (targetShip.type !== 'Ship') {
-          console.warn(
+          warn(
             `Can only play Concussive Blast on a Ship, not a ${targetShip.type}.`
           )
           break
@@ -348,9 +348,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
         break
 
       default:
-        console.warn(
-          `Don't know how to handle choosing a ${card.cardType} card.`
-        )
+        warn(`Don't know how to handle choosing a ${card.cardType} card.`)
     }
   } else if (card.cardType === 'AsteroidsCard') {
     state.turnState = {
@@ -361,7 +359,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       type: 'AttackChooseMinefieldPlayerTurnState',
     }
   } else {
-    console.warn(`Don't know how to handle choosing a ${card.cardType} card.`)
+    warn(`Don't know how to handle choosing a ${card.cardType} card.`)
   }
 }
 

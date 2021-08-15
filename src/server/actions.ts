@@ -9,7 +9,7 @@ import {
   PassAction,
   ChooseCardAction,
 } from './shared-types'
-import { assert, partition } from './utils'
+import { assert, partition, warn } from './utils'
 import {
   canPlayCard,
   canRespondToBlast,
@@ -50,13 +50,13 @@ function applyChooseCardAction(
       dealtShipCards !== undefined,
       `Ship cards for player ${playerId} not found.`
     )
-    assert(
-      Array.isArray(action.handIndex),
-      'handIndex should be an array for choosing starting ships.'
-    )
+    if (!Array.isArray(action.handIndex)) {
+      warn('handIndex should be an array for choosing starting ships.')
+      return
+    }
 
     if (state.turnState.chosenShipCards.has(playerId)) {
-      console.warn(`Player ${playerId} has already chosen starting ships.`)
+      warn(`Player ${playerId} has already chosen starting ships.`)
       return
     }
 
@@ -88,14 +88,14 @@ function applyChooseCardAction(
   if (state.turnState.type === 'PlayBlastRespondState') {
     const playerState = state.getPlayerState(playerId)
 
-    assert(
-      typeof action.handIndex === 'number',
-      'handIndex should be a single number for playing cards.'
-    )
+    if (typeof action.handIndex !== 'number') {
+      warn('handIndex should be a single number for playing cards.')
+      return
+    }
     const card = playerState.hand[action.handIndex]
 
     if (!card) {
-      console.warn(`Attempted to play a non-existent card ${action.handIndex}.`)
+      warn(`Attempted to play a non-existent card ${action.handIndex}.`)
       return
     }
 
@@ -120,7 +120,7 @@ function applyChooseCardAction(
         type: 'AttackTurnState',
       }
     } else {
-      console.warn(`Don't know what to do with card ${card.cardType}.`)
+      warn(`Don't know what to do with card ${card.cardType}.`)
     }
 
     return
@@ -136,9 +136,7 @@ function applyChooseCardAction(
     const respondingCard = playerState.hand[action.handIndex]
 
     if (!respondingCard) {
-      console.warn(
-        `Attempted to respond with a non-existent card ${action.handIndex}.`
-      )
+      warn(`Attempted to respond with a non-existent card ${action.handIndex}.`)
       return
     }
 
@@ -196,28 +194,26 @@ function applyChooseCardAction(
         type: 'AttackTurnState',
       }
     } else {
-      console.warn(
-        `Don't know what to do with card ${respondingCard.cardType}.`
-      )
+      warn(`Don't know what to do with card ${respondingCard.cardType}.`)
     }
 
     return
   }
 
-  assert(
-    state.activePlayer === playerId,
-    'A player acted that was not the active player.'
-  )
+  if (state.activePlayer !== playerId) {
+    warn('A player acted that was not the active player.')
+    return
+  }
 
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
     case 'DiscardTurnState':
       // Discard, then draw.
-      assert(
-        Array.isArray(action.handIndex),
-        'handIndex should be an array for discarding.'
-      )
+      if (!Array.isArray(action.handIndex)) {
+        warn('handIndex should be an array for discarding.')
+        break
+      }
 
       const discardIndices = action.handIndex
       discardActivePlayerCards(state, discardIndices)
@@ -247,10 +243,10 @@ function applyChooseCardAction(
       break
 
     case 'ReinforceTurnState':
-      assert(
-        Array.isArray(action.handIndex),
-        'handIndex should be an array for reinforcing.'
-      )
+      if (!Array.isArray(action.handIndex)) {
+        warn('handIndex should be an array for reinforcing.')
+        break
+      }
       const reinforceIndices = action.handIndex
 
       if (
@@ -276,21 +272,19 @@ function applyChooseCardAction(
       break
 
     case 'AttackTurnState':
-      assert(
-        typeof action.handIndex === 'number',
-        'handIndex should be a single number for playing cards.'
-      )
+      if (typeof action.handIndex !== 'number') {
+        warn('handIndex should be a single number for playing cards.')
+        break
+      }
       const card = activePlayerState.hand[action.handIndex]
 
       if (!card) {
-        console.warn(
-          `Attempted to play a non-existent card ${action.handIndex}.`
-        )
+        warn(`Attempted to play a non-existent card ${action.handIndex}.`)
         return
       }
 
       if (!canPlayCard(state, activePlayerState, card)) {
-        console.warn(`${state.activePlayer} current can't play ${card.name}.`)
+        warn(`${state.activePlayer} current can't play ${card.name}.`)
         return
       }
 
@@ -320,25 +314,25 @@ function applyChooseShipAction(
   playerId: string,
   action: ChooseShipAction
 ): void {
-  assert(
-    state.activePlayer === playerId,
-    'A player acted that was not the active player.'
-  )
+  if (state.activePlayer !== playerId) {
+    warn('A player acted that was not the active player.')
+    return
+  }
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
     case 'ManeuverTurnState': {
-      assert(
-        Array.isArray(action.choice),
-        'choice should be an array for choosing ship to move.'
-      )
+      if (!Array.isArray(action.choice)) {
+        warn('choice should be an array for choosing ship to move.')
+        break
+      }
 
       if (
         !moveableShips(playerId, activePlayerState).some((shipIndex) =>
           _.isEqual(shipIndex, action.choice)
         )
       ) {
-        console.warn(`Player ${state.activePlayer} can't move the chosen ship.`)
+        warn(`Player ${state.activePlayer} can't move the chosen ship.`)
       }
 
       const designatedShip = activePlayerState.ships[action.choice[1]]
@@ -361,10 +355,10 @@ function applyChooseShipAction(
 
     case 'AttackChooseAsteroidsPlayerTurnState':
       {
-        assert(
-          typeof action.choice === 'string',
-          'choice should be an index for deciding Asteroids.'
-        )
+        if (typeof action.choice !== 'string') {
+          warn('choice should be an index for deciding Asteroids.')
+          break
+        }
         const targetPlayer = action.choice
         const targetPlayerState = state.getPlayerState(action.choice)
 
@@ -381,10 +375,10 @@ function applyChooseShipAction(
 
     case 'AttackChooseMinefieldPlayerTurnState':
       {
-        assert(
-          typeof action.choice === 'string',
-          'choice should be an index for deciding Minefield.'
-        )
+        if (typeof action.choice !== 'string') {
+          warn('choice should be an index for deciding Minefield.')
+          break
+        }
         const targetPlayer = action.choice
         const targetPlayerState = state.getPlayerState(action.choice)
 
@@ -401,13 +395,13 @@ function applyChooseShipAction(
 
     case 'PlayBlastChooseFiringShipState':
       {
-        assert(
-          Array.isArray(action.choice),
-          'choice should be an array for choosing firing ship.'
-        )
+        if (!Array.isArray(action.choice)) {
+          warn('choice should be an array for choosing firing ship.')
+          break
+        }
 
         if (action.choice[0] !== state.activePlayer) {
-          console.warn(
+          warn(
             `Player ${state.activePlayer} chose a firing ship that belongs to ${action.choice[0]}.`
           )
           break
@@ -417,7 +411,7 @@ function applyChooseShipAction(
           action.choice[1] < 0 ||
           action.choice[1] >= activePlayerState.ships.length
         ) {
-          console.warn(
+          warn(
             `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
           )
           break
@@ -426,7 +420,7 @@ function applyChooseShipAction(
         const designatedShip = activePlayerState.ships[action.choice[1]]
 
         if (!shipCanFire(designatedShip, state.turnState.blast)) {
-          console.warn(
+          warn(
             `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`
           )
           break
@@ -455,7 +449,7 @@ function applyChooseShipAction(
               (tx) => _.isEqual(tx, action.choice)
             )
           ) {
-            console.warn("Firing ship can't fire on target ship.")
+            warn("Firing ship can't fire on target ship.")
             break
           }
 
@@ -467,7 +461,7 @@ function applyChooseShipAction(
               state.turnState.firingShip
             ).includes(action.choice)
           ) {
-            console.warn("Firing ship can't fire on target ship.")
+            warn("Firing ship can't fire on target ship.")
             break
           }
           designatedShip = targetPlayerState.commandShip
@@ -513,7 +507,7 @@ function applyChooseShipAction(
               state.turnState.squadron
             ).some((tx) => _.isEqual(tx, action.choice))
           ) {
-            console.warn(
+            warn(
               `${state.activePlayer} can't play a squadron on the target ship.`
             )
             break
@@ -528,7 +522,7 @@ function applyChooseShipAction(
               state.turnState.squadron
             ).includes(action.choice)
           ) {
-            console.warn(
+            warn(
               `${state.activePlayer} can't play a squadron on the target ship.`
             )
             break
@@ -599,10 +593,10 @@ function applyPassAction(
       break
 
     case 'ReinforceTurnState':
-      assert(
-        state.activePlayer === playerId,
-        'A player acted that was not the active player.'
-      )
+      if (state.activePlayer !== playerId) {
+        warn('A player acted that was not the active player.')
+        break
+      }
       state.turnState = {
         type: 'ManeuverTurnState',
         originalLocations: new Map(),
@@ -610,10 +604,10 @@ function applyPassAction(
       break
 
     case 'ManeuverTurnState':
-      assert(
-        state.activePlayer === playerId,
-        'A player acted that was not the active player.'
-      )
+      if (state.activePlayer !== playerId) {
+        warn('A player acted that was not the active player.')
+        break
+      }
       {
         const shipsByLocation = _.groupBy(
           activePlayerState.ships,
@@ -631,10 +625,10 @@ function applyPassAction(
       break
 
     case 'AttackTurnState':
-      assert(
-        state.activePlayer === playerId,
-        'A player acted that was not the active player.'
-      )
+      if (state.activePlayer !== playerId) {
+        warn('A player acted that was not the active player.')
+        break
+      }
 
       // End of turn effects wear off.
 
@@ -723,7 +717,7 @@ function applyChooseZoneAction(
     const playerState = state.getPlayerState(playerId)
 
     if (chosenShipCards.length === 0) {
-      console.warn(`Player ${playerId} has no more ships to place.`)
+      warn(`Player ${playerId} has no more ships to place.`)
       return
     }
 
@@ -777,10 +771,10 @@ function applyChooseZoneAction(
     return
   }
 
-  assert(
-    state.activePlayer === playerId,
-    'A player acted that was not the active player.'
-  )
+  if (state.activePlayer !== playerId) {
+    warn('A player acted that was not the active player.')
+    return
+  }
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
@@ -841,7 +835,7 @@ function applyChooseZoneAction(
       )
 
       if (!nonfullZones(targetPlayerState.ships).includes(action.location)) {
-        console.warn(
+        warn(
           `Can't move ${ship.shipType.name} to the ${action.location} zone because it's full.`
         )
         break
@@ -875,7 +869,7 @@ function applyChooseZoneAction(
         state.turnState.ship.shipType.movement
       )
       if (!zones.includes(action.location)) {
-        console.warn(
+        warn(
           `Player ${state.activePlayer} chose a zone that the ship can't move to.`
         )
         break
@@ -905,10 +899,10 @@ function applyCancelAction(
   playerId: string,
   action: CancelAction
 ): void {
-  assert(
-    state.activePlayer === playerId,
-    'A player acted that was not the active player.'
-  )
+  if (state.activePlayer !== playerId) {
+    warn('A player acted that was not the active player.')
+    return
+  }
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {

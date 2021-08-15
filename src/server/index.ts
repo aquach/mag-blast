@@ -10,7 +10,7 @@ import { Action, GameError, PlayerId } from './shared-types'
 import { gameUiState, lobbyUiState, newGameState } from './game'
 import { applyAction } from './actions'
 import { GameSettings, GameState } from './types'
-import { ascribe } from './utils'
+import { ascribe, warn } from './utils'
 import { MAX_PLAYERS, STARTING_HAND_SIZE } from './constants'
 
 interface PlayerSocketBinding {
@@ -101,9 +101,7 @@ io.on('connection', (socket) => {
   const game = games.find((g) => g.gameId === gameId)
 
   if (game === undefined) {
-    console.warn(
-      `A socket tried to connect to a game ${gameId} that doesn't exist.`
-    )
+    warn(`A socket tried to connect to a game ${gameId} that doesn't exist.`)
     socket.emit('error', ascribe<GameError>({ type: 'GameNotFound' }))
     return
   }
@@ -148,7 +146,7 @@ io.on('connection', (socket) => {
 
   socket.on('action', (a: Action) => {
     if (game.gameState.type !== 'GameState') {
-      console.warn(`Game must be in GameState to perform actions.`)
+      warn(`Game must be in GameState to perform actions.`)
       return
     }
 
@@ -160,7 +158,7 @@ io.on('connection', (socket) => {
 
   socket.on('start-game', () => {
     if (game.gameState.type !== 'LobbyState') {
-      console.warn(`Game must be in LobbyState to start game.`)
+      warn(`Game must be in LobbyState to start game.`)
       return
     }
     const uniquePlayers = new Set(game.bindings.map((b) => b.id))
@@ -168,6 +166,8 @@ io.on('connection', (socket) => {
       socket.emit('error', ascribe<GameError>({ type: 'TooFewPlayers' }))
       return
     }
+
+    console.log(`Game ${game.gameId} has begun!`)
 
     game.gameState = newGameState(uniquePlayers, game.gameSettings)
     game.lastUpdated = new Date().getTime()

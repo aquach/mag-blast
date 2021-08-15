@@ -1,6 +1,8 @@
+import { RawEventLog } from './events'
 import {
   ActionCard,
   CommandShipCard,
+  EventLogEntry,
   Location,
   PlayerId,
   ShipCard,
@@ -69,11 +71,12 @@ export interface GameState {
   playerTurnOrder: PlayerId[]
 
   turnNumber: number
-  eventLog: string[]
+  eventLog: EventLogEntry[]
 
   gameSettings: GameSettings
 
   getPlayerState(playerId: string): PlayerState
+  pushEventLog(r: RawEventLog): void
 }
 
 export interface ChooseStartingShipsState {

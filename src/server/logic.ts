@@ -9,6 +9,7 @@ import {
   ShipCard,
 } from './shared-types'
 import { MAX_ZONE_SHIPS } from './constants'
+import { event, p } from './events'
 
 export function drawActivePlayerCards(
   state: GameState,
@@ -16,8 +17,10 @@ export function drawActivePlayerCards(
 ): void {
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
-  state.eventLog.push(
-    `${state.activePlayer} draws ${numCards} card${numCards > 1 ? 's' : ''}.`
+  state.pushEventLog(
+    event`${p(state.activePlayer)} draws ${numCards} card${
+      numCards > 1 ? 's' : ''
+    }.`
   )
 
   _.times(numCards, () => {
@@ -26,7 +29,7 @@ export function drawActivePlayerCards(
     activePlayerState.hand.push(topCard)
 
     if (state.actionDeck.length === 0) {
-      state.eventLog.push('Action card deck is reshuffled.')
+      state.pushEventLog(event`Action card deck is reshuffled.`)
 
       state.actionDeck = _.shuffle(state.actionDiscardDeck)
       state.actionDiscardDeck = []
@@ -39,7 +42,7 @@ export function drawShipCard(state: GameState): ShipCard {
   assert(topCard !== undefined, 'Ship card deck must not be empty.')
 
   if (state.shipDeck.length === 0) {
-    state.eventLog.push('Ship card deck is reshuffled.')
+    state.pushEventLog(event`Ship card deck is reshuffled.`)
 
     state.shipDeck = _.shuffle(state.shipDiscardDeck)
     state.shipDiscardDeck = []
@@ -148,18 +151,22 @@ export function destroyShip(state: GameState, ship: Ship | CommandShip): void {
     ship
   )
 
-  state.eventLog.push(`${targetPlayer}'s ${ship.shipType.name} is destroyed!`)
+  state.pushEventLog(
+    event`${p(targetPlayer)}'s ${ship.shipType.name} is destroyed!`
+  )
 
   if (ship.type === 'Ship') {
     _.remove(targetPlayerState.ships, (s) => s === ship)
     state.shipDiscardDeck.push(ship.shipType)
   } else {
-    state.eventLog.push(`${targetPlayer} is eliminated.`)
+    state.pushEventLog(event`${p(targetPlayer)} is eliminated.`)
     targetPlayerState.isAlive = false
 
     if (onePlayerLeft(state.playerState)) {
-      state.eventLog.push(
-        `${state.activePlayer} is the only player left and wins the game!`
+      state.pushEventLog(
+        event`${p(
+          state.activePlayer
+        )} is the only player left and wins the game!`
       )
       state.turnState = {
         type: 'EndGameState',
@@ -182,8 +189,12 @@ export function resolveBlastAttack(
     targetShip
   )
 
-  state.eventLog.push(
-    `${state.activePlayer}'s ${firingShip.shipType.name} fires a ${blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${blast.damage} damage.`
+  state.pushEventLog(
+    event`${p(state.activePlayer)}'s ${firingShip.shipType.name} fires a ${
+      blast.name
+    } at ${p(targetPlayer)}'s ${targetShip.shipType.name}, dealing ${
+      blast.damage
+    } damage.`
   )
 
   if (isDead(targetShip)) {
@@ -210,8 +221,10 @@ export function resolveSquadronAttack(
     targetShip
   )
 
-  state.eventLog.push(
-    `${state.activePlayer} deploys a ${squadron.name} targeting ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${squadron.damage} damage.`
+  state.pushEventLog(
+    event`${p(state.activePlayer)} deploys a ${squadron.name} targeting ${p(
+      targetPlayer
+    )}'s ${targetShip.shipType.name}, dealing ${squadron.damage} damage.`
   )
 
   if (isDead(targetShip)) {
@@ -233,8 +246,12 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
         targetShip
       )
 
-      state.eventLog.push(
-        `${state.activePlayer}'s ${firingShip.shipType.name} fires an additional ${card.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${card.damage} damage.`
+      state.pushEventLog(
+        event`${p(state.activePlayer)}'s ${
+          firingShip.shipType.name
+        } fires an additional ${card.name} at ${p(targetPlayer)}'s ${
+          targetShip.shipType.name
+        }, dealing ${card.damage} damage.`
       )
 
       if (isDead(targetShip)) {
@@ -256,7 +273,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       squadron: card,
     }
   } else if (card.cardType === 'ReinforcementsCard') {
-    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+    state.pushEventLog(event`${p(state.activePlayer)} plays ${card.name}.`)
     const newShip = drawShipCard(state)
 
     state.turnState = {
@@ -264,7 +281,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       newShip,
     }
   } else if (card.cardType === 'StrategicAllocationCard') {
-    state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
+    state.pushEventLog(event`${p(state.activePlayer)} plays ${card.name}.`)
     drawActivePlayerCards(state, 3)
   } else if (card.isDirectHit) {
     if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
@@ -274,7 +291,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       return
     }
 
-    state.eventLog.push(`${state.activePlayer} plays a Direct Hit!`)
+    state.pushEventLog(event`${p(state.activePlayer)} plays a Direct Hit!`)
     state.directHitStateMachine = {
       type: 'DirectHitPlayedDirectHitState',
       firingShip: state.directHitStateMachine.firingShip,
@@ -288,7 +305,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       return
     }
 
-    state.eventLog.push(`${state.activePlayer} plays a ${card.name}!`)
+    state.pushEventLog(event`${p(state.activePlayer)} plays a ${card.name}!`)
     const targetShip = state.directHitStateMachine.targetShip
 
     const [targetPlayer, targetPlayerState] = owningPlayer(
@@ -309,8 +326,10 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
           break
         }
 
-        state.eventLog.push(
-          `${state.activePlayer} steals ${targetPlayer}'s ${targetShip.shipType.name}!`
+        state.pushEventLog(
+          event`${p(state.activePlayer)} steals ${p(targetPlayer)}'s ${
+            targetShip.shipType.name
+          }!`
         )
         _.remove(targetPlayerState.ships, (s) => s === targetShip)
         state.turnState = {
@@ -335,8 +354,10 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
         break
 
       case 'BridgeHitCard':
-        state.eventLog.push(
-          `${state.activePlayer} takes three cards at random from ${targetPlayer}'s hand.`
+        state.pushEventLog(
+          event`${p(state.activePlayer)} takes three cards at random from ${p(
+            targetPlayer
+          )}'s hand.`
         )
         const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
         stealCards.forEach((c) => {
@@ -492,8 +513,7 @@ export function blastableShipIndices(
     firingShip
   )
 
-  return _.flatMap(
-    Array.from(state.playerState.entries()),
+  return Array.from(state.playerState.entries()).flatMap(
     ([targetPlayerId, targetPlayerState]) => {
       if (targetPlayerId === firingPlayerId) {
         return []
@@ -526,8 +546,7 @@ export function blastableCommandShipPlayers(
     firingShip
   )
 
-  return _.flatMap(
-    Array.from(state.playerState.entries()),
+  return Array.from(state.playerState.entries()).flatMap(
     ([targetPlayerId, targetPlayerState]) => {
       if (targetPlayerId === firingPlayerId) {
         return []
@@ -574,8 +593,7 @@ export function squadronableShipIndices(
       .filter((s) => s.shipType.shipClass === 'Carrier')
       .map((s) => s.location)
   )
-  return _.flatMap(
-    Array.from(state.playerState.entries()),
+  return Array.from(state.playerState.entries()).flatMap(
     ([targetPlayerId, targetPlayerState]) => {
       if (targetPlayerId === playerId) {
         return []
@@ -608,8 +626,7 @@ export function squadronableCommandShipPlayers(
       .filter((s) => s.shipType.shipClass === 'Carrier')
       .map((s) => s.location)
   )
-  return _.flatMap(
-    Array.from(state.playerState.entries()),
+  return Array.from(state.playerState.entries()).flatMap(
     ([targetPlayerId, targetPlayerState]) => {
       if (targetPlayerId === playerId) {
         return []

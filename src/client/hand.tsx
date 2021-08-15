@@ -28,7 +28,7 @@ const cardNameBreaks: Record<string, JSX.Element> = {
   ),
 }
 
-const ActionCard: React.FunctionComponent<{
+export const ActionCardComponent: React.FunctionComponent<{
   card: ActionCard
   onClick: () => void
   clickable: boolean
@@ -86,16 +86,16 @@ const ActionCard: React.FunctionComponent<{
         </div>
       )}
       <div
-        className="absolute f4"
+        className="absolute f5"
         style={{
           top: 0,
           right: 0,
           padding: '0.125rem 0.25rem',
         }}
       >
-        {_.repeat('S', card.resources.stars)}
-        {_.repeat('D', card.resources.diamonds)}
-        {_.repeat('C', card.resources.circles)}
+        {_.repeat('⭐', card.resources.stars)}
+        {_.repeat('♦️', card.resources.diamonds)}
+        {_.repeat('🟢', card.resources.circles)}
       </div>
     </div>
   )
@@ -174,7 +174,7 @@ export const Hand: React.FunctionComponent<{
           }
 
           return (
-            <ActionCard
+            <ActionCardComponent
               key={i}
               card={c}
               clickable={clickable}

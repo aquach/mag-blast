@@ -7,7 +7,7 @@
     "jsx": "react-jsx",
     "paths": {
       "@shared-types": [
-        "../server/shared-types.ts"
+        "../server/shared-types/index.ts"
       ]
     }
   }

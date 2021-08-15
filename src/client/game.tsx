@@ -2,15 +2,22 @@ import { io } from 'socket.io-client'
 import _ from 'lodash'
 import {
   Action,
+  EventLogEntry,
   GameError,
   PlayerId,
   UIGameState,
   UILobbyState,
 } from '@shared-types'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Fragment } from 'react'
 import ReactDOM from 'react-dom'
 import { Board } from './board'
-import { Hand, ShipCardComponent, ShipCardSelector } from './hand'
+import {
+  ActionCardComponent,
+  Hand,
+  ShipCardComponent,
+  ShipCardSelector,
+} from './hand'
+import ReactTooltip from 'react-tooltip'
 
 const gameId = _.last(window.location.pathname.split('/')) as string
 
@@ -95,7 +102,7 @@ function useComms(playerId: string): Comms {
   return comms
 }
 
-const EventLog: React.FunctionComponent<{ eventLog: string[] }> = ({
+const EventLog: React.FunctionComponent<{ eventLog: EventLogEntry[] }> = ({
   eventLog,
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -109,11 +116,66 @@ const EventLog: React.FunctionComponent<{ eventLog: string[] }> = ({
 
   return (
     <div
-      className="code ba pa1 overflow-y-scroll"
+      className="ba pa1 overflow-y-scroll"
       style={{ width: '20em', flexShrink: 0, height: 'calc(100vh - 1rem)' }}
     >
       {eventLog.map((l, i) => (
-        <p key={i}>{l}</p>
+        <div className="mv2" key={i}>
+          {l.tokens.map((t, i) => {
+            const id = _.uniqueId()
+            switch (t.type) {
+              case 'ShipEventLogToken':
+                return (
+                  <Fragment key={i}>
+                    <span className="b underline" data-tip data-for={id}>
+                      {t.shipType.name}
+                    </span>
+                    <ReactTooltip
+                      id={id}
+                      place="bottom"
+                      type="light"
+                      effect="solid"
+                      className="tooltip"
+                    >
+                      <ShipCardComponent
+                        shipType={t.shipType}
+                        clickable={false}
+                        selected={false}
+                        onClick={_.noop}
+                      />
+                    </ReactTooltip>
+                  </Fragment>
+                )
+
+              case 'TextEventLogToken':
+                return <span key={i}>{t.text}</span>
+              case 'ActionCardEventLogToken':
+                return (
+                  <Fragment key={i}>
+                    <span className="b underline" data-tip data-for={id}>
+                      {t.card.name}
+                    </span>
+                    <ReactTooltip
+                      id={id}
+                      place="bottom"
+                      type="light"
+                      effect="solid"
+                      className="tooltip"
+                    >
+                      <ActionCardComponent
+                        card={t.card}
+                        clickable={false}
+                        selected={false}
+                        onClick={_.noop}
+                      />
+                    </ReactTooltip>
+                  </Fragment>
+                )
+              case 'PlayerEventLogToken':
+                return <span className="b">{t.player}</span>
+            }
+          })}
+        </div>
       ))}
 
       <div ref={bottomRef} />

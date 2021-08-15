@@ -59,7 +59,7 @@ const actionCSVRows: ActionCSVRow[] = parse(
   }
 )
 
-export const actionCards: ActionCard[] = _.flatMap(actionCSVRows, (row) => {
+export const actionCards: ActionCard[] = actionCSVRows.flatMap((row) => {
   const card = {
     type: 'ActionCard',
     name: row.Name,

@@ -1,6 +1,7 @@
 import * as _ from 'lodash'
 import { actionCards, commandShipCards, shipCards } from './cards'
 import { NUM_STARTING_SHIP_CARDS } from './constants'
+import { event, parseEventLog, RawEventLog } from './events'
 import {
   canPlayCard,
   movableZones,
@@ -89,7 +90,7 @@ export function newGameState(
     return t
   })
 
-  return {
+  const s: GameState = {
     type: 'GameState',
 
     actionDeck: _.shuffle(actionCards),
@@ -109,7 +110,7 @@ export function newGameState(
     playerTurnOrder: playerIds,
 
     turnNumber: 1,
-    eventLog: ['Welcome to Mag Blast!'],
+    eventLog: [],
 
     gameSettings,
 
@@ -118,7 +119,15 @@ export function newGameState(
       assert(playerState !== undefined, `Player ID ${playerId} not found.`)
       return playerState
     },
+
+    pushEventLog(r: RawEventLog): void {
+      this.eventLog.push(parseEventLog(this, r))
+    },
   }
+
+  s.pushEventLog(event`Welcome to Mag Blast!`)
+
+  return s
 }
 
 export function lobbyUiState(playerIds: PlayerId[]): UILobbyState {

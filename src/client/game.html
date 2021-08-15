@@ -1,11 +1,20 @@
 <title>Mag Blast</title>
 
-<link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css"/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css"
+/>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap"
+  rel="stylesheet"
+/>
 
 <div id="root"></div>
 <script src="../game.js"></script>
@@ -23,10 +32,34 @@
     outline: 2px solid rgba(0, 0, 0, 0.8);
   }
 
-  .blast-laser { background-color: #fff70a }
-  .blast-beam { background-color: #8dd437 }
-  .blast-mag { background-color: #d65734 }
+  .blast-laser {
+    background-color: #fff70a;
+  }
+  .blast-beam {
+    background-color: #8dd437;
+  }
+  .blast-mag {
+    background-color: #d65734;
+  }
 
-  .f8 { font-size: 0.6rem; }
+  .f8 {
+    font-size: 0.6rem;
+  }
 
+  .underline {
+    text-decoration-style: dashed;
+  }
+
+  .tooltip {
+    margin-top: 0px !important;
+    opacity: 1 !important;
+    transition: none !important;
+    font-size: inherit;
+    background: none;
+  }
+
+  .tooltip::before,
+  .tooltip::after {
+    opacity: 0;
+  }
 </style>

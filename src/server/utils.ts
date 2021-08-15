@@ -1,3 +1,5 @@
+import * as _ from 'lodash'
+
 export function mapValues<K, U, V>(
   map: Map<K, U>,
   fn: (v: U, k: K) => V
@@ -58,4 +60,11 @@ export function partition<T>(
 
 export function warn(m: string): void {
   console.warn(`[${new Date()}] ${m}`)
+}
+
+export function uniqueGroupBy<T>(
+  items: T[],
+  grouper: (_: T) => string
+): Record<string, T> {
+  return _.mapValues(_.groupBy(items, grouper), (v) => v[0])
 }

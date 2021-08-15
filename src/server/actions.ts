@@ -38,6 +38,7 @@ import {
   DRAW_UP_TO_HAND_SIZE,
   MAX_ZONE_SHIPS,
 } from './constants'
+import { event, p } from './events'
 
 function applyChooseCardAction(
   state: GameState,
@@ -73,7 +74,7 @@ function applyChooseCardAction(
     state.turnState.chosenShipCards.set(playerId, chosenCards)
     notChosenCards.forEach((c) => state.shipDiscardDeck.push(c))
 
-    state.eventLog.push(`${playerId} chooses their ships.`)
+    state.pushEventLog(event`${p(playerId)} chooses their ships.`)
 
     if (state.turnState.chosenShipCards.size === state.playerTurnOrder.length) {
       state.turnState = {
@@ -113,8 +114,12 @@ function applyChooseCardAction(
         state.playerState,
         firingShip
       )
-      state.eventLog.push(
-        `${firingPlayer} attempts to play a ${state.turnState.blast.name} targeting ${playerId}'s ${state.turnState.targetShip.shipType.name}, but ${playerId} responds with ${card.name}, canceling its effect!`
+      state.pushEventLog(
+        event`${p(firingPlayer)} attempts to play a ${
+          state.turnState.blast.name
+        } targeting ${p(playerId)}'s ${
+          state.turnState.targetShip.shipType.name
+        }, but ${p(playerId)} responds with ${card.name}, canceling its effect!`
       )
       state.turnState = {
         type: 'AttackTurnState',
@@ -150,8 +155,14 @@ function applyChooseCardAction(
         state.turnState.attackingPlayer
       )
       const attackingSquadronCard = state.turnState.squadron
-      state.eventLog.push(
-        `${state.turnState.attackingPlayer} attempts to play a ${attackingSquadronCard.name} targeting ${playerId}'s ${state.turnState.targetShip.shipType.name}, but ${playerId} responds with ${respondingCard.name}, canceling its effect!`
+      state.pushEventLog(
+        event`${p(state.turnState.attackingPlayer)} attempts to play a ${
+          attackingSquadronCard.name
+        } targeting ${p(playerId)}'s ${
+          state.turnState.targetShip.shipType.name
+        }, but ${p(playerId)} responds with ${
+          respondingCard.name
+        }, canceling its effect!`
       )
 
       // By default, squadrons will go back to the attacking player's hand.
@@ -166,8 +177,10 @@ function applyChooseCardAction(
           (c) => c === attackingSquadronCard
         )
         state.actionDiscardDeck.push(attackingSquadronCard)
-        state.eventLog.push(
-          `${state.turnState.attackingPlayer}'s ${attackingSquadronCard.name} is discarded.`
+        state.pushEventLog(
+          event`${p(state.turnState.attackingPlayer)}'s ${
+            attackingSquadronCard.name
+          } is discarded.`
         )
       }
 
@@ -176,14 +189,14 @@ function applyChooseCardAction(
         attackingSquadronCard.cardType === 'BomberCard'
       ) {
         // Responding to a Bomber with a Fighter lets you keep the Fighter.
-        state.eventLog.push(
-          `${playerId}'s ${respondingCard.name} returns to their hand.`
+        state.pushEventLog(
+          event`${p(playerId)}'s ${respondingCard.name} returns to their hand.`
         )
       } else {
         // Otherwise, the responding card is consumed. Point it out explicitly if it's a Fighter.
         if (respondingCard.cardType === 'FighterCard') {
-          state.eventLog.push(
-            `${playerId}'s ${respondingCard.name} is discarded.`
+          state.pushEventLog(
+            event`${p(playerId)}'s ${respondingCard.name} is discarded.`
           )
         }
         state.actionDiscardDeck.push(respondingCard)
@@ -219,8 +232,10 @@ function applyChooseCardAction(
       discardActivePlayerCards(state, discardIndices)
 
       if (discardIndices.length > 0) {
-        state.eventLog.push(
-          `${state.activePlayer} discards ${discardIndices.length} cards.`
+        state.pushEventLog(
+          event`${p(state.activePlayer)} discards ${
+            discardIndices.length
+          } cards.`
         )
       }
 
@@ -256,8 +271,10 @@ function applyChooseCardAction(
       ) {
         discardActivePlayerCards(state, reinforceIndices)
 
-        state.eventLog.push(
-          `${state.activePlayer} uses ${reinforceIndices.length} cards to draw reinforcements.`
+        state.pushEventLog(
+          event`${p(state.activePlayer)} uses ${
+            reinforceIndices.length
+          } cards to draw reinforcements.`
         )
 
         const newShip = drawShipCard(state)
@@ -362,9 +379,9 @@ function applyChooseShipAction(
         const targetPlayer = action.choice
         const targetPlayerState = state.getPlayerState(action.choice)
 
-        state.eventLog.push(
-          `${state.activePlayer} plays Asteroids on ${
-            targetPlayer === state.activePlayer ? 'themselves' : targetPlayer
+        state.pushEventLog(
+          event`${p(state.activePlayer)} plays Asteroids on ${
+            targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
           }.`
         )
         targetPlayerState.asteroidsUntilBeginningOfPlayerTurn =
@@ -382,9 +399,9 @@ function applyChooseShipAction(
         const targetPlayer = action.choice
         const targetPlayerState = state.getPlayerState(action.choice)
 
-        state.eventLog.push(
-          `${state.activePlayer} plays a Minefield on ${
-            targetPlayer === state.activePlayer ? 'themselves' : targetPlayer
+        state.pushEventLog(
+          event`${p(state.activePlayer)} plays a Minefield on ${
+            targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
           }.`
         )
         targetPlayerState.minefieldUntilBeginningOfPlayerTurn =
@@ -635,8 +652,10 @@ function applyPassAction(
       for (const [pid, ps] of state.playerState.entries()) {
         for (const s of ps.ships) {
           if (s.temporaryDamage > 0) {
-            state.eventLog.push(
-              `${pid}'s ${s.shipType.name}'s ${s.temporaryDamage} points of squadron damage wears off.`
+            state.pushEventLog(
+              event`${p(pid)}'s ${s.shipType.name}'s ${
+                s.temporaryDamage
+              } points of squadron damage wears off.`
             )
             s.temporaryDamage = 0
           }
@@ -644,8 +663,10 @@ function applyPassAction(
       }
 
       activePlayerState.usedSquadronCards.forEach((c) => {
-        state.eventLog.push(
-          `${state.activePlayer}'s deployed ${c.name} makes it way home to ${state.activePlayer}'s hand.`
+        state.pushEventLog(
+          event`${p(state.activePlayer)}'s deployed ${
+            c.name
+          } makes it way home to their hand.`
         )
         activePlayerState.hand.push(c)
       })
@@ -670,7 +691,7 @@ function applyPassAction(
 
       if (nextPlayerIndex === 0) {
         state.turnNumber++
-        state.eventLog.push(`=== Turn ${state.turnNumber} ===`)
+        state.pushEventLog(event`=== Turn ${state.turnNumber} ===`)
       }
 
       state.turnState = {
@@ -681,18 +702,18 @@ function applyPassAction(
       state.activePlayer = state.playerTurnOrder[nextPlayerIndex]
       state.directHitStateMachine = undefined
 
-      state.eventLog.push(`It is now ${state.activePlayer}'s turn.`)
+      state.pushEventLog(event`It is now ${p(state.activePlayer)}'s turn.`)
 
       // Beginning of turn effects.
 
       for (const [pid, ps] of state.playerState.entries()) {
         if (ps.asteroidsUntilBeginningOfPlayerTurn === state.activePlayer) {
           ps.asteroidsUntilBeginningOfPlayerTurn = undefined
-          state.eventLog.push(`${pid}'s Asteroids wears off.`)
+          state.pushEventLog(event`${p(pid)}'s Asteroids wears off.`)
         }
         if (ps.minefieldUntilBeginningOfPlayerTurn === state.activePlayer) {
           ps.minefieldUntilBeginningOfPlayerTurn = undefined
-          state.eventLog.push(`${pid}'s Minefield wears off.`)
+          state.pushEventLog(event`${p(pid)}'s Minefield wears off.`)
         }
       }
 
@@ -732,7 +753,7 @@ function applyChooseZoneAction(
       hasFiredThisTurn: false,
     })
 
-    state.eventLog.push(`${playerId} places a ship.`)
+    state.pushEventLog(event`${p(playerId)} places a ship.`)
 
     if (
       Array.from(state.turnState.chosenShipCards.values()).every(
@@ -755,13 +776,15 @@ function applyChooseZoneAction(
         )
       })
 
-      state.eventLog.push(
-        `All players have placed their ships and the game can now begin.`
+      state.pushEventLog(
+        event`All players have placed their ships and the game can now begin.`
       )
-      state.eventLog.push(
-        `${playerWithLowestHullStrength} has the lowest total hull strength and thus goes first.`
+      state.pushEventLog(
+        event`${p(
+          playerWithLowestHullStrength
+        )} has the lowest total hull strength and thus goes first.`
       )
-      state.eventLog.push(`=== Turn 1 ===`)
+      state.pushEventLog(event`=== Turn 1 ===`)
       state.turnState = {
         type: 'ReinforceTurnState',
       }
@@ -789,8 +812,8 @@ function applyChooseZoneAction(
         hasFiredThisTurn: false,
       })
 
-      state.eventLog.push(
-        `${state.activePlayer} places a new ${
+      state.pushEventLog(
+        event`${p(state.activePlayer)} places a new ${
           state.turnState.newShip.name
         } into their ${locationToString(action.location)} zone.`
       )
@@ -817,8 +840,8 @@ function applyChooseZoneAction(
       state.turnState.stolenShip.location = action.location
       activePlayerState.ships.push(state.turnState.stolenShip)
 
-      state.eventLog.push(
-        `${state.activePlayer} places the stolen ${
+      state.pushEventLog(
+        event`${p(state.activePlayer)} places the stolen ${
           state.turnState.stolenShip.shipType.name
         } into their ${locationToString(action.location)} zone.`
       )
@@ -843,12 +866,12 @@ function applyChooseZoneAction(
 
       ship.location = action.location
 
-      state.eventLog.push(
-        `Through Concussive Blast, ${
-          state.activePlayer
-        } moves ${targetPlayer}'s ${
-          ship.shipType.name
-        } to the ${locationToString(action.location)} zone.`
+      state.pushEventLog(
+        event`Through Concussive Blast, ${p(state.activePlayer)} moves ${p(
+          targetPlayer
+        )}'s ${ship.shipType.name} to the ${locationToString(
+          action.location
+        )} zone.`
       )
       if (state.turnState.ships.length === 0) {
         state.turnState = { type: 'AttackTurnState' }
@@ -877,8 +900,8 @@ function applyChooseZoneAction(
 
       state.turnState.ship.location = action.location
 
-      state.eventLog.push(
-        `${state.activePlayer} moves their ${
+      state.pushEventLog(
+        event`${p(state.activePlayer)} moves their ${
           state.turnState.ship.shipType.name
         } to the ${locationToString(action.location)} Zone.`
       )

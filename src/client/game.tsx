@@ -121,12 +121,12 @@ const EventLog: React.FunctionComponent<{ eventLog: EventLogEntry[] }> = ({
     >
       {eventLog.map((l, i) => (
         <div className="mv2" key={i}>
-          {l.tokens.map((t, i) => {
+          {l.tokens.map((t, j) => {
             const id = _.uniqueId()
             switch (t.type) {
               case 'ShipEventLogToken':
                 return (
-                  <Fragment key={i}>
+                  <Fragment key={j}>
                     <span className="b underline" data-tip data-for={id}>
                       {t.shipType.name}
                     </span>
@@ -148,10 +148,14 @@ const EventLog: React.FunctionComponent<{ eventLog: EventLogEntry[] }> = ({
                 )
 
               case 'TextEventLogToken':
-                return <span key={i}>{t.text}</span>
+                return (
+                  <span key={j} className={t.bold ? 'b' : ''}>
+                    {t.text}
+                  </span>
+                )
               case 'ActionCardEventLogToken':
                 return (
-                  <Fragment key={i}>
+                  <Fragment key={j}>
                     <span className="b underline" data-tip data-for={id}>
                       {t.card.name}
                     </span>
@@ -172,7 +176,11 @@ const EventLog: React.FunctionComponent<{ eventLog: EventLogEntry[] }> = ({
                   </Fragment>
                 )
               case 'PlayerEventLogToken':
-                return <span className="b">{t.player}</span>
+                return (
+                  <span key={j} className="b">
+                    {t.player}
+                  </span>
+                )
             }
           })}
         </div>

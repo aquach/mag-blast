@@ -19,6 +19,7 @@ export interface ActionCardEventLogToken {
 export interface TextEventLogToken {
   type: 'TextEventLogToken'
   text: string
+  bold: boolean
 }
 
 export type EventLogToken =

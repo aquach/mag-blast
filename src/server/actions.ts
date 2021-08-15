@@ -38,7 +38,7 @@ import {
   DRAW_UP_TO_HAND_SIZE,
   MAX_ZONE_SHIPS,
 } from './constants'
-import { event, p } from './events'
+import { bold, event, p } from './events'
 
 function applyChooseCardAction(
   state: GameState,
@@ -691,7 +691,7 @@ function applyPassAction(
 
       if (nextPlayerIndex === 0) {
         state.turnNumber++
-        state.pushEventLog(event`=== Turn ${state.turnNumber} ===`)
+        state.pushEventLog(event`${bold(`=== Turn ${state.turnNumber} ===`)}`)
       }
 
       state.turnState = {
@@ -784,7 +784,7 @@ function applyChooseZoneAction(
           playerWithLowestHullStrength
         )} has the lowest total hull strength and thus goes first.`
       )
-      state.pushEventLog(event`=== Turn 1 ===`)
+      state.pushEventLog(event`${bold('=== Turn 1 ===')}`)
       state.turnState = {
         type: 'ReinforceTurnState',
       }

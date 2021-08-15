@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import { actionCards, commandShipCards, shipCards } from './cards'
 import { NUM_STARTING_SHIP_CARDS } from './constants'
-import { event, parseEventLog, RawEventLog } from './events'
+import { bold, event, parseEventLog, RawEventLog } from './events'
 import {
   canPlayCard,
   movableZones,
@@ -125,7 +125,7 @@ export function newGameState(
     },
   }
 
-  s.pushEventLog(event`Welcome to Mag Blast!`)
+  s.pushEventLog(event`${bold('Welcome to Mag Blast!')}`)
 
   return s
 }

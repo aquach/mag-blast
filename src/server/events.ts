@@ -26,13 +26,26 @@ export function p(p: PlayerId): PlayerEventLogToken {
   }
 }
 
+export function bold(t: string): TextEventLogToken {
+  return {
+    type: 'TextEventLogToken',
+    text: t,
+    bold: true,
+  }
+}
+
 const actionCardsByName = uniqueGroupBy(actionCards, (c) => c.name)
 const shipsByName = uniqueGroupBy(shipCards, (c) => c.name)
 
 export function parseEventLog(game: GameState, r: RawEventLog): EventLogEntry {
   const constants = r[0].map((s) =>
-    ascribe<TextEventLogToken>({ type: 'TextEventLogToken', text: s })
+    ascribe<TextEventLogToken>({
+      type: 'TextEventLogToken',
+      text: s,
+      bold: false,
+    })
   )
+
   const tokens: EventLogToken[] = r[1].map((t) => {
     if (
       typeof t === 'object' &&
@@ -40,6 +53,14 @@ export function parseEventLog(game: GameState, r: RawEventLog): EventLogEntry {
       (t as any).type === 'PlayerEventLogToken'
     ) {
       return t as PlayerEventLogToken
+    }
+
+    if (
+      typeof t === 'object' &&
+      t !== null &&
+      (t as any).type === 'TextEventLogToken'
+    ) {
+      return t as TextEventLogToken
     }
 
     assert(
@@ -63,6 +84,7 @@ export function parseEventLog(game: GameState, r: RawEventLog): EventLogEntry {
       return {
         type: 'TextEventLogToken',
         text: s,
+        bold: false,
       }
     }
   })
@@ -73,5 +95,10 @@ export function parseEventLog(game: GameState, r: RawEventLog): EventLogEntry {
     EventLogToken,
     TextEventLogToken
   ][]
-  return { tokens: [firstConstant, ..._.flatten(zipped)] }
+  const allTokens = [firstConstant, ..._.flatten(zipped)]
+  return {
+    tokens: allTokens.filter(
+      (t) => !(t.type === 'TextEventLogToken' && t.text.length === 0)
+    ),
+  }
 }

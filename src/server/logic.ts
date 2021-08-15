@@ -291,7 +291,18 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
         break
 
       case 'ConcussiveBlastCard':
-        // TODO
+        if (targetShip.type !== 'Ship') {
+          console.warn(
+            `Can only play Concussive Blast on a Ship, not a ${targetShip.type}.`
+          )
+          break
+        }
+        state.turnState = {
+          type: 'AttackPlaceConcussiveBlastedShipsState',
+          ships: targetPlayerState.ships.filter(
+            (s) => s.location === targetShip.location
+          ),
+        }
         break
 
       case 'BridgeHitCard':

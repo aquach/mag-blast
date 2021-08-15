@@ -27,6 +27,7 @@ import {
   fullOnShips,
   locationToString,
   movableZones,
+  nonfullZones,
   owningPlayer,
   resolveBlastAttack,
   sufficientForReinforcement,
@@ -670,6 +671,36 @@ function applyChooseZoneAction(
         } into their ${locationToString(action.location)} zone.`
       )
       state.turnState = { type: 'AttackTurnState' }
+      break
+
+    case 'AttackPlaceConcussiveBlastedShipsState':
+      const ship = state.turnState.ships.shift()
+      assert(ship !== undefined, 'ships must be nonempty.')
+
+      const [targetPlayer, targetPlayerState] = owningPlayer(
+        state.playerState,
+        ship
+      )
+
+      if (!nonfullZones(targetPlayerState.ships).includes(action.location)) {
+        console.warn(
+          `Can't move ${ship.shipType.name} to the ${action.location} zone because it's full.`
+        )
+        break
+      }
+
+      ship.location = action.location
+
+      state.eventLog.push(
+        `Through Concussive Blast, ${
+          state.activePlayer
+        } moves ${targetPlayer}'s ${
+          ship.shipType.name
+        } to the ${locationToString(action.location)} zone.`
+      )
+      if (state.turnState.ships.length === 0) {
+        state.turnState = { type: 'AttackTurnState' }
+      }
       break
 
     case 'ManeuverChooseTargetZoneState':

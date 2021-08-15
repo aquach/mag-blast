@@ -244,6 +244,17 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         })
       }
 
+      case 'AttackPlaceConcussiveBlastedShipsState': {
+        const ship = state.turnState.ships[0]
+        const [_, targetPlayerState] = owningPlayer(state.playerState, ship)
+
+        return ascribe<ChooseZonePrompt>({
+          type: 'ChooseZonePrompt',
+          text: `Choose a zone to move ${ship.shipType.name} to.`,
+          allowableZones: nonfullZones(targetPlayerState.ships),
+        })
+      }
+
       case 'AttackChooseAsteroidsPlayerTurnState': {
         return ascribe<ChooseShipPrompt>({
           type: 'ChooseShipPrompt',

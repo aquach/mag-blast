@@ -119,6 +119,11 @@ export interface AttackPlaceStolenShipState {
   stolenShip: Ship
 }
 
+export interface AttackPlaceConcussiveBlastedShipsState {
+  type: 'AttackPlaceConcussiveBlastedShipsState'
+  ships: Ship[]
+}
+
 export interface AttackChooseAsteroidsPlayerTurnState {
   type: 'AttackChooseAsteroidsPlayerTurnState'
 }
@@ -160,6 +165,7 @@ export type TurnState =
   | AttackTurnState
   | AttackPlaceShipState
   | AttackPlaceStolenShipState
+  | AttackPlaceConcussiveBlastedShipsState
   | AttackChooseAsteroidsPlayerTurnState
   | AttackChooseMinefieldPlayerTurnState
   | PlayBlastChooseTargetShipState

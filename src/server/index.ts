@@ -9,8 +9,9 @@ import { Server, Socket } from 'socket.io'
 import { Action, GameError, PlayerId } from './shared-types'
 import { gameUiState, lobbyUiState, newGameState } from './game'
 import { applyAction } from './actions'
-import { GameState } from './types'
+import { GameSettings, GameState } from './types'
 import { ascribe } from './utils'
+import { MAX_PLAYERS, STARTING_HAND_SIZE } from './constants'
 
 interface PlayerSocketBinding {
   id: PlayerId
@@ -25,6 +26,7 @@ interface Game {
   gameId: string
   bindings: PlayerSocketBinding[]
   gameState: LobbyState | GameState
+  gameSettings: GameSettings
   lastUpdated: number
 }
 
@@ -38,6 +40,9 @@ const games: Game[] = [
     bindings: [],
     gameState: { type: 'LobbyState' },
     lastUpdated: new Date().getTime(),
+    gameSettings: {
+      startingHandSize: 15,
+    },
   },
 ]
 
@@ -63,6 +68,9 @@ app.post('/create-game', (req, res) => {
     bindings: [],
     gameState: { type: 'LobbyState' },
     lastUpdated: new Date().getTime(),
+    gameSettings: {
+      startingHandSize: STARTING_HAND_SIZE,
+    },
   }
 
   games.push(g)
@@ -86,8 +94,6 @@ app.get('/game.js', (req, res) => {
     etag: false,
   })
 })
-
-const MAX_PLAYERS = 8
 
 io.on('connection', (socket) => {
   const gameId = socket.handshake.query.gameId as string
@@ -163,7 +169,7 @@ io.on('connection', (socket) => {
       return
     }
 
-    game.gameState = newGameState(uniquePlayers)
+    game.gameState = newGameState(uniquePlayers, game.gameSettings)
     game.lastUpdated = new Date().getTime()
     broadcastUpdates()
   })

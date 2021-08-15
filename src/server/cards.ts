@@ -2,6 +2,7 @@ import * as _ from 'lodash'
 import * as parse from 'csv-parse/lib/sync'
 import * as fs from 'fs'
 import { ActionCard, CommandShipCard, ShipCard } from './shared-types'
+import { COMMAND_SHIP_HP } from './constants'
 
 interface ShipCSVRow {
   Type: string
@@ -105,8 +106,6 @@ const commandShipCSVRows: CommandShipCSVRow[] = parse(
     cast: true,
   }
 )
-
-const COMMAND_SHIP_HP = 9
 
 export const commandShipCards: CommandShipCard[] = commandShipCSVRows.map(
   (row) => ({

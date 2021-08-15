@@ -1,5 +1,6 @@
 import * as _ from 'lodash'
 import { actionCards, commandShipCards, shipCards } from './cards'
+import { NUM_STARTING_SHIP_CARDS } from './constants'
 import {
   canFire,
   canPlayCard,
@@ -21,10 +22,8 @@ import {
   ChooseShipCardPrompt,
   NoPrompt,
 } from './shared-types'
-import { GameState, PlayerState, Ship } from './types'
+import { GameSettings, GameState, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
-
-const NUM_STARTING_SHIP_CARDS = 6
 
 function obfuscateShips(ships: Ship[]): Ship[] {
   return ships.map((s) => ({
@@ -45,7 +44,10 @@ function obfuscateShips(ships: Ship[]): Ship[] {
   }))
 }
 
-export function newGameState(playerIdSet: Set<PlayerId>): GameState {
+export function newGameState(
+  playerIdSet: Set<PlayerId>,
+  gameSettings: GameSettings
+): GameState {
   const playerIds = _.shuffle(Array.from(playerIdSet.values()))
   const randomizedCommandShipCards = _.shuffle(commandShipCards)
 
@@ -99,6 +101,8 @@ export function newGameState(playerIdSet: Set<PlayerId>): GameState {
 
     turnNumber: 1,
     eventLog: ['Welcome to Mag Blast!'],
+
+    gameSettings,
 
     getPlayerState(playerId: string): PlayerState {
       const playerState = this.playerState.get(playerId)
@@ -246,11 +250,15 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
       case 'AttackPlaceConcussiveBlastedShipsState': {
         const ship = state.turnState.ships[0]
-        const [_, targetPlayerState] = owningPlayer(state.playerState, ship)
+        const [targetPlayer, targetPlayerState] = owningPlayer(
+          state.playerState,
+          ship
+        )
 
         return ascribe<ChooseZonePrompt>({
           type: 'ChooseZonePrompt',
-          text: `Choose a zone to move ${ship.shipType.name} to.`,
+          text: `Choose a zone to move ${targetPlayer}'s ${ship.shipType.name} to.`,
+          player: targetPlayer,
           allowableZones: nonfullZones(targetPlayerState.ships),
         })
       }
@@ -310,6 +318,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         return ascribe<ChooseZonePrompt>({
           type: 'ChooseZonePrompt',
           text: `Choose a zone to move ${state.turnState.ship.shipType.name} to.`,
+          player: state.activePlayer,
           allowableZones: zones,
         })
       }

@@ -62,6 +62,7 @@ export interface ChooseShipPrompt {
 export interface ChooseZonePrompt {
   type: 'ChooseZonePrompt'
   text: string
+  player: PlayerId
   allowableZones: Location[]
 }
 

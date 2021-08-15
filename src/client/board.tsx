@@ -197,9 +197,9 @@ const ShipZone: React.FunctionComponent<{
   color,
 }) => {
   const clickable =
-    clientPlayerId === playerId &&
     prompt !== undefined &&
-    (prompt.type === 'PlaceShipPrompt' || prompt.type === 'ChooseZonePrompt') &&
+    ((prompt.type === 'PlaceShipPrompt' && playerId === clientPlayerId) ||
+      (prompt.type === 'ChooseZonePrompt' && playerId === prompt.player)) &&
     prompt.allowableZones.includes(location)
 
   const colorToHex = {
@@ -259,7 +259,8 @@ const BoardPlayer: React.FunctionComponent<{
       } ${playerState.hasMinefield ? 'bg-washed-red' : ''}`}
     >
       <h3 className="mt0">
-        {playerId} {!playerState.isAlive ? '(Eliminated)' : ''}{' '}
+        {playerId} {playerId === clientPlayerId ? '(You)' : ''}{' '}
+        {!playerState.isAlive ? '(Eliminated)' : ''}{' '}
         {playerState.hasAsteroids ? '(Asteroids)' : ''}
         {playerState.hasMinefield ? '(Minefielded)' : ''}
       </h3>

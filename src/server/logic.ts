@@ -1,13 +1,8 @@
-import {
-  CommandShip,
-  GameState,
-  MAX_ZONE_SHIPS,
-  PlayerState,
-  Ship,
-} from './types'
+import { CommandShip, GameState, PlayerState, Ship } from './types'
 import * as _ from 'lodash'
 import { assert, partition } from './utils'
 import { ActionCard, Location, LOCATIONS, ShipCard } from './shared-types'
+import { MAX_ZONE_SHIPS } from './constants'
 
 export function drawActivePlayerCards(
   state: GameState,

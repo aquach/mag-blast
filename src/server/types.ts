@@ -6,9 +6,6 @@ import {
   ShipCard,
 } from './shared-types'
 
-export const DRAW_UP_TO_HAND_SIZE = 5
-export const MAX_ZONE_SHIPS = 3
-
 export interface Ship {
   type: 'Ship'
   location: Location
@@ -49,6 +46,10 @@ export type DirectHitState =
   | BlastPlayedDirectHitState
   | DirectHitPlayedDirectHitState
 
+export interface GameSettings {
+  startingHandSize: number
+}
+
 export interface GameState {
   type: 'GameState'
 
@@ -66,6 +67,8 @@ export interface GameState {
 
   turnNumber: number
   eventLog: string[]
+
+  gameSettings: GameSettings
 
   getPlayerState(playerId: string): PlayerState
 }

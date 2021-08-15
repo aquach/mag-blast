@@ -1,11 +1,5 @@
 import * as _ from 'lodash'
-import {
-  GameState,
-  DRAW_UP_TO_HAND_SIZE,
-  MAX_ZONE_SHIPS,
-  CommandShip,
-  Ship,
-} from './types'
+import { GameState, CommandShip, Ship } from './types'
 
 import {
   Action,
@@ -32,9 +26,11 @@ import {
   resolveBlastAttack,
   sufficientForReinforcement,
 } from './logic'
-
-const STARTING_HAND_SIZE = 5
-const NUM_STARTING_SHIPS = 4
+import {
+  NUM_STARTING_SHIPS,
+  DRAW_UP_TO_HAND_SIZE,
+  MAX_ZONE_SHIPS,
+} from './constants'
 
 function applyChooseCardAction(
   state: GameState,
@@ -599,7 +595,7 @@ function applyChooseZoneAction(
       ]
 
       state.playerState.forEach((player) => {
-        _.times(STARTING_HAND_SIZE, () =>
+        _.times(state.gameSettings.startingHandSize, () =>
           player.hand.push(state.actionDeck.shift()!)
         )
       })

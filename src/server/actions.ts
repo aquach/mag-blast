@@ -11,9 +11,8 @@ import {
 } from './shared-types'
 import { assert, partition } from './utils'
 import {
-  canFire,
   canPlayCard,
-  canRespondToAttack,
+  canRespondToBlast,
   discardActivePlayerCards,
   drawActivePlayerCards,
   drawShipCard,
@@ -25,6 +24,14 @@ import {
   owningPlayer,
   resolveBlastAttack,
   sufficientForReinforcement,
+  shipCanFire,
+  blastableCommandShipPlayers,
+  blastableShipIndices,
+  moveableShips,
+  squadronableCommandShipPlayers,
+  squadronableShipIndices,
+  canRespondToSquadron,
+  resolveSquadronAttack,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -112,7 +119,59 @@ function applyChooseCardAction(
       state.turnState = {
         type: 'AttackTurnState',
       }
-      // TODO: if squadron and evasive action, return to hand.
+    } else {
+      console.warn(`Don't know what to do with card ${card.cardType}.`)
+    }
+
+    return
+  }
+
+  if (state.turnState.type === 'PlaySquadronRespondState') {
+    const playerState = state.getPlayerState(playerId)
+
+    assert(
+      typeof action.handIndex === 'number',
+      'handIndex should be a single number for playing cards.'
+    )
+    const card = playerState.hand[action.handIndex]
+
+    if (!card) {
+      console.warn(`Attempted to play a non-existent card ${action.handIndex}.`)
+      return
+    }
+
+    state.actionDiscardDeck.push(playerState.hand[action.handIndex])
+    playerState.hand.splice(action.handIndex, 1)
+
+    if (
+      card.cardType === 'TemporalFluxCard' ||
+      card.cardType === 'EvasiveActionCard' ||
+      card.cardType === 'FighterCard'
+    ) {
+      // Cancel effects by transitioning back to AttackTurnState without doing anything.
+      const attackingPlayerState = state.getPlayerState(
+        state.turnState.attackingPlayer
+      )
+      state.eventLog.push(
+        `${state.turnState.attackingPlayer} attempts to play a ${state.turnState.squadron.name} targeting ${playerId}'s ${state.turnState.targetShip.shipType.name}, but ${playerId} responds with ${card.name}, canceling its effect!`
+      )
+
+      if (card.cardType === 'EvasiveActionCard') {
+        attackingPlayerState.hand.push(state.turnState.squadron)
+        state.eventLog.push(
+          `${state.turnState.attackingPlayer}'s ${state.turnState.squadron.name} returns to their hand.`
+        )
+      } else if (
+        card.cardType === 'FighterCard' &&
+        state.turnState.squadron.cardType === 'BomberCard'
+      ) {
+        playerState.hand.push(card)
+        state.eventLog.push(`${playerId}'s ${card.name} returns to their hand.`)
+      }
+
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
     } else {
       console.warn(`Don't know what to do with card ${card.cardType}.`)
     }
@@ -242,31 +301,15 @@ function applyChooseShipAction(
         'choice should be an array for choosing ship to move.'
       )
 
-      if (action.choice[0] !== state.activePlayer) {
-        console.warn(
-          `Player ${state.activePlayer} chose a ship to move that belongs to ${action.choice[0]}.`
-        )
-        break
-      }
-
       if (
-        action.choice[1] < 0 ||
-        action.choice[1] >= activePlayerState.ships.length
-      ) {
-        console.warn(
-          `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
+        !moveableShips(playerId, activePlayerState).some((shipIndex) =>
+          _.isEqual(shipIndex, action.choice)
         )
-        break
+      ) {
+        console.warn(`Player ${state.activePlayer} can't move the chosen ship.`)
       }
 
       const designatedShip = activePlayerState.ships[action.choice[1]]
-
-      if (designatedShip.shipType.movement === 0) {
-        console.warn(
-          `Player ${state.activePlayer} chose a ship that can't move.`
-        )
-        break
-      }
 
       if (!state.turnState.originalLocations.has(designatedShip)) {
         state.turnState.originalLocations.set(
@@ -350,7 +393,7 @@ function applyChooseShipAction(
 
         const designatedShip = activePlayerState.ships[action.choice[1]]
 
-        if (!canFire(designatedShip.shipType, state.turnState.blast.cardType)) {
+        if (!shipCanFire(designatedShip, state.turnState.blast)) {
           console.warn(
             `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`
           )
@@ -367,56 +410,40 @@ function applyChooseShipAction(
 
     case 'PlayBlastChooseTargetShipState':
       {
-        const targetPlayerState = state.playerState.get(
-          Array.isArray(action.choice) ? action.choice[0] : action.choice
-        )
-        if (targetPlayerState === undefined) {
-          console.warn(
-            `Player ${state.activePlayer} chose a target player that doesn't exist.`
-          )
-          break
-        }
+        const targetPlayerId = Array.isArray(action.choice)
+          ? action.choice[0]
+          : action.choice
+        const targetPlayerState = state.getPlayerState(targetPlayerId)
 
         let designatedShip: Ship | CommandShip
 
         if (Array.isArray(action.choice)) {
           if (
-            action.choice[1] < 0 ||
-            action.choice[1] >= targetPlayerState.ships.length
-          ) {
-            console.warn(
-              `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
+            !blastableShipIndices(state, state.turnState.firingShip).some(
+              (tx) => _.isEqual(tx, action.choice)
             )
+          ) {
+            console.warn("Firing ship can't fire on target ship.")
             break
           }
 
           designatedShip = targetPlayerState.ships[action.choice[1]]
         } else {
-          designatedShip = targetPlayerState.commandShip
-        }
-
-        if (designatedShip.type === 'Ship') {
-          if (state.turnState.firingShip.location !== designatedShip.location) {
-            console.warn("Ship can't fire on a ship in a different zone.")
-            break
-          }
-        } else {
-          const firingShip = state.turnState.firingShip
           if (
-            targetPlayerState.ships.some(
-              (s) => s.location === firingShip.location
-            )
+            !blastableCommandShipPlayers(
+              state,
+              state.turnState.firingShip
+            ).includes(action.choice)
           ) {
-            console.warn(
-              "Ship can't fire on the command ship when there are ships in the way."
-            )
+            console.warn("Firing ship can't fire on target ship.")
             break
           }
+          designatedShip = targetPlayerState.commandShip
         }
 
         state.turnState.firingShip.hasFiredThisTurn = true
 
-        if (canRespondToAttack(targetPlayerState)) {
+        if (canRespondToBlast(targetPlayerState)) {
           state.turnState = {
             type: 'PlayBlastRespondState',
             blast: state.turnState.blast,
@@ -429,6 +456,67 @@ function applyChooseShipAction(
             state.turnState.firingShip,
             designatedShip,
             state.turnState.blast
+          )
+          state.turnState = {
+            type: 'AttackTurnState',
+          }
+        }
+      }
+      break
+
+    case 'PlaySquadronChooseTargetShipState':
+      {
+        const targetPlayerId = Array.isArray(action.choice)
+          ? action.choice[0]
+          : action.choice
+        const targetPlayerState = state.getPlayerState(targetPlayerId)
+
+        let designatedShip: Ship | CommandShip
+
+        if (Array.isArray(action.choice)) {
+          if (
+            !squadronableShipIndices(
+              state,
+              playerId,
+              state.turnState.squadron
+            ).some((tx) => _.isEqual(tx, action.choice))
+          ) {
+            console.warn(
+              `${state.activePlayer} can't play a squadron on the target ship.`
+            )
+            break
+          }
+
+          designatedShip = targetPlayerState.ships[action.choice[1]]
+        } else {
+          if (
+            !squadronableCommandShipPlayers(
+              state,
+              playerId,
+              state.turnState.squadron
+            ).includes(action.choice)
+          ) {
+            console.warn(
+              `${state.activePlayer} can't play a squadron on the target ship.`
+            )
+            break
+          }
+          designatedShip = targetPlayerState.commandShip
+        }
+
+        if (canRespondToSquadron(targetPlayerState)) {
+          state.turnState = {
+            type: 'PlaySquadronRespondState',
+            squadron: state.turnState.squadron,
+            attackingPlayer: state.activePlayer,
+            targetShip: designatedShip,
+          }
+        } else {
+          resolveSquadronAttack(
+            state,
+            state.activePlayer,
+            designatedShip,
+            state.turnState.squadron
           )
           state.turnState = {
             type: 'AttackTurnState',
@@ -540,6 +628,15 @@ function applyPassAction(
           ps.minefieldUntilBeginningOfPlayerTurn = undefined
           state.eventLog.push(`${pid}'s Minefield wears off.`)
         }
+
+        for (const s of ps.ships) {
+          if (s.temporaryDamage > 0) {
+            state.eventLog.push(
+              `${pid}'s ${s.shipType.name}'s ${s.temporaryDamage} points of squadron damage wears off.`
+            )
+            s.temporaryDamage = 0
+          }
+        }
       }
 
       break
@@ -574,6 +671,7 @@ function applyChooseZoneAction(
       location: action.location,
       shipType: card,
       damage: 0,
+      temporaryDamage: 0,
       hasFiredThisTurn: false,
     })
 
@@ -630,6 +728,7 @@ function applyChooseZoneAction(
         location: action.location,
         shipType: state.turnState.newShip,
         damage: 0,
+        temporaryDamage: 0,
         hasFiredThisTurn: false,
       })
 
@@ -753,6 +852,12 @@ function applyCancelAction(
     case 'PlayBlastChooseFiringShipState':
     case 'PlayBlastChooseTargetShipState':
       activePlayerState.hand.push(state.turnState.blast)
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+      break
+    case 'PlaySquadronChooseTargetShipState':
+      activePlayerState.hand.push(state.turnState.squadron)
       state.turnState = {
         type: 'AttackTurnState',
       }

@@ -39,7 +39,8 @@ export interface ActionCard {
   isSquadron: boolean
   isDirectHit: boolean
   isDirectHitEffect: boolean
-  isInstant: boolean
+  canRespondToBlast: boolean
+  canRespondToSquadron: boolean
 }
 
 export interface ChooseCardPrompt {

@@ -11,6 +11,7 @@ export interface Ship {
   location: Location
   shipType: ShipCard
   damage: number
+  temporaryDamage: number
   hasFiredThisTurn: boolean
 }
 
@@ -18,10 +19,12 @@ export interface CommandShip {
   type: 'CommandShip'
   shipType: CommandShipCard
   damage: number
+  temporaryDamage: number
 }
 
 export interface PlayerState {
   hand: ActionCard[]
+  usedSquadronCards: ActionCard[]
   ships: Ship[]
   commandShip: CommandShip
   isAlive: boolean
@@ -153,6 +156,18 @@ export interface PlayBlastRespondState {
   targetShip: Ship | CommandShip
 }
 
+export interface PlaySquadronChooseTargetShipState {
+  type: 'PlaySquadronChooseTargetShipState'
+  squadron: ActionCard
+}
+
+export interface PlaySquadronRespondState {
+  type: 'PlaySquadronRespondState'
+  squadron: ActionCard
+  attackingPlayer: PlayerId
+  targetShip: Ship | CommandShip
+}
+
 export interface EndGameState {
   type: 'EndGameState'
 }
@@ -175,4 +190,6 @@ export type TurnState =
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState
   | PlayBlastRespondState
+  | PlaySquadronChooseTargetShipState
+  | PlaySquadronRespondState
   | EndGameState

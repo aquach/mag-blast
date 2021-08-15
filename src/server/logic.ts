@@ -1,7 +1,13 @@
 import { CommandShip, GameState, PlayerState, Ship } from './types'
 import * as _ from 'lodash'
-import { assert, partition } from './utils'
-import { ActionCard, Location, LOCATIONS, ShipCard } from './shared-types'
+import { ascribe, assert, filterIndices, partition } from './utils'
+import {
+  ActionCard,
+  Location,
+  LOCATIONS,
+  PlayerId,
+  ShipCard,
+} from './shared-types'
 import { MAX_ZONE_SHIPS } from './constants'
 
 export function drawActivePlayerCards(
@@ -68,7 +74,7 @@ export function sufficientForReinforcement(cards: ActionCard[]): boolean {
   )
 }
 
-export function canFire(ship: ShipCard, blastType: string): boolean {
+export function shipClassCanFire(ship: ShipCard, blastType: string): boolean {
   switch (blastType) {
     case 'LaserBlastCard':
       return ship.firesLasers
@@ -79,7 +85,7 @@ export function canFire(ship: ShipCard, blastType: string): boolean {
     default:
       assert(
         false,
-        `canFire received card type ${blastType} instead of a valid blast.`
+        `shipClassCanFire received card type ${blastType} instead of a valid blast.`
       )
   }
 }
@@ -146,6 +152,7 @@ export function destroyShip(state: GameState, ship: Ship | CommandShip): void {
 
   if (ship.type === 'Ship') {
     _.remove(targetPlayerState.ships, (s) => s === ship)
+    state.shipDiscardDeck.push(ship.shipType)
   } else {
     state.eventLog.push(`${targetPlayer} is eliminated.`)
     targetPlayerState.isAlive = false
@@ -179,7 +186,7 @@ export function resolveBlastAttack(
     `${state.activePlayer}'s ${firingShip.shipType.name} fires a ${blast.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${blast.damage} damage.`
   )
 
-  if (targetShip.damage >= targetShip.shipType.hp) {
+  if (isDead(targetShip)) {
     destroyShip(state, targetShip)
   } else {
     state.directHitStateMachine = {
@@ -187,6 +194,28 @@ export function resolveBlastAttack(
       firingShip: firingShip,
       targetShip,
     }
+  }
+}
+
+export function resolveSquadronAttack(
+  state: GameState,
+  attackingPlayer: PlayerId,
+  targetShip: Ship | CommandShip,
+  squadron: ActionCard
+): void {
+  targetShip.temporaryDamage += squadron.damage
+
+  const [targetPlayer, targetPlayerState] = owningPlayer(
+    state.playerState,
+    targetShip
+  )
+
+  state.eventLog.push(
+    `${state.activePlayer} sends out a ${squadron.name} targeting ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${squadron.damage} damage.`
+  )
+
+  if (isDead(targetShip)) {
+    destroyShip(state, targetShip)
   }
 }
 
@@ -208,7 +237,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
         `${state.activePlayer}'s ${firingShip.shipType.name} fires an additional ${card.name} at ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${card.damage} damage.`
       )
 
-      if (targetShip.damage >= targetShip.shipType.hp) {
+      if (isDead(targetShip)) {
         destroyShip(state, targetShip)
       }
 
@@ -331,8 +360,12 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
   }
 }
 
-export function canRespondToAttack(targetPlayerState: PlayerState) {
-  return targetPlayerState.hand.some((c) => c.isInstant)
+export function canRespondToBlast(targetPlayerState: PlayerState) {
+  return targetPlayerState.hand.some((c) => c.canRespondToBlast)
+}
+
+export function canRespondToSquadron(targetPlayerState: PlayerState) {
+  return targetPlayerState.hand.some((c) => c.canRespondToSquadron)
 }
 
 export function nonfullZones(ships: Ship[]): Location[] {
@@ -378,7 +411,7 @@ export function canPlayCard(
   playerState: PlayerState,
   card: ActionCard
 ): boolean {
-  if (card.isInstant) {
+  if (card.canRespondToBlast) {
     return false
   }
 
@@ -417,5 +450,173 @@ export function canPlayCard(
     return true
   }
 
+  if (card.isSquadron) {
+    return ownsCarrier(playerState.ships)
+  }
+
   return true
+}
+
+export function ownsCarrier(ships: Ship[]): boolean {
+  return ships.some((s) => s.shipType.shipClass === 'Carrier')
+}
+
+export function zoneEmpty(ships: Ship[], location: Location): boolean {
+  return ships.every((s) => s.location !== location)
+}
+
+export function isDead(ship: Ship | CommandShip): boolean {
+  return ship.damage + ship.temporaryDamage >= ship.shipType.hp
+}
+
+export function shipCanFire(s: Ship, blast: ActionCard): boolean {
+  return !s.hasFiredThisTurn && shipClassCanFire(s.shipType, blast.cardType)
+}
+
+export function blastableShipIndices(
+  state: GameState,
+  firingShip: Ship
+): [PlayerId, number][] {
+  const [firingPlayerId, firingPlayerState] = owningPlayer(
+    state.playerState,
+    firingShip
+  )
+
+  return _.flatMap(
+    Array.from(state.playerState.entries()),
+    ([targetPlayerId, targetPlayerState]) => {
+      if (targetPlayerId === firingPlayerId) {
+        return []
+      }
+
+      if (
+        !canTargetPlayerWithBlastsOrSquadrons(
+          state,
+          firingPlayerId,
+          targetPlayerId
+        )
+      ) {
+        return []
+      }
+
+      return filterIndices(
+        targetPlayerState.ships,
+        (s) => s.location === firingShip.location
+      ).map<[PlayerId, number]>((shipIndex) => [targetPlayerId, shipIndex])
+    }
+  )
+}
+
+export function blastableCommandShipPlayers(
+  state: GameState,
+  firingShip: Ship
+): PlayerId[] {
+  const [firingPlayerId, firingPlayerState] = owningPlayer(
+    state.playerState,
+    firingShip
+  )
+
+  return _.flatMap(
+    Array.from(state.playerState.entries()),
+    ([targetPlayerId, targetPlayerState]) => {
+      if (targetPlayerId === firingPlayerId) {
+        return []
+      }
+
+      if (
+        !canTargetPlayerWithBlastsOrSquadrons(
+          state,
+          firingPlayerId,
+          targetPlayerId
+        )
+      ) {
+        return []
+      }
+
+      const shipInTheWay = targetPlayerState.ships.some(
+        (s) => s.location === firingShip.location
+      )
+
+      return shipInTheWay ? [] : [targetPlayerId]
+    }
+  )
+}
+
+export function moveableShips(
+  playerId: PlayerId,
+  playerState: PlayerState
+): [PlayerId, number][] {
+  return playerState.minefieldUntilBeginningOfPlayerTurn
+    ? []
+    : filterIndices(playerState.ships, (s) => s.shipType.movement > 0).map(
+        (i) => ascribe<[PlayerId, number]>([playerId, i])
+      )
+}
+
+export function squadronableShipIndices(
+  state: GameState,
+  playerId: PlayerId,
+  squadronCard: ActionCard
+): [PlayerId, number][] {
+  const playerState = state.getPlayerState(playerId)
+  const carrierLocations = _.uniq(
+    playerState.ships
+      .filter((s) => s.shipType.shipClass === 'Carrier')
+      .map((s) => s.location)
+  )
+  return _.flatMap(
+    Array.from(state.playerState.entries()),
+    ([targetPlayerId, targetPlayerState]) => {
+      if (targetPlayerId === playerId) {
+        return []
+      }
+
+      if (
+        !canTargetPlayerWithBlastsOrSquadrons(state, playerId, targetPlayerId)
+      ) {
+        return []
+      }
+
+      return filterIndices(
+        targetPlayerState.ships,
+        (s) =>
+          squadronCard.cardType === 'FighterCard' ||
+          carrierLocations.includes(s.location)
+      ).map<[string, number]>((shipIndex) => [targetPlayerId, shipIndex])
+    }
+  )
+}
+
+export function squadronableCommandShipPlayers(
+  state: GameState,
+  playerId: PlayerId,
+  squadronCard: ActionCard
+): PlayerId[] {
+  const playerState = state.getPlayerState(playerId)
+  const carrierLocations = _.uniq(
+    playerState.ships
+      .filter((s) => s.shipType.shipClass === 'Carrier')
+      .map((s) => s.location)
+  )
+  return _.flatMap(
+    Array.from(state.playerState.entries()),
+    ([targetPlayerId, targetPlayerState]) => {
+      if (targetPlayerId === playerId) {
+        return []
+      }
+
+      if (
+        !canTargetPlayerWithBlastsOrSquadrons(state, playerId, targetPlayerId)
+      ) {
+        return []
+      }
+
+      const attackingLocations =
+        squadronCard.cardType === 'FighterCard' ? LOCATIONS : carrierLocations
+      const hasAccess = attackingLocations.some((l) =>
+        zoneEmpty(targetPlayerState.ships, l)
+      )
+      return hasAccess ? [targetPlayerId] : []
+    }
+  )
 }

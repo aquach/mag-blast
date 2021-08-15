@@ -181,9 +181,8 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       (targetShip.type === 'Ship' && playerState.ships.includes(targetShip)) ||
       playerState.commandShip === targetShip
     ) {
-      const playableCardIndices = filterIndices(
-        playerState.hand,
-        (c) => c.canRespondToBlast
+      const playableCardIndices = filterIndices(playerState.hand, (c) =>
+        canRespondToBlast(c)
       )
 
       const firingShip = state.turnState.firingShip
@@ -207,11 +206,8 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       (targetShip.type === 'Ship' && playerState.ships.includes(targetShip)) ||
       playerState.commandShip === targetShip
     ) {
-      const playableCardIndices = filterIndices(
-        playerState.hand,
-        (c) =>
-          c.canRespondToBlast ||
-          (c.canRespondToSquadron && ownsCarrier(playerState.ships))
+      const playableCardIndices = filterIndices(playerState.hand, (c) =>
+        canRespondToSquadron(playerState, c)
       )
 
       return ascribe<ChooseCardPrompt>({

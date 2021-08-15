@@ -12,9 +12,18 @@ import { TurretMarker } from './board'
 const cardNameBreaks: Record<string, JSX.Element> = {
   Reinforcements: (
     <Fragment>
-      Reinforce
+      Reinforce-
       <br />
       ments
+    </Fragment>
+  ),
+  'Catastrophic Damage': (
+    <Fragment>
+      Catas-
+      <br />
+      trophic
+      <br />
+      Damage
     </Fragment>
   ),
 }
@@ -182,14 +191,14 @@ export const Hand: React.FunctionComponent<{
 export const shipClassBreaks: Record<string, JSX.Element> = {
   Dreadnought: (
     <Fragment>
-      Dread
+      Dread-
       <br />
       nought
     </Fragment>
   ),
   Minesweeper: (
     <Fragment>
-      Mine
+      Mine-
       <br />
       sweeper
     </Fragment>

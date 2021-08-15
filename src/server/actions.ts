@@ -133,47 +133,72 @@ function applyChooseCardAction(
       typeof action.handIndex === 'number',
       'handIndex should be a single number for playing cards.'
     )
-    const card = playerState.hand[action.handIndex]
+    const respondingCard = playerState.hand[action.handIndex]
 
-    if (!card) {
-      console.warn(`Attempted to play a non-existent card ${action.handIndex}.`)
+    if (!respondingCard) {
+      console.warn(
+        `Attempted to respond with a non-existent card ${action.handIndex}.`
+      )
       return
     }
 
-    state.actionDiscardDeck.push(playerState.hand[action.handIndex])
-    playerState.hand.splice(action.handIndex, 1)
-
     if (
-      card.cardType === 'TemporalFluxCard' ||
-      card.cardType === 'EvasiveActionCard' ||
-      card.cardType === 'FighterCard'
+      respondingCard.cardType === 'TemporalFluxCard' ||
+      respondingCard.cardType === 'EvasiveActionCard' ||
+      respondingCard.cardType === 'FighterCard'
     ) {
       // Cancel effects by transitioning back to AttackTurnState without doing anything.
       const attackingPlayerState = state.getPlayerState(
         state.turnState.attackingPlayer
       )
+      const attackingSquadronCard = state.turnState.squadron
       state.eventLog.push(
-        `${state.turnState.attackingPlayer} attempts to play a ${state.turnState.squadron.name} targeting ${playerId}'s ${state.turnState.targetShip.shipType.name}, but ${playerId} responds with ${card.name}, canceling its effect!`
+        `${state.turnState.attackingPlayer} attempts to play a ${attackingSquadronCard.name} targeting ${playerId}'s ${state.turnState.targetShip.shipType.name}, but ${playerId} responds with ${respondingCard.name}, canceling its effect!`
       )
 
-      if (card.cardType === 'EvasiveActionCard') {
-        attackingPlayerState.hand.push(state.turnState.squadron)
-        state.eventLog.push(
-          `${state.turnState.attackingPlayer}'s ${state.turnState.squadron.name} returns to their hand.`
-        )
-      } else if (
-        card.cardType === 'FighterCard' &&
-        state.turnState.squadron.cardType === 'BomberCard'
+      // By default, squadrons will go back to the attacking player's hand.
+      // But Temporal Flux and Fighters will destroy the attacking squadron.
+
+      if (
+        respondingCard.cardType === 'TemporalFluxCard' ||
+        respondingCard.cardType === 'FighterCard'
       ) {
-        playerState.hand.push(card)
-        state.eventLog.push(`${playerId}'s ${card.name} returns to their hand.`)
+        _.remove(
+          attackingPlayerState.usedSquadronCards,
+          (c) => c === attackingSquadronCard
+        )
+        state.actionDiscardDeck.push(attackingSquadronCard)
+        state.eventLog.push(
+          `${state.turnState.attackingPlayer}'s ${attackingSquadronCard.name} is discarded.`
+        )
+      }
+
+      if (
+        respondingCard.cardType === 'FighterCard' &&
+        attackingSquadronCard.cardType === 'BomberCard'
+      ) {
+        // Responding to a Bomber with a Fighter lets you keep the Fighter.
+        state.eventLog.push(
+          `${playerId}'s ${respondingCard.name} returns to their hand.`
+        )
+      } else {
+        // Otherwise, the responding card is consumed. Point it out explicitly if it's a Fighter.
+        if (respondingCard.cardType === 'FighterCard') {
+          state.eventLog.push(
+            `${playerId}'s ${respondingCard.name} is discarded.`
+          )
+        }
+        state.actionDiscardDeck.push(respondingCard)
+        playerState.hand.splice(action.handIndex, 1)
       }
 
       state.turnState = {
         type: 'AttackTurnState',
       }
     } else {
-      console.warn(`Don't know what to do with card ${card.cardType}.`)
+      console.warn(
+        `Don't know what to do with card ${respondingCard.cardType}.`
+      )
     }
 
     return
@@ -197,9 +222,11 @@ function applyChooseCardAction(
       const discardIndices = action.handIndex
       discardActivePlayerCards(state, discardIndices)
 
-      state.eventLog.push(
-        `${state.activePlayer} discards ${discardIndices.length} cards.`
-      )
+      if (discardIndices.length > 0) {
+        state.eventLog.push(
+          `${state.activePlayer} discards ${discardIndices.length} cards.`
+        )
+      }
 
       if (activePlayerState.hand.length < DRAW_UP_TO_HAND_SIZE) {
         drawActivePlayerCards(
@@ -270,8 +297,13 @@ function applyChooseCardAction(
       executeCardEffect(state, card)
 
       // Consume the card.
-      state.actionDiscardDeck.push(activePlayerState.hand[action.handIndex])
       activePlayerState.hand.splice(action.handIndex, 1)
+
+      if (card.isSquadron) {
+        activePlayerState.usedSquadronCards.push(card)
+      } else {
+        state.actionDiscardDeck.push(card)
+      }
 
       if (!card.isDirectHit) {
         state.directHitStateMachine = undefined
@@ -443,7 +475,7 @@ function applyChooseShipAction(
 
         state.turnState.firingShip.hasFiredThisTurn = true
 
-        if (canRespondToBlast(targetPlayerState)) {
+        if (targetPlayerState.hand.some(canRespondToBlast)) {
           state.turnState = {
             type: 'PlayBlastRespondState',
             blast: state.turnState.blast,
@@ -504,7 +536,11 @@ function applyChooseShipAction(
           designatedShip = targetPlayerState.commandShip
         }
 
-        if (canRespondToSquadron(targetPlayerState)) {
+        if (
+          targetPlayerState.hand.some((c) =>
+            canRespondToSquadron(targetPlayerState, c)
+          )
+        ) {
           state.turnState = {
             type: 'PlaySquadronRespondState',
             squadron: state.turnState.squadron,
@@ -550,6 +586,18 @@ function applyPassAction(
       }
       break
 
+    case 'PlaySquadronRespondState':
+      resolveSquadronAttack(
+        state,
+        state.turnState.attackingPlayer,
+        state.turnState.targetShip,
+        state.turnState.squadron
+      )
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+      break
+
     case 'ReinforceTurnState':
       assert(
         state.activePlayer === playerId,
@@ -587,6 +635,32 @@ function applyPassAction(
         state.activePlayer === playerId,
         'A player acted that was not the active player.'
       )
+
+      // End of turn effects wear off.
+
+      for (const [pid, ps] of state.playerState.entries()) {
+        for (const s of ps.ships) {
+          if (s.temporaryDamage > 0) {
+            state.eventLog.push(
+              `${pid}'s ${s.shipType.name}'s ${s.temporaryDamage} points of squadron damage wears off.`
+            )
+            s.temporaryDamage = 0
+          }
+        }
+      }
+
+      activePlayerState.usedSquadronCards.forEach((c) => {
+        state.eventLog.push(
+          `${state.activePlayer}'s deployed ${c.name} makes it way home to ${state.activePlayer}'s hand.`
+        )
+        activePlayerState.hand.push(c)
+      })
+      activePlayerState.usedSquadronCards = []
+
+      activePlayerState.ships.forEach((s) => {
+        s.hasFiredThisTurn = false
+      })
+
       // Go to next person's turn.
       const currentPlayerIndex = state.playerTurnOrder.indexOf(
         state.activePlayer
@@ -599,10 +673,6 @@ function applyPassAction(
 
       const nextPlayerIndex =
         (currentPlayerIndex + 1) % state.playerTurnOrder.length
-
-      activePlayerState.ships.forEach((s) => {
-        s.hasFiredThisTurn = false
-      })
 
       if (nextPlayerIndex === 0) {
         state.turnNumber++
@@ -619,6 +689,8 @@ function applyPassAction(
 
       state.eventLog.push(`It is now ${state.activePlayer}'s turn.`)
 
+      // Beginning of turn effects.
+
       for (const [pid, ps] of state.playerState.entries()) {
         if (ps.asteroidsUntilBeginningOfPlayerTurn === state.activePlayer) {
           ps.asteroidsUntilBeginningOfPlayerTurn = undefined
@@ -627,15 +699,6 @@ function applyPassAction(
         if (ps.minefieldUntilBeginningOfPlayerTurn === state.activePlayer) {
           ps.minefieldUntilBeginningOfPlayerTurn = undefined
           state.eventLog.push(`${pid}'s Minefield wears off.`)
-        }
-
-        for (const s of ps.ships) {
-          if (s.temporaryDamage > 0) {
-            state.eventLog.push(
-              `${pid}'s ${s.shipType.name}'s ${s.temporaryDamage} points of squadron damage wears off.`
-            )
-            s.temporaryDamage = 0
-          }
         }
       }
 

@@ -211,7 +211,7 @@ export function resolveSquadronAttack(
   )
 
   state.eventLog.push(
-    `${state.activePlayer} sends out a ${squadron.name} targeting ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${squadron.damage} damage.`
+    `${state.activePlayer} deploys a ${squadron.name} targeting ${targetPlayer}'s ${targetShip.shipType.name}, dealing ${squadron.damage} damage.`
   )
 
   if (isDead(targetShip)) {
@@ -249,6 +249,11 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
         type: 'PlayBlastChooseFiringShipState',
         blast: card,
       }
+    }
+  } else if (card.isSquadron) {
+    state.turnState = {
+      type: 'PlaySquadronChooseTargetShipState',
+      squadron: card,
     }
   } else if (card.cardType === 'ReinforcementsCard') {
     state.eventLog.push(`${state.activePlayer} plays ${card.name}.`)
@@ -360,12 +365,19 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
   }
 }
 
-export function canRespondToBlast(targetPlayerState: PlayerState) {
-  return targetPlayerState.hand.some((c) => c.canRespondToBlast)
+export function canRespondToBlast(c: ActionCard): boolean {
+  return c.canRespondToBlast
 }
 
-export function canRespondToSquadron(targetPlayerState: PlayerState) {
-  return targetPlayerState.hand.some((c) => c.canRespondToSquadron)
+export function canRespondToSquadron(
+  targetPlayerState: PlayerState,
+  respondingCard: ActionCard
+): boolean {
+  return (
+    respondingCard.canRespondToBlast ||
+    (respondingCard.canRespondToSquadron &&
+      ownsCarrier(targetPlayerState.ships))
+  )
 }
 
 export function nonfullZones(ships: Ship[]): Location[] {

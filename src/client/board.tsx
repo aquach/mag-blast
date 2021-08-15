@@ -108,14 +108,14 @@ export const BoardShip: React.FunctionComponent<{
 const commandShipBreaks: Record<string, JSX.Element> = {
   BZZGZZRT: (
     <Fragment>
-      BZZG
+      BZZG-
       <br />
       ZZRT!
     </Fragment>
   ),
   BrotherhoodOfPeace: (
     <Fragment>
-      Brother
+      Brother-
       <br />
       hood
       <br />
@@ -126,7 +126,7 @@ const commandShipBreaks: Record<string, JSX.Element> = {
     <Fragment>
       Cranium
       <br />
-      Consor
+      Consor-
       <br />
       tium
     </Fragment>

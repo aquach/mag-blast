@@ -12,7 +12,8 @@ import {
   squadronableShipIndices,
   blastableCommandShipPlayers,
   blastableShipIndices,
-  ownsCarrier,
+  canRespondToBlast,
+  canRespondToSquadron,
 } from './logic'
 import {
   ChooseShipPrompt,

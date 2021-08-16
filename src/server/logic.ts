@@ -1,4 +1,10 @@
-import { CommandShip, GameState, PlayerState, Ship } from './types'
+import {
+  CommandShip,
+  GameState,
+  PlayActionRespondState,
+  PlayerState,
+  Ship,
+} from './types'
 import * as _ from 'lodash'
 import { ascribe, assert, filterIndices, partition, warn } from './utils'
 import {
@@ -195,14 +201,6 @@ export function resolveBlastAttack(
     targetShip
   )
 
-  state.pushEventLog(
-    event`${p(state.activePlayer)}'s ${firingShip.shipType.name} fires a ${
-      blast.name
-    } at ${p(targetPlayer)}'s ${targetShip.shipType.name}, dealing ${
-      blast.damage
-    } damage.`
-  )
-
   if (isDead(targetShip)) {
     return destroyShip(state, targetShip)
   } else {
@@ -221,17 +219,6 @@ export function resolveSquadronAttack(
   squadron: ActionCard
 ): boolean {
   targetShip.temporaryDamage += squadron.damage
-
-  const [targetPlayer, targetPlayerState] = owningPlayer(
-    state.playerState,
-    targetShip
-  )
-
-  state.pushEventLog(
-    event`${p(state.activePlayer)} deploys a ${squadron.name} targeting ${p(
-      targetPlayer
-    )}'s ${targetShip.shipType.name}, dealing ${squadron.damage} damage.`
-  )
 
   if (isDead(targetShip)) {
     return destroyShip(state, targetShip)
@@ -281,7 +268,6 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       squadron: card,
     }
   } else if (card.cardType === 'ReinforcementsCard') {
-    state.pushEventLog(event`${p(state.activePlayer)} plays ${card.name}.`)
     const newShip = drawShipCard(state)
 
     state.turnState = {
@@ -289,7 +275,6 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       newShip,
     }
   } else if (card.cardType === 'StrategicAllocationCard') {
-    state.pushEventLog(event`${p(state.activePlayer)} plays ${card.name}.`)
     drawActivePlayerCards(state, 3)
   } else if (card.isDirectHit) {
     if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
@@ -299,7 +284,6 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       return
     }
 
-    state.pushEventLog(event`${p(state.activePlayer)} plays a Direct Hit!`)
     state.directHitStateMachine = {
       type: 'DirectHitPlayedDirectHitState',
       firingShip: state.directHitStateMachine.firingShip,
@@ -313,7 +297,6 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       return
     }
 
-    state.pushEventLog(event`${p(state.activePlayer)} plays a ${card.name}!`)
     const targetShip = state.directHitStateMachine.targetShip
 
     const [targetPlayer, targetPlayerState] = owningPlayer(
@@ -672,4 +655,26 @@ export function resolveActionCard(state: GameState, card: ActionCard): void {
   if (!card.isDirectHit) {
     state.directHitStateMachine = undefined
   }
+}
+
+export function playersThatCanRespondToActions(
+  state: GameState,
+  playingPlayer: PlayerId
+): PlayerId[] {
+  const respondablePlayers = Array.from(state.playerState.entries())
+    .filter(
+      (e) => e[0] !== playingPlayer && e[1].hand.some(canRespondToAnything)
+    )
+    .map((e) => e[0])
+
+  const index = state.playerTurnOrder.indexOf(playingPlayer)
+
+  const playersAfterPlayingPlayerInTurnOrder = [
+    ..._.drop(state.playerTurnOrder, index),
+    ..._.take(state.playerTurnOrder, index),
+  ]
+
+  return playersAfterPlayingPlayerInTurnOrder.filter((p) =>
+    respondablePlayers.includes(p)
+  )
 }

@@ -196,12 +196,9 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         canRespondToBlast(c)
       )
 
-      const firingShip = state.turnState.firingShip
-      const [attackingPlayer, _] = owningPlayer(state.playerState, firingShip)
-
       return ascribe<ChooseCardPrompt>({
         type: 'ChooseCardPrompt',
-        text: `${attackingPlayer} is attempting to play a ${state.turnState.blast.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
+        text: `Choose a card to play in response.`,
         selectableCardIndices: playableCardIndices,
         multiselect: undefined,
         pass: {
@@ -223,7 +220,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
       return ascribe<ChooseCardPrompt>({
         type: 'ChooseCardPrompt',
-        text: `${state.activePlayer} is attempting to play a ${state.turnState.squadron.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
+        text: `Choose a card to play in response.`,
         selectableCardIndices: playableCardIndices,
         multiselect: undefined,
         pass: {
@@ -235,7 +232,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
   if (
     state.turnState.type === 'PlayActionRespondState' &&
-    state.activePlayer !== playerId
+    state.turnState.respondingPlayers[0] === playerId
   ) {
     const playableCardIndices = filterIndices(
       playerState.hand,
@@ -244,7 +241,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
     return ascribe<ChooseCardPrompt>({
       type: 'ChooseCardPrompt',
-      text: `${state.activePlayer} is attempting to play a ${state.turnState.card.name}. Choose a card to play in response.`,
+      text: `Choose a card to play in response.`,
       selectableCardIndices: playableCardIndices,
       multiselect: undefined,
       pass: {

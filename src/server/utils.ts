@@ -60,6 +60,7 @@ export function partition<T>(
 
 export function warn(m: string): void {
   console.warn(`[${new Date()}] ${m}`)
+  console.warn(new Error().stack)
 }
 
 export function uniqueGroupBy<T>(

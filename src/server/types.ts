@@ -157,6 +157,7 @@ export interface PlayBlastRespondState {
   blast: ActionCard
   firingShip: Ship
   targetShip: Ship | CommandShip
+  resolveBlast(): boolean
 }
 
 export interface PlaySquadronChooseTargetShipState {
@@ -168,11 +169,15 @@ export interface PlaySquadronRespondState {
   type: 'PlaySquadronRespondState'
   squadron: ActionCard
   targetShip: Ship | CommandShip
+  resolveSquadron(): boolean
 }
 
 export interface PlayActionRespondState {
   type: 'PlayActionRespondState'
-  card: ActionCard
+  playingPlayer: PlayerId
+  respondingPlayers: PlayerId[]
+  resolveAction(): boolean
+  counterAction(): boolean
 }
 
 export interface EndGameState {

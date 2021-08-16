@@ -32,7 +32,7 @@ import {
   canRespondToSquadron,
   resolveSquadronAttack,
   resolveActionCard,
-  canRespondToAnything,
+  playersThatCanRespondToActions,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -46,6 +46,8 @@ function applyChooseCardAction(
   playerId: string,
   action: ChooseCardAction
 ): void {
+  console.log(playerId, JSON.stringify(action))
+
   if (state.turnState.type === 'ChooseStartingShipsState') {
     const dealtShipCards = state.turnState.dealtShipCards.get(playerId)
     assert(
@@ -104,26 +106,41 @@ function applyChooseCardAction(
     state.actionDiscardDeck.push(playerState.hand[action.handIndex])
     playerState.hand.splice(action.handIndex, 1)
 
-    const firingShip = state.turnState.firingShip
-
     if (
       card.cardType === 'TemporalFluxCard' ||
       card.cardType === 'EvasiveActionCard'
     ) {
       // Cancel effects by transitioning back to AttackTurnState without doing anything.
-      const [firingPlayer, firingPlayerState] = owningPlayer(
-        state.playerState,
-        firingShip
-      )
       state.pushEventLog(
-        event`${p(firingPlayer)} attempts to play a ${
-          state.turnState.blast.name
-        } targeting ${p(playerId)}'s ${
-          state.turnState.targetShip.shipType.name
-        }, but ${p(playerId)} responds with ${card.name}, canceling its effect!`
+        event`...but ${p(playerId)} responds with ${
+          card.name
+        }, canceling its effect!`
       )
-      state.turnState = {
-        type: 'AttackTurnState',
+
+      const respondablePlayers = playersThatCanRespondToActions(state, playerId)
+      if (respondablePlayers.length > 0) {
+        const resolveBlast = state.turnState.resolveBlast
+
+        state.turnState = {
+          type: 'PlayActionRespondState',
+          playingPlayer: playerId,
+          respondingPlayers: respondablePlayers,
+          resolveAction(): boolean {
+            // The counter is successful, nothing happens.
+            console.log('response to blast was successful, nothing happens')
+            return false
+          },
+          counterAction(): boolean {
+            // The counter is countered, resolve the blast.
+            console.log('response to blast was unsuccessful, blast happens')
+            return resolveBlast()
+          },
+        }
+      } else {
+        // Nobody to respond, so the effect is just canceled.
+        state.turnState = {
+          type: 'AttackTurnState',
+        }
       }
     } else {
       warn(`Don't know what to do with card ${card.cardType}.`)
@@ -147,23 +164,30 @@ function applyChooseCardAction(
     }
 
     if (
-      respondingCard.cardType === 'TemporalFluxCard' ||
-      respondingCard.cardType === 'EvasiveActionCard' ||
-      respondingCard.cardType === 'FighterCard'
-    ) {
-      // Cancel effects by transitioning back to AttackTurnState without doing anything.
-      const attackingPlayerState = state.getPlayerState(state.activePlayer)
-      const attackingSquadronCard = state.turnState.squadron
-      state.pushEventLog(
-        event`${p(state.activePlayer)} attempts to play a ${
-          attackingSquadronCard.name
-        } targeting ${p(playerId)}'s ${
-          state.turnState.targetShip.shipType.name
-        }, but ${p(playerId)} responds with ${
-          respondingCard.name
-        }, canceling its effect!`
+      !(
+        respondingCard.cardType === 'TemporalFluxCard' ||
+        respondingCard.cardType === 'EvasiveActionCard' ||
+        respondingCard.cardType === 'FighterCard'
       )
+    ) {
+      warn(`Don't know what to do with card ${respondingCard.cardType}.`)
+      return
+    }
 
+    const attackingPlayerState = state.getPlayerState(state.activePlayer)
+    const attackingSquadronCard = state.turnState.squadron
+    state.pushEventLog(
+      event`...but ${p(playerId)} responds with ${
+        respondingCard.name
+      }, canceling its effect!`
+    )
+
+    state.actionDiscardDeck.push(respondingCard)
+    playerState.hand.splice(action.handIndex, 1)
+
+    const handIndex = action.handIndex
+
+    const resolveCounter = () => {
       // By default, squadrons will go back to the attacking player's hand.
       // But Temporal Flux and Fighters will destroy the attacking squadron.
 
@@ -183,36 +207,66 @@ function applyChooseCardAction(
         )
       }
 
-      if (
-        respondingCard.cardType === 'FighterCard' &&
-        attackingSquadronCard.cardType === 'BomberCard'
-      ) {
-        // Responding to a Bomber with a Fighter lets you keep the Fighter.
-        state.pushEventLog(
-          event`${p(playerId)}'s ${respondingCard.name} returns to their hand.`
-        )
-      } else {
-        // Otherwise, the responding card is consumed. Point it out explicitly if it's a Fighter.
-        if (respondingCard.cardType === 'FighterCard') {
+      if (respondingCard.cardType === 'FighterCard') {
+        if (attackingSquadronCard.cardType === 'BomberCard') {
+          // Responding to a Bomber with a Fighter lets you keep the Fighter.
+          state.pushEventLog(
+            event`${p(playerId)}'s ${
+              respondingCard.name
+            } returns to their hand.`
+          )
+          _.remove(state.actionDiscardDeck, (c) => c === respondingCard)
+          playerState.hand.push(respondingCard)
+        } else {
+          // Point out the Fighter loss.
           state.pushEventLog(
             event`${p(playerId)}'s ${respondingCard.name} is discarded.`
           )
         }
-        state.actionDiscardDeck.push(respondingCard)
-        playerState.hand.splice(action.handIndex, 1)
       }
+    }
 
+    const respondablePlayers = playersThatCanRespondToActions(state, playerId)
+    if (respondablePlayers.length > 0) {
+      const resolveSquadron = state.turnState.resolveSquadron
+
+      state.turnState = {
+        type: 'PlayActionRespondState',
+        playingPlayer: playerId,
+        respondingPlayers: respondablePlayers,
+        resolveAction(): boolean {
+          // The counter is successful.
+          resolveCounter()
+          return false
+        },
+        counterAction(): boolean {
+          // The counter is countered, resolve the squadron. Also point out if we lost a Fighter in the process.
+          if (respondingCard.cardType === 'FighterCard') {
+            // Point out the Fighter loss.
+            state.pushEventLog(
+              event`${p(playerId)}'s ${respondingCard.name} is discarded.`
+            )
+          }
+          return resolveSquadron()
+        },
+      }
+    } else {
+      // Nobody to respond to the counter, so the counter resolves immediately.
+      resolveCounter()
       state.turnState = {
         type: 'AttackTurnState',
       }
-    } else {
-      warn(`Don't know what to do with card ${respondingCard.cardType}.`)
     }
 
     return
   }
 
   if (state.turnState.type === 'PlayActionRespondState') {
+    if (playerId !== state.turnState.respondingPlayers[0]) {
+      warn(`Wrong player to respond to action.`)
+      return
+    }
+
     const playerState = state.getPlayerState(playerId)
 
     assert(
@@ -226,25 +280,52 @@ function applyChooseCardAction(
       return
     }
 
-    if (respondingCard.cardType === 'TemporalFluxCard') {
-      // Cancel effects by transitioning back to AttackTurnState without doing anything.
-      const attackingPlayerState = state.getPlayerState(state.activePlayer)
-      state.pushEventLog(
-        event`${p(state.activePlayer)} attempts to play a ${
-          state.turnState.card.name
-        }, but ${p(playerId)} responds with ${
-          respondingCard.name
-        }, canceling its effect!`
-      )
+    if (respondingCard.cardType !== 'TemporalFluxCard') {
+      warn(`Don't know what to do with card ${respondingCard.cardType}.`)
+      return
+    }
 
-      state.actionDiscardDeck.push(respondingCard)
-      playerState.hand.splice(action.handIndex, 1)
+    state.pushEventLog(
+      event`...but ${p(playerId)} responds with ${
+        respondingCard.name
+      }, canceling its effect!`
+    )
+
+    state.actionDiscardDeck.push(respondingCard)
+    playerState.hand.splice(action.handIndex, 1)
+
+    const respondablePlayers = playersThatCanRespondToActions(state, playerId)
+    if (respondablePlayers.length > 0) {
+      console.log(`Respondable players: ${respondablePlayers.join(',')}`)
+      const resolveAction = state.turnState.resolveAction
+      const counterAction = state.turnState.counterAction
 
       state.turnState = {
-        type: 'AttackTurnState',
+        type: 'PlayActionRespondState',
+        playingPlayer: playerId,
+        respondingPlayers: respondablePlayers,
+        resolveAction(): boolean {
+          console.log(
+            `${respondingCard.name} played by ${playerId} was ultimately successful.`
+          )
+          // The counter is successful.
+          return counterAction()
+        },
+        counterAction(): boolean {
+          // The counter is countered, resolve the action.
+          console.log(
+            `${respondingCard.name} played by ${playerId} was ultimately not successful and the underlying action will happen.`
+          )
+          return resolveAction()
+        },
       }
     } else {
-      warn(`Don't know what to do with card ${respondingCard.cardType}.`)
+      console.log('No respondable players, counter resolves immediately.')
+      if (!state.turnState.counterAction()) {
+        state.turnState = {
+          type: 'AttackTurnState',
+        }
+      }
     }
 
     return
@@ -345,18 +426,46 @@ function applyChooseCardAction(
       // Consume the card.
       activePlayerState.hand.splice(action.handIndex, 1)
 
-      if (
-        !card.isSquadron &&
-        !card.isBlast &&
-        Array.from(state.playerState.entries())
-          .filter((e) => e[0] !== state.activePlayer)
-          .some((e) => e[1].hand.some(canRespondToAnything))
-      ) {
+      const playingCardHasMoreStates =
+        card.isSquadron ||
+        (card.isBlast &&
+          state.directHitStateMachine?.type !==
+            'DirectHitPlayedDirectHitState') ||
+        card.cardType === 'AsteroidsCard' ||
+        card.cardType === 'MinefieldCard'
+
+      if (!playingCardHasMoreStates) {
+        // These will get announced later by their respective states.
+        const punctuation =
+          card.isDirectHit || card.isDirectHitEffect ? '!' : '.'
+        state.pushEventLog(
+          event`${p(state.activePlayer)} plays ${card.name}${punctuation}`
+        )
+      }
+
+      const respondablePlayers = playersThatCanRespondToActions(
+        state,
+        state.activePlayer
+      )
+
+      if (!playingCardHasMoreStates && respondablePlayers.length > 0) {
         state.turnState = {
           type: 'PlayActionRespondState',
-          card,
+          playingPlayer: state.activePlayer,
+          respondingPlayers: respondablePlayers,
+          resolveAction(): boolean {
+            resolveActionCard(state, card)
+            return false
+          },
+          counterAction(): boolean {
+            // The action is countered. Nothing happens.
+            return false
+          },
         }
       } else {
+        // If the card has more states, it'll transition to that state in
+        // resolveActionCard, and only then will go into
+        // PlayActionRespondState if need be.
         resolveActionCard(state, card)
       }
 
@@ -425,9 +534,34 @@ function applyChooseShipAction(
             targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
           }.`
         )
-        targetPlayerState.asteroidsUntilBeginningOfPlayerTurn =
+
+        const respondablePlayers = playersThatCanRespondToActions(
+          state,
           state.activePlayer
-        state.turnState = { type: 'AttackTurnState' }
+        )
+
+        const resolveAction = () => {
+          targetPlayerState.asteroidsUntilBeginningOfPlayerTurn =
+            state.activePlayer
+        }
+
+        if (respondablePlayers.length > 0) {
+          state.turnState = {
+            type: 'PlayActionRespondState',
+            playingPlayer: state.activePlayer,
+            respondingPlayers: respondablePlayers,
+            resolveAction(): boolean {
+              resolveAction()
+              return false
+            },
+            counterAction(): boolean {
+              return false
+            },
+          }
+        } else {
+          resolveAction()
+          state.turnState = { type: 'AttackTurnState' }
+        }
       }
       break
 
@@ -445,9 +579,34 @@ function applyChooseShipAction(
             targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
           }.`
         )
-        targetPlayerState.minefieldUntilBeginningOfPlayerTurn =
+
+        const respondablePlayers = playersThatCanRespondToActions(
+          state,
           state.activePlayer
-        state.turnState = { type: 'AttackTurnState' }
+        )
+
+        const resolveAction = () => {
+          targetPlayerState.minefieldUntilBeginningOfPlayerTurn =
+            state.activePlayer
+        }
+
+        if (respondablePlayers.length > 0) {
+          state.turnState = {
+            type: 'PlayActionRespondState',
+            playingPlayer: state.activePlayer,
+            respondingPlayers: respondablePlayers,
+            resolveAction(): boolean {
+              resolveAction()
+              return false
+            },
+            counterAction(): boolean {
+              return false
+            },
+          }
+        } else {
+          resolveAction()
+          state.turnState = { type: 'AttackTurnState' }
+        }
       }
       break
 
@@ -525,22 +684,39 @@ function applyChooseShipAction(
           designatedShip = targetPlayerState.commandShip
         }
 
-        state.turnState.firingShip.hasFiredThisTurn = true
+        state.pushEventLog(
+          event`${p(state.activePlayer)}'s ${
+            state.turnState.firingShip.shipType.name
+          } fires a ${state.turnState.blast.name} at ${p(targetPlayerId)}'s ${
+            designatedShip.shipType.name
+          }, dealing ${state.turnState.blast.damage} damage.`
+        )
+
+        const turnState = state.turnState
+
+        turnState.firingShip.hasFiredThisTurn = true
 
         if (targetPlayerState.hand.some(canRespondToBlast)) {
           state.turnState = {
             type: 'PlayBlastRespondState',
-            blast: state.turnState.blast,
-            firingShip: state.turnState.firingShip,
+            blast: turnState.blast,
+            firingShip: turnState.firingShip,
             targetShip: designatedShip,
+            resolveBlast: () =>
+              resolveBlastAttack(
+                state,
+                turnState.firingShip,
+                designatedShip,
+                turnState.blast
+              ),
           }
         } else {
           if (
             !resolveBlastAttack(
               state,
-              state.turnState.firingShip,
+              turnState.firingShip,
               designatedShip,
-              state.turnState.blast
+              turnState.blast
             )
           ) {
             state.turnState = {
@@ -591,6 +767,16 @@ function applyChooseShipAction(
           designatedShip = targetPlayerState.commandShip
         }
 
+        const squadron = state.turnState.squadron
+
+        state.pushEventLog(
+          event`${p(state.activePlayer)} deploys a ${
+            squadron.name
+          } targeting ${p(targetPlayerId)}'s ${
+            designatedShip.shipType.name
+          }, dealing ${squadron.damage} damage.`
+        )
+
         if (
           targetPlayerState.hand.some((c) =>
             canRespondToSquadron(targetPlayerState, c)
@@ -598,8 +784,10 @@ function applyChooseShipAction(
         ) {
           state.turnState = {
             type: 'PlaySquadronRespondState',
-            squadron: state.turnState.squadron,
+            squadron,
             targetShip: designatedShip,
+            resolveSquadron: () =>
+              resolveSquadronAttack(state, designatedShip, squadron),
           }
         } else {
           if (
@@ -660,9 +848,15 @@ function applyPassAction(
       break
 
     case 'PlayActionRespondState':
-      resolveActionCard(state, state.turnState.card)
-      state.turnState = {
-        type: 'AttackTurnState',
+      _.remove(state.turnState.respondingPlayers, (p) => p === playerId)
+
+      if (state.turnState.respondingPlayers.length === 0) {
+        // All players passed, which means that the playing card holds and should be resolved.
+        if (!state.turnState.resolveAction()) {
+          state.turnState = {
+            type: 'AttackTurnState',
+          }
+        }
       }
       break
 

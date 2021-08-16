@@ -38,6 +38,7 @@ export interface ActionCard {
   isDirectHitEffect: boolean
   canRespondToBlast: boolean
   canRespondToSquadron: boolean
+  canRespondToAnything: boolean
 }
 
 export interface UIPlayerState {

@@ -1,21 +1,21 @@
-Name,Type,Num No Resources,Resource Variants,Count,Damage,Is Blast,Is Squadron,Is Direct Hit,Is Direct Hit Effect,Can Respond To Blast,Can Respond To Squadron,Text
-Temporal Flux,TemporalFluxCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,Any Turn: Play at any time to cancel any Action card just played by an opponent. Squadrons canceled in this way are discarded.
-Strategic Allocation,StrategicAllocationCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,Any Turn: Play at any time to immediately draw three Action cards.
-Catastrophic Damage,CatastrophicDamageCard,1,S,1,0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit. That ship is immediately destroyed.
-Boarding Party,BoardingPartyCard,1,D,1,0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,"Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit. You may take that fleet ship and add it to your fleet, placing it in a zone of your choice."
-Reinforcements,ReinforcementsCard,4,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play to draw the top card from the fleet ship deck and add that ship to your fleet, placing it in a zone of your choice."
-Concussive Blast,ConcussiveBlastCard,1,C,1,0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,"Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit. You may move all ships in the target ship's zone to any zones you like, so long as no more than 3 ships end up in any one zone."
-Evasive Action,EvasiveActionCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,"Any Turn: Play at any time to cancel a Blast, Squadron, or Direct Hit card played against one of your ships. Squadrons canceled by this card are returned to their owner's hand instead of discarded."
-Minefield,MinefieldCard,0,"S,D,C",3,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play on any fleet. Until the beginning of your next turn, ships in that fleet cannot maneuver, fire Blasts, or launch Squadrons."
-Fighter,FighterCard,0,"S,S,D,D,C,C,SD,DC,SC",9,2,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,"Squadron (requires a carrier): Play on an enemy fleet ship in any zone.
+Name,Type,Num No Resources,Resource Variants,Damage,Is Blast,Is Squadron,Is Direct Hit,Is Direct Hit Effect,Can Respond To Blast,Can Respond To Squadron,Text,Can Respond To Anything
+Temporal Flux,TemporalFluxCard,2,,0,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,Any Turn: Play at any time to cancel any Action card just played by an opponent. Squadrons canceled in this way are discarded.,TRUE
+Strategic Allocation,StrategicAllocationCard,2,,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,Any Turn: Play at any time to immediately draw three Action cards.,FALSE
+Catastrophic Damage,CatastrophicDamageCard,1,S,0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit. That ship is immediately destroyed.,FALSE
+Boarding Party,BoardingPartyCard,1,D,0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,"Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit. You may take that fleet ship and add it to your fleet, placing it in a zone of your choice.",FALSE
+Reinforcements,ReinforcementsCard,4,,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play to draw the top card from the fleet ship deck and add that ship to your fleet, placing it in a zone of your choice.",FALSE
+Concussive Blast,ConcussiveBlastCard,1,C,0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,"Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit. You may move all ships in the target ship's zone to any zones you like, so long as no more than 3 ships end up in any one zone.",FALSE
+Evasive Action,EvasiveActionCard,2,,0,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,"Any Turn: Play at any time to cancel a Blast, Squadron, or Direct Hit card played against one of your ships. Squadrons canceled by this card are returned to their owner's hand instead of discarded.",FALSE
+Minefield,MinefieldCard,0,"S,D,C",0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play on any fleet. Until the beginning of your next turn, ships in that fleet cannot maneuver, fire Blasts, or launch Squadrons.",FALSE
+Fighter,FighterCard,0,"S,S,D,D,C,C,SD,DC,SC",2,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,"Squadron (requires a carrier): Play on an enemy fleet ship in any zone.
 
-Any Turn (requires a carrier): Play to cancel an attacking bomber or discard to cancel an attacking fighter."
-Bridge Hit,BridgeHitCard,0,"SS,CC",2,0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit to take up to 3 cards at random from that player's hand.
-Spacedock,SpacedockCard,4,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,Play to discard one Blast from one of your fleet ships.
-Ramming Speed,RammingSpeedCard,2,,0,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play to sacrifice one of your fleet ships, turning it into a Blast that fires immediately from the ship's current zone. If it hits, it does damage equal to its speed."
-Asteroids,AsteroidsCard,0,"S,D,C",3,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play on any fleet. Until the beginning of your next turn, Blasts and Squadrons cannot be played on ships in that fleet."
-Mag Blast,MagBlastCard,7,"S,D,C",3,5,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
-Beam Blast,BeamBlastCard,19,"S,C,C",3,3,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
-Laser Blast,LaserBlastCard,12,"S,S,C,C,D,D",6,1,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
-Bomber,BomberCard,0,"S,C,D,DD",4,4,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,Squadron (requires a carrier): Play on an enemy ship in your carrier's zone.
-Direct Hit,DirectHitCard,2,"S,S,C,C,D,D",6,0,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,"Play immediately after you successfully play a Blast on an enemy ship. You may immediately play a Direct Hit Effect on that ship, or you may fire another Blast at the same target from the same ship."
+Any Turn (requires a carrier): Play to cancel an attacking bomber or discard to cancel an attacking fighter.",FALSE
+Bridge Hit,BridgeHitCard,0,"SS,CC",0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit to take up to 3 cards at random from that player's hand.,FALSE
+Spacedock,SpacedockCard,4,,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,Play to discard one Blast from one of your fleet ships.,FALSE
+Ramming Speed,RammingSpeedCard,2,,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play to sacrifice one of your fleet ships, turning it into a Blast that fires immediately from the ship's current zone. If it hits, it does damage equal to its speed.",FALSE
+Asteroids,AsteroidsCard,0,"S,D,C",0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play on any fleet. Until the beginning of your next turn, Blasts and Squadrons cannot be played on ships in that fleet.",FALSE
+Mag Blast,MagBlastCard,7,"S,D,C",5,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,,FALSE
+Beam Blast,BeamBlastCard,19,"S,C,C",3,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,,FALSE
+Laser Blast,LaserBlastCard,12,"S,S,C,C,D,D",1,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,,FALSE
+Bomber,BomberCard,0,"S,C,D,DD",4,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,Squadron (requires a carrier): Play on an enemy ship in your carrier's zone.,FALSE
+Direct Hit,DirectHitCard,2,"S,S,C,C,D,D",0,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,"Play immediately after you successfully play a Blast on an enemy ship. You may immediately play a Direct Hit Effect on that ship, or you may fire another Blast at the same target from the same ship.",FALSE

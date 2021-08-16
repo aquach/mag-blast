@@ -15,6 +15,7 @@ import {
   blastableShipIndices,
   canRespondToBlast,
   canRespondToSquadron,
+  canRespondToAnything,
 } from './logic'
 import {
   ChooseShipPrompt,
@@ -222,7 +223,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
       return ascribe<ChooseCardPrompt>({
         type: 'ChooseCardPrompt',
-        text: `${state.turnState.attackingPlayer} is attempting to play a ${state.turnState.squadron.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
+        text: `${state.activePlayer} is attempting to play a ${state.turnState.squadron.name} on your ${targetShip.shipType.name}. Choose a card to play in response.`,
         selectableCardIndices: playableCardIndices,
         multiselect: undefined,
         pass: {
@@ -230,6 +231,26 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         },
       })
     }
+  }
+
+  if (
+    state.turnState.type === 'PlayActionRespondState' &&
+    state.activePlayer !== playerId
+  ) {
+    const playableCardIndices = filterIndices(
+      playerState.hand,
+      canRespondToAnything
+    )
+
+    return ascribe<ChooseCardPrompt>({
+      type: 'ChooseCardPrompt',
+      text: `${state.activePlayer} is attempting to play a ${state.turnState.card.name}.shipType.name}. Choose a card to play in response.`,
+      selectableCardIndices: playableCardIndices,
+      multiselect: undefined,
+      pass: {
+        actionText: 'Do nothing',
+      },
+    })
   }
 
   if (state.activePlayer === playerId) {
@@ -413,6 +434,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       }
 
       case 'PlayBlastRespondState':
+      case 'PlaySquadronRespondState':
         return ascribe<NoPrompt>({
           type: 'NoPrompt',
           text: `Waiting for ${
@@ -420,10 +442,10 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           } to respond...`,
         })
 
-      case 'PlaySquadronRespondState':
+      case 'PlayActionRespondState':
         return ascribe<NoPrompt>({
           type: 'NoPrompt',
-          text: `Waiting for ${state.turnState.attackingPlayer} to respond...`,
+          text: `Waiting for any player to respond...`,
         })
     }
   } else {

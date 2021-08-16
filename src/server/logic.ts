@@ -217,7 +217,6 @@ export function resolveBlastAttack(
 
 export function resolveSquadronAttack(
   state: GameState,
-  attackingPlayer: PlayerId,
   targetShip: Ship | CommandShip,
   squadron: ActionCard
 ): boolean {
@@ -395,6 +394,10 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
 
 export function canRespondToBlast(c: ActionCard): boolean {
   return c.canRespondToBlast
+}
+
+export function canRespondToAnything(c: ActionCard): boolean {
+  return c.canRespondToAnything
 }
 
 export function canRespondToSquadron(
@@ -655,4 +658,18 @@ export function squadronableCommandShipPlayers(
       return hasAccess ? [targetPlayerId] : []
     }
   )
+}
+
+export function resolveActionCard(state: GameState, card: ActionCard): void {
+  executeCardEffect(state, card)
+
+  if (card.isSquadron) {
+    state.getPlayerState(state.activePlayer).usedSquadronCards.push(card)
+  } else {
+    state.actionDiscardDeck.push(card)
+  }
+
+  if (!card.isDirectHit) {
+    state.directHitStateMachine = undefined
+  }
 }

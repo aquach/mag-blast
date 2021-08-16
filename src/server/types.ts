@@ -167,8 +167,12 @@ export interface PlaySquadronChooseTargetShipState {
 export interface PlaySquadronRespondState {
   type: 'PlaySquadronRespondState'
   squadron: ActionCard
-  attackingPlayer: PlayerId
   targetShip: Ship | CommandShip
+}
+
+export interface PlayActionRespondState {
+  type: 'PlayActionRespondState'
+  card: ActionCard
 }
 
 export interface EndGameState {
@@ -195,4 +199,5 @@ export type TurnState =
   | PlayBlastRespondState
   | PlaySquadronChooseTargetShipState
   | PlaySquadronRespondState
+  | PlayActionRespondState
   | EndGameState

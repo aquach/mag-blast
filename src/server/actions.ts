@@ -32,6 +32,7 @@ import {
   squadronableShipIndices,
   canRespondToSquadron,
   resolveSquadronAttack,
+  resolveActionCard,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -151,12 +152,10 @@ function applyChooseCardAction(
       respondingCard.cardType === 'FighterCard'
     ) {
       // Cancel effects by transitioning back to AttackTurnState without doing anything.
-      const attackingPlayerState = state.getPlayerState(
-        state.turnState.attackingPlayer
-      )
+      const attackingPlayerState = state.getPlayerState(state.activePlayer)
       const attackingSquadronCard = state.turnState.squadron
       state.pushEventLog(
-        event`${p(state.turnState.attackingPlayer)} attempts to play a ${
+        event`${p(state.activePlayer)} attempts to play a ${
           attackingSquadronCard.name
         } targeting ${p(playerId)}'s ${
           state.turnState.targetShip.shipType.name
@@ -178,7 +177,7 @@ function applyChooseCardAction(
         )
         state.actionDiscardDeck.push(attackingSquadronCard)
         state.pushEventLog(
-          event`${p(state.turnState.attackingPlayer)}'s ${
+          event`${p(state.activePlayer)}'s ${
             attackingSquadronCard.name
           } is discarded.`
         )
@@ -202,6 +201,44 @@ function applyChooseCardAction(
         state.actionDiscardDeck.push(respondingCard)
         playerState.hand.splice(action.handIndex, 1)
       }
+
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+    } else {
+      warn(`Don't know what to do with card ${respondingCard.cardType}.`)
+    }
+
+    return
+  }
+
+  if (state.turnState.type === 'PlayActionRespondState') {
+    const playerState = state.getPlayerState(playerId)
+
+    assert(
+      typeof action.handIndex === 'number',
+      'handIndex should be a single number for playing cards.'
+    )
+    const respondingCard = playerState.hand[action.handIndex]
+
+    if (!respondingCard) {
+      warn(`Attempted to respond with a non-existent card ${action.handIndex}.`)
+      return
+    }
+
+    if (respondingCard.cardType === 'TemporalFluxCard') {
+      // Cancel effects by transitioning back to AttackTurnState without doing anything.
+      const attackingPlayerState = state.getPlayerState(state.activePlayer)
+      state.pushEventLog(
+        event`${p(state.activePlayer)} attempts to play a ${
+          state.turnState.card.name
+        }, but ${p(playerId)} responds with ${
+          respondingCard.name
+        }, canceling its effect!`
+      )
+
+      state.actionDiscardDeck.push(respondingCard)
+      playerState.hand.splice(action.handIndex, 1)
 
       state.turnState = {
         type: 'AttackTurnState',
@@ -305,20 +342,24 @@ function applyChooseCardAction(
         return
       }
 
-      executeCardEffect(state, card)
-
       // Consume the card.
       activePlayerState.hand.splice(action.handIndex, 1)
 
-      if (card.isSquadron) {
-        activePlayerState.usedSquadronCards.push(card)
+      if (
+        !card.isSquadron &&
+        !card.isBlast &&
+        Array.from(state.playerState.entries())
+          .filter((e) => e[0] !== state.activePlayer)
+          .some((e) => e[1].hand.some(canRespondToAnything))
+      ) {
+        state.turnState = {
+          type: 'PlayActionRespondState',
+          card,
+        }
       } else {
-        state.actionDiscardDeck.push(card)
+        resolveActionCard(state, card)
       }
 
-      if (!card.isDirectHit) {
-        state.directHitStateMachine = undefined
-      }
       break
 
     default:
@@ -558,14 +599,12 @@ function applyChooseShipAction(
           state.turnState = {
             type: 'PlaySquadronRespondState',
             squadron: state.turnState.squadron,
-            attackingPlayer: state.activePlayer,
             targetShip: designatedShip,
           }
         } else {
           if (
             !resolveSquadronAttack(
               state,
-              state.activePlayer,
               designatedShip,
               state.turnState.squadron
             )
@@ -610,7 +649,6 @@ function applyPassAction(
       if (
         !resolveSquadronAttack(
           state,
-          state.turnState.attackingPlayer,
           state.turnState.targetShip,
           state.turnState.squadron
         )
@@ -618,6 +656,13 @@ function applyPassAction(
         state.turnState = {
           type: 'AttackTurnState',
         }
+      }
+      break
+
+    case 'PlayActionRespondState':
+      resolveActionCard(state, state.turnState.card)
+      state.turnState = {
+        type: 'AttackTurnState',
       }
       break
 
@@ -986,4 +1031,8 @@ export function applyAction(
     default:
       const cantGetHere: never = action
   }
+}
+
+function canRespondToAnything(canRespondToAnything: any) {
+  throw new Error('Function not implemented.')
 }

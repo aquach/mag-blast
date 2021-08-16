@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2019",
+    "target": "ES2019",
     "lib": [ "es2020" ],
     "strict": true,
     "outDir": "../../dist/server",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "module": "CommonJS"
   }
 }

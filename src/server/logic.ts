@@ -145,7 +145,10 @@ export function owningPlayer(
   return playerEntry
 }
 
-export function destroyShip(state: GameState, ship: Ship | CommandShip): void {
+export function destroyShip(
+  state: GameState,
+  ship: Ship | CommandShip
+): boolean {
   const [targetPlayer, targetPlayerState] = owningPlayer(
     state.playerState,
     ship
@@ -172,8 +175,11 @@ export function destroyShip(state: GameState, ship: Ship | CommandShip): void {
         type: 'EndGameState',
       }
       state.activePlayer = ''
+      return true
     }
   }
+
+  return false
 }
 
 export function resolveBlastAttack(
@@ -181,7 +187,7 @@ export function resolveBlastAttack(
   firingShip: Ship,
   targetShip: Ship | CommandShip,
   blast: ActionCard
-): void {
+): boolean {
   targetShip.damage += blast.damage
 
   const [targetPlayer, targetPlayerState] = owningPlayer(
@@ -198,13 +204,14 @@ export function resolveBlastAttack(
   )
 
   if (isDead(targetShip)) {
-    destroyShip(state, targetShip)
+    return destroyShip(state, targetShip)
   } else {
     state.directHitStateMachine = {
       type: 'BlastPlayedDirectHitState',
       firingShip: firingShip,
       targetShip,
     }
+    return false
   }
 }
 
@@ -213,7 +220,7 @@ export function resolveSquadronAttack(
   attackingPlayer: PlayerId,
   targetShip: Ship | CommandShip,
   squadron: ActionCard
-): void {
+): boolean {
   targetShip.temporaryDamage += squadron.damage
 
   const [targetPlayer, targetPlayerState] = owningPlayer(
@@ -228,8 +235,10 @@ export function resolveSquadronAttack(
   )
 
   if (isDead(targetShip)) {
-    destroyShip(state, targetShip)
+    return destroyShip(state, targetShip)
   }
+
+  return false
 }
 
 export function executeCardEffect(state: GameState, card: ActionCard): void {

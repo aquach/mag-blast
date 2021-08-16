@@ -494,14 +494,17 @@ function applyChooseShipAction(
             targetShip: designatedShip,
           }
         } else {
-          resolveBlastAttack(
-            state,
-            state.turnState.firingShip,
-            designatedShip,
-            state.turnState.blast
-          )
-          state.turnState = {
-            type: 'AttackTurnState',
+          if (
+            !resolveBlastAttack(
+              state,
+              state.turnState.firingShip,
+              designatedShip,
+              state.turnState.blast
+            )
+          ) {
+            state.turnState = {
+              type: 'AttackTurnState',
+            }
           }
         }
       }
@@ -559,14 +562,17 @@ function applyChooseShipAction(
             targetShip: designatedShip,
           }
         } else {
-          resolveSquadronAttack(
-            state,
-            state.activePlayer,
-            designatedShip,
-            state.turnState.squadron
-          )
-          state.turnState = {
-            type: 'AttackTurnState',
+          if (
+            !resolveSquadronAttack(
+              state,
+              state.activePlayer,
+              designatedShip,
+              state.turnState.squadron
+            )
+          ) {
+            state.turnState = {
+              type: 'AttackTurnState',
+            }
           }
         }
       }
@@ -586,26 +592,32 @@ function applyPassAction(
 
   switch (state.turnState.type) {
     case 'PlayBlastRespondState':
-      resolveBlastAttack(
-        state,
-        state.turnState.firingShip,
-        state.turnState.targetShip,
-        state.turnState.blast
-      )
-      state.turnState = {
-        type: 'AttackTurnState',
+      if (
+        !resolveBlastAttack(
+          state,
+          state.turnState.firingShip,
+          state.turnState.targetShip,
+          state.turnState.blast
+        )
+      ) {
+        state.turnState = {
+          type: 'AttackTurnState',
+        }
       }
       break
 
     case 'PlaySquadronRespondState':
-      resolveSquadronAttack(
-        state,
-        state.turnState.attackingPlayer,
-        state.turnState.targetShip,
-        state.turnState.squadron
-      )
-      state.turnState = {
-        type: 'AttackTurnState',
+      if (
+        !resolveSquadronAttack(
+          state,
+          state.turnState.attackingPlayer,
+          state.turnState.targetShip,
+          state.turnState.squadron
+        )
+      ) {
+        state.turnState = {
+          type: 'AttackTurnState',
+        }
       }
       break
 

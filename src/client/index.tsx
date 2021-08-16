@@ -16,15 +16,19 @@ const App: React.FunctionComponent = () => {
   return (
     <div className="flex flex-column vh-100 w-100 justify-center items-center">
       <h1>Mag Blast</h1>
-      <button onClick={onClick}>Create Game</button>
-      <h4>
-        <a href="https://images-cdn.fantasyflightgames.com/filer_public/6b/8a/6b8a9492-f27c-423b-b568-2032d4c3c300/mb_rules.pdf">
-          Rules
-        </a>
-      </h4>
-      <h4>
-
-      </h4>
+      <button className="f4" onClick={onClick}>
+        Create Game
+      </button>
+      <div className="flex">
+        <h4 className="mh1">
+          <a href="https://images-cdn.fantasyflightgames.com/filer_public/6b/8a/6b8a9492-f27c-423b-b568-2032d4c3c300/mb_rules.pdf">
+            Rules
+          </a>
+        </h4>
+        <h4 className="mh1">
+          <a href="https://github.com/aquach/mag-blast">GitHub</a>
+        </h4>
+      </div>
     </div>
   )
 }

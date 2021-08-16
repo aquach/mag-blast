@@ -47,6 +47,7 @@ interface ActionCSVRow {
   'Is Direct Hit Effect': string
   'Can Respond To Blast': string
   'Can Respond To Squadron': string
+  Text: string
 }
 
 const actionCSVRows: ActionCSVRow[] = parse(
@@ -71,6 +72,7 @@ export const actionCards: ActionCard[] = actionCSVRows.flatMap((row) => {
     isDirectHitEffect: row['Is Direct Hit Effect'] === 'TRUE',
     canRespondToBlast: row['Can Respond To Blast'] === 'TRUE',
     canRespondToSquadron: row['Can Respond To Squadron'] === 'TRUE',
+    text: row['Text'],
   }
 
   const noResources = { stars: 0, diamonds: 0, circles: 0 }

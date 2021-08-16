@@ -17,15 +17,6 @@ const cardNameBreaks: Record<string, JSX.Element> = {
       ments
     </Fragment>
   ),
-  'Catastrophic Damage': (
-    <Fragment>
-      Catas-
-      <br />
-      trophic
-      <br />
-      Damage
-    </Fragment>
-  ),
 }
 
 export const ActionCardComponent: React.FunctionComponent<{
@@ -63,13 +54,17 @@ export const ActionCardComponent: React.FunctionComponent<{
       className={`ba br1 pa1 mh1 relative ${bgColor} ${
         clickable ? 'pointer' : ''
       } ${interactionClass ?? ''}`}
-      style={{ width: '5.5rem', height: '9.9rem' }}
+      style={{ width: '6.75rem', height: '12.15rem' }}
       onClick={clickable ? onClick : _.noop}
     >
-      <p className="f6 tc mt4 mb1 b">
+      <p className="f6 tc mt3 mb1 b">
         {cardNameBreaks[card.name] ?? card.name}
       </p>
-      <p className="f8 tc">{card.text}</p>
+      {card.text.split('\n').map((t, i) => (
+        <p className="f8 tc" key={i}>
+          {t}
+        </p>
+      ))}
       {card.damage > 0 && (
         <div
           className="absolute red f4"

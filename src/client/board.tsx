@@ -131,6 +131,15 @@ const commandShipBreaks: Record<string, JSX.Element> = {
       tium
     </Fragment>
   ),
+  Recyclonsv40K: (
+    <Fragment>
+      Recy-
+      <br />
+      clons
+      <br />
+      v40K
+    </Fragment>
+  ),
 }
 
 const CommandShip: React.FunctionComponent<{

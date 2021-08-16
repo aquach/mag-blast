@@ -256,7 +256,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
               c.resources.circles > 0 ||
               c.resources.stars > 0
           ),
-          text: 'Choose cards to use for reinforcements.',
+          text: 'Choose cards to use for reinforcements (3 of a kind or 1 of each).',
           pass: {
             actionText: "I'm done ⏭️",
           },

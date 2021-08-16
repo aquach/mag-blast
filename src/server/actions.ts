@@ -16,7 +16,6 @@ import {
   discardActivePlayerCards,
   drawActivePlayerCards,
   drawShipCard,
-  executeCardEffect,
   fullOnShips,
   locationToString,
   movableZones,
@@ -33,6 +32,7 @@ import {
   canRespondToSquadron,
   resolveSquadronAttack,
   resolveActionCard,
+  canRespondToAnything,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -717,6 +717,15 @@ function applyPassAction(
             s.temporaryDamage = 0
           }
         }
+
+        if (ps.commandShip.temporaryDamage > 0) {
+          state.pushEventLog(
+            event`${p(pid)}'s ${ps.commandShip.shipType.name}'s ${
+              ps.commandShip.temporaryDamage
+            } points of squadron damage wears off.`
+          )
+          ps.commandShip.temporaryDamage = 0
+        }
       }
 
       activePlayerState.usedSquadronCards.forEach((c) => {
@@ -1031,8 +1040,4 @@ export function applyAction(
     default:
       const cantGetHere: never = action
   }
-}
-
-function canRespondToAnything(canRespondToAnything: any) {
-  throw new Error('Function not implemented.')
 }

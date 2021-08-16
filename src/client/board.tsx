@@ -264,13 +264,13 @@ const BoardPlayer: React.FunctionComponent<{
   return (
     <div
       className={`ph2 pa1 ${!playerState.isAlive ? 'o-50' : ''} ${
-        playerState.hasAsteroids ? 'bg-washed-blue' : ''
-      } ${playerState.hasMinefield ? 'bg-washed-red' : ''}`}
+        playerState.hasAsteroids ? 'ba bw1 b--dark-blue' : ''
+      } ${playerState.hasMinefield ? 'bg-washed-red' : ''} `}
     >
       <h3 className="mt0">
         {playerId} {playerId === clientPlayerId ? '(You)' : ''}{' '}
         {!playerState.isAlive ? '(Eliminated)' : ''}{' '}
-        {playerState.hasAsteroids ? '(Asteroids)' : ''}
+        {playerState.hasAsteroids ? '(Asteroids)' : ''}{' '}
         {playerState.hasMinefield ? '(Minefielded)' : ''}
       </h3>
 

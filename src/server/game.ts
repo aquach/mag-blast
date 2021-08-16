@@ -244,7 +244,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
     return ascribe<ChooseCardPrompt>({
       type: 'ChooseCardPrompt',
-      text: `${state.activePlayer} is attempting to play a ${state.turnState.card.name}.shipType.name}. Choose a card to play in response.`,
+      text: `${state.activePlayer} is attempting to play a ${state.turnState.card.name}. Choose a card to play in response.`,
       selectableCardIndices: playableCardIndices,
       multiselect: undefined,
       pass: {
@@ -473,7 +473,12 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
                 ...s,
                 damage: s.damage + s.temporaryDamage,
               })),
-        commandShip: playerState.commandShip,
+        commandShip: {
+          ...playerState.commandShip,
+          damage:
+            playerState.commandShip.damage +
+            playerState.commandShip.temporaryDamage,
+        },
         isAlive: playerState.isAlive,
         hasAsteroids:
           playerState.asteroidsUntilBeginningOfPlayerTurn !== undefined,

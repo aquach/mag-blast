@@ -926,7 +926,7 @@ function applyPassAction(
         state.pushEventLog(
           event`${p(state.activePlayer)}'s deployed ${
             c.name
-          } makes its way home to their hand.`
+          } returns to their hand.`
         )
         activePlayerState.hand.push(c)
       })

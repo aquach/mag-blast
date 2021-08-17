@@ -249,7 +249,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
     return ascribe<ChooseCardPrompt>({
       type: 'ChooseCardPrompt',
-      text: `Choose a card to play in response.`,
+      text: `Choose a card to play in response to ${state.turnState.playingPlayer}'s card.`,
       selectableCardIndices: playableCardIndices,
       multiselect: undefined,
       pass: {

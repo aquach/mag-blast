@@ -1273,6 +1273,7 @@ function applyCancelAction(
     case 'AttackChooseMinefieldPlayerTurnState':
     case 'AttackChooseSpacedockShipState':
       card = state.turnState.card
+      break
     default:
       console.warn(
         `Don't know how to cancel from ${state.turnState.type} state.`

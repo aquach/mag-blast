@@ -714,7 +714,10 @@ export function playersThatCanRespondToActions(
 ): PlayerId[] {
   const respondablePlayers = Array.from(state.playerState.entries())
     .filter(
-      (e) => e[0] !== playingPlayer && e[1].hand.some(canRespondToAnything)
+      (e) =>
+        e[0] !== playingPlayer &&
+        e[1].isAlive &&
+        e[1].hand.some(canRespondToAnything)
     )
     .map((e) => e[0])
 

@@ -53,7 +53,7 @@ export interface UIShip {
   location: Location
   shipType: ShipCard
   damage: number
-    hasFiredThisTurn: boolean
+  hasFiredThisTurn: boolean
 }
 
 export interface UICommandShip {

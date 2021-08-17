@@ -419,6 +419,7 @@ function applyChooseCardAction(
         (card.isBlast &&
           state.directHitStateMachine?.type !==
             'DirectHitPlayedDirectHitState') ||
+        card.cardType === 'RammingSpeedCard' ||
         card.cardType === 'AsteroidsCard' ||
         card.cardType === 'MinefieldCard'
 
@@ -624,7 +625,10 @@ function applyChooseShipAction(
 
         const designatedShip = activePlayerState.ships[action.choice[1]]
 
-        if (!shipCanFire(designatedShip, state.turnState.blast)) {
+        if (
+          state.turnState.blast.cardType !== 'RammingSpeedCard' &&
+          !shipCanFire(designatedShip, state.turnState.blast)
+        ) {
           warn(
             `Player ${state.activePlayer}'s chosen ship ${designatedShip.shipType.name} can't fire the selected blast ${state.turnState.blast.name}.`
           )
@@ -672,13 +676,23 @@ function applyChooseShipAction(
           designatedShip = targetPlayerState.commandShip
         }
 
-        state.pushEventLog(
-          event`${p(state.activePlayer)}'s ${
-            state.turnState.firingShip.shipType.name
-          } fires a ${state.turnState.blast.name} at ${p(targetPlayerId)}'s ${
-            designatedShip.shipType.name
-          }, dealing ${state.turnState.blast.damage} damage.`
-        )
+        if (state.turnState.blast.cardType === 'RammingSpeedCard') {
+          state.pushEventLog(
+            event`${p(state.activePlayer)}'s ${
+              state.turnState.firingShip.shipType.name
+            } rams into ${p(targetPlayerId)}'s ${
+              designatedShip.shipType.name
+            }, dealing ${state.turnState.firingShip.shipType.movement} damage.`
+          )
+        } else {
+          state.pushEventLog(
+            event`${p(state.activePlayer)}'s ${
+              state.turnState.firingShip.shipType.name
+            } fires a ${state.turnState.blast.name} at ${p(targetPlayerId)}'s ${
+              designatedShip.shipType.name
+            }, dealing ${state.turnState.blast.damage} damage.`
+          )
+        }
 
         const turnState = state.turnState
 
@@ -1179,15 +1193,24 @@ function applyCancelAction(
   switch (state.turnState.type) {
     case 'PlayBlastChooseFiringShipState':
     case 'PlayBlastChooseTargetShipState':
-      activePlayerState.hand.push(state.turnState.blast)
-      state.turnState = {
-        type: 'AttackTurnState',
+      {
+        const card = state.turnState.blast
+        activePlayerState.hand.push(card)
+        _.remove(state.actionDiscardDeck, (c) => c === card)
+
+        state.turnState = {
+          type: 'AttackTurnState',
+        }
       }
       break
     case 'PlaySquadronChooseTargetShipState':
-      activePlayerState.hand.push(state.turnState.squadron)
-      state.turnState = {
-        type: 'AttackTurnState',
+      {
+        const card = state.turnState.squadron
+        activePlayerState.hand.push(card)
+        _.remove(state.actionDiscardDeck, (c) => c === card)
+        state.turnState = {
+          type: 'AttackTurnState',
+        }
       }
       break
   }

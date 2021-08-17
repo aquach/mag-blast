@@ -390,9 +390,15 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         const turnState = state.turnState
         return ascribe<ChooseShipPrompt>({
           type: 'ChooseShipPrompt',
-          text: `Choose a ship to fire a ${turnState.blast.name} from.`,
-          allowableShipIndices: filterIndices(playerState.ships, (s) =>
-            shipCanFire(s, turnState.blast)
+          text:
+            turnState.blast.cardType === 'RammingSpeedCard'
+              ? 'Choose a ship to sacrifice.'
+              : `Choose a ship to fire a ${turnState.blast.name} from.`,
+          allowableShipIndices: filterIndices(
+            playerState.ships,
+            (s) =>
+              turnState.blast.cardType === 'RammingSpeedCard' ||
+              shipCanFire(s, turnState.blast)
           ).map((i) => ascribe<[string, number]>([playerId, i])),
           allowableCommandShips: [],
           pass: undefined,

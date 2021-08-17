@@ -1,10 +1,4 @@
-import {
-  CommandShip,
-  GameState,
-  PlayActionRespondState,
-  PlayerState,
-  Ship,
-} from './types'
+import { CommandShip, GameState, PlayerState, Ship } from './types'
 import * as _ from 'lodash'
 import { ascribe, assert, filterIndices, partition, warn } from './utils'
 import {
@@ -194,7 +188,12 @@ export function resolveBlastAttack(
   targetShip: Ship | CommandShip,
   blast: ActionCard
 ): boolean {
-  targetShip.damage += blast.damage
+  if (blast.cardType === 'RammingSpeedCard') {
+    targetShip.damage += firingShip.shipType.movement
+    destroyShip(state, firingShip)
+  } else {
+    targetShip.damage += blast.damage
+  }
 
   const [targetPlayer, targetPlayerState] = owningPlayer(
     state.playerState,
@@ -203,12 +202,14 @@ export function resolveBlastAttack(
 
   if (isDead(targetShip)) {
     return destroyShip(state, targetShip)
-  } else {
+  } else if (blast.cardType !== 'RammingSpeedCard') {
     state.directHitStateMachine = {
       type: 'BlastPlayedDirectHitState',
       firingShip: firingShip,
       targetShip,
     }
+    return false
+  } else {
     return false
   }
 }
@@ -266,6 +267,11 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
     state.turnState = {
       type: 'PlaySquadronChooseTargetShipState',
       squadron: card,
+    }
+  } else if (card.cardType === 'RammingSpeedCard') {
+    state.turnState = {
+      type: 'PlayBlastChooseFiringShipState',
+      blast: card,
     }
   } else if (card.cardType === 'ReinforcementsCard') {
     const newShip = drawShipCard(state)

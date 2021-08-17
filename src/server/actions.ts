@@ -34,6 +34,7 @@ import {
   resolveSquadronAttack,
   resolveActionCard,
   playersThatCanRespondToActions,
+  alivePlayerByTurnOffset,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -445,8 +446,7 @@ function applyChooseCardAction(
           playingPlayer: state.activePlayer,
           respondingPlayers: respondablePlayers,
           resolveAction(): boolean {
-            resolveActionCard(state, card)
-            return false
+            return resolveActionCard(state, card)
           },
           counterAction(): boolean {
             // The action is countered. Nothing happens. Card should be
@@ -1007,17 +1007,11 @@ function applyPassAction(
       })
 
       // Go to next person's turn.
-      const currentPlayerIndex = state.playerTurnOrder.indexOf(
-        state.activePlayer
+      const [nextPlayerIndex, nextPlayer] = alivePlayerByTurnOffset(
+        state,
+        state.activePlayer,
+        1
       )
-
-      assert(
-        currentPlayerIndex !== -1,
-        "Couldn't find active player in player turn order."
-      )
-
-      const nextPlayerIndex =
-        (currentPlayerIndex + 1) % state.playerTurnOrder.length
 
       if (nextPlayerIndex === 0) {
         state.turnNumber++
@@ -1029,7 +1023,7 @@ function applyPassAction(
           state.turnNumber === 1 ? 'ReinforceTurnState' : 'DiscardTurnState',
       }
 
-      state.activePlayer = state.playerTurnOrder[nextPlayerIndex]
+      state.activePlayer = nextPlayer
       state.directHitStateMachine = undefined
 
       state.pushEventLog(event`It is now ${p(state.activePlayer)}'s turn.`)

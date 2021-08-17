@@ -235,7 +235,7 @@ export function resolveSquadronAttack(
   return false
 }
 
-export function executeCardEffect(state: GameState, card: ActionCard): void {
+export function executeCardEffect(state: GameState, card: ActionCard): boolean {
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
   if (card.isBlast) {
@@ -257,12 +257,15 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
         }, dealing ${card.damage} damage.`
       )
 
+      let isGameOver = false
       if (isDead(targetShip)) {
-        destroyShip(state, targetShip)
+        isGameOver = destroyShip(state, targetShip)
       }
 
-      state.turnState = {
-        type: 'AttackTurnState',
+      if (!isGameOver) {
+        state.turnState = {
+          type: 'AttackTurnState',
+        }
       }
     } else {
       state.turnState = {
@@ -292,6 +295,12 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       type: 'AttackPlaceShipState',
       newShip,
     }
+
+    // The boolean is technically used to indicate that the game is over, which
+    // suppresses future state transitions, but the game is not over here. We
+    // just want the PassAction on PlayActionRespondState to not go back to
+    // AttackTurnState.
+    return true
   } else if (card.cardType === 'StrategicAllocationCard') {
     drawActivePlayerCards(state, 3)
   } else if (card.isDirectHit) {
@@ -299,7 +308,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       warn(
         `Wrong state ${state.directHitStateMachine?.type} to play direct hit.`
       )
-      return
+      return false
     }
 
     state.directHitStateMachine = {
@@ -312,7 +321,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
       warn(
         `Wrong state ${state.directHitStateMachine?.type} to play a direct hit effect.`
       )
-      return
+      return false
     }
 
     const targetShip = state.directHitStateMachine.targetShip
@@ -324,7 +333,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
 
     switch (card.cardType) {
       case 'CatastrophicDamageCard':
-        destroyShip(state, targetShip)
+        return destroyShip(state, targetShip)
         break
 
       case 'BoardingPartyCard':
@@ -393,6 +402,8 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
   } else {
     warn(`Don't know how to handle choosing a ${card.cardType} card.`)
   }
+
+  return false
 }
 
 export function canRespondToBlast(c: ActionCard): boolean {
@@ -436,8 +447,12 @@ export function canTargetPlayerWithBlastsOrSquadrons(
     return false
   }
 
-  const prevPlayer = playerByTurnOffset(state, fromPlayerId, -1)
-  const nextPlayer = playerByTurnOffset(state, fromPlayerId, 1)
+  if (!toPlayerState.isAlive) {
+    return false
+  }
+
+  const [_p, prevPlayer] = alivePlayerByTurnOffset(state, fromPlayerId, -1)
+  const [_n, nextPlayer] = alivePlayerByTurnOffset(state, fromPlayerId, 1)
 
   switch (state.gameSettings.attackMode) {
     case 'FreeForAll':
@@ -449,17 +464,21 @@ export function canTargetPlayerWithBlastsOrSquadrons(
   }
 }
 
-export function playerByTurnOffset(
+export function alivePlayers(state: GameState): PlayerId[] {
+  return state.playerTurnOrder.filter((p) => state.getPlayerState(p).isAlive)
+}
+
+export function alivePlayerByTurnOffset(
   state: GameState,
   playerId: string,
   offset: number
-) {
-  const playerIndex = state.playerTurnOrder.indexOf(playerId)
+): [number, PlayerId] {
+  const players = alivePlayers(state)
+
+  const playerIndex = players.indexOf(playerId)
   assert(playerIndex !== -1, "Couldn't find player in player turn order.")
-  return state.playerTurnOrder[
-    (playerIndex + offset + state.playerTurnOrder.length) %
-      state.playerTurnOrder.length
-  ]
+  const otherIndex = (playerIndex + offset + players.length) % players.length
+  return [otherIndex, players[otherIndex]]
 }
 
 export function canPlayCard(
@@ -673,8 +692,8 @@ export function squadronableCommandShipPlayers(
   )
 }
 
-export function resolveActionCard(state: GameState, card: ActionCard): void {
-  executeCardEffect(state, card)
+export function resolveActionCard(state: GameState, card: ActionCard): boolean {
+  const isGameOver = executeCardEffect(state, card)
 
   if (card.isSquadron) {
     state.getPlayerState(state.activePlayer).usedSquadronCards.push(card)
@@ -685,6 +704,8 @@ export function resolveActionCard(state: GameState, card: ActionCard): void {
   if (!card.isDirectHit) {
     state.directHitStateMachine = undefined
   }
+
+  return isGameOver
 }
 
 export function playersThatCanRespondToActions(

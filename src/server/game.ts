@@ -16,6 +16,7 @@ import {
   canRespondToBlast,
   canRespondToSquadron,
   canRespondToAnything,
+  alivePlayers,
 } from './logic'
 import {
   ChooseShipPrompt,
@@ -332,7 +333,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           pass: undefined,
           canCancel: true,
           allowableShipIndices: [],
-          allowableCommandShips: state.playerTurnOrder,
+          allowableCommandShips: alivePlayers(state),
         })
       }
 
@@ -343,7 +344,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           pass: undefined,
           canCancel: true,
           allowableShipIndices: [],
-          allowableCommandShips: state.playerTurnOrder,
+          allowableCommandShips: alivePlayers(state),
         })
       }
 

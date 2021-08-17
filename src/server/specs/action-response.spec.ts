@@ -18,6 +18,7 @@ function gameState(): GameState {
       findActionCard('StrategicAllocationCard'),
       findActionCard('AsteroidsCard'),
       findActionCard('MinefieldCard'),
+      findActionCard('ReinforcementsCard'),
     ],
     usedSquadronCards: [],
     ships: [
@@ -156,6 +157,49 @@ describe('Targeted actions', () => {
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 plays Asteroids on themselves.',
+      '...but P2 responds with Temporal Flux, canceling its effect!',
+    ])
+  })
+})
+
+describe('Reinforcements', () => {
+  it("should resolve when P2 can't respond", () => {
+    const state = gameState()
+    state.getPlayerState('P2').hand = []
+
+    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 3 })
+
+    expect(state.turnState.type).to.be.eq('AttackPlaceShipState')
+    expect(state.actionDiscardDeck.length).to.be.eq(1)
+    expect(eventLogToText(state.eventLog)).to.be.eql([
+      'Welcome to Mag Blast!',
+      'P1 plays Reinforcements.',
+    ])
+  })
+
+  it('should resolve when passing', () => {
+    const state = gameState()
+    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 3 })
+    applyAction(state, 'P2', { type: 'PassAction' })
+
+    expect(state.turnState.type).to.be.eq('AttackPlaceShipState')
+    expect(state.actionDiscardDeck.length).to.be.eq(1)
+    expect(eventLogToText(state.eventLog)).to.be.eql([
+      'Welcome to Mag Blast!',
+      'P1 plays Reinforcements.',
+    ])
+  })
+
+  it('should fail when responded to', () => {
+    const state = gameState()
+    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 3 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+
+    expect(state.turnState.type).to.be.eq('AttackTurnState')
+    expect(state.actionDiscardDeck.length).to.be.eq(2)
+    expect(eventLogToText(state.eventLog)).to.be.eql([
+      'Welcome to Mag Blast!',
+      'P1 plays Reinforcements.',
       '...but P2 responds with Temporal Flux, canceling its effect!',
     ])
   })

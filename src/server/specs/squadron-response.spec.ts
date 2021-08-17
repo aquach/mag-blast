@@ -294,6 +294,7 @@ describe('Bombers', () => {
     expect(state.getPlayerState('P2').ships).to.be.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(4)
     expect(state.getPlayerState('P2').hand.length).to.be.eq(0)
+    expect(state.getPlayerState('P1').usedSquadronCards.length).to.be.eq(1)
   })
 
   it('should resolve when passing', () => {
@@ -316,6 +317,7 @@ describe('Bombers', () => {
     expect(state.getPlayerState('P2').ships).to.be.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(4)
     expect(state.getPlayerState('P2').hand.length).to.be.eq(3)
+    expect(state.getPlayerState('P1').usedSquadronCards.length).to.be.eq(1)
   })
 
   it('should fail when responded to with a Fighter', () => {

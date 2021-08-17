@@ -28,6 +28,7 @@ function gameState(p2Hand: ActionCard[]): GameState {
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {
@@ -52,6 +53,7 @@ function gameState(p2Hand: ActionCard[]): GameState {
         damage: 5,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {

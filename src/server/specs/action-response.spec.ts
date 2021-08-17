@@ -25,6 +25,7 @@ function gameState(): GameState {
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {
@@ -49,6 +50,7 @@ function gameState(): GameState {
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {
@@ -73,6 +75,7 @@ describe('Non-targeted actions', () => {
     applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
+    expect(state.actionDiscardDeck.length).to.be.eq(1)
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 plays Strategic Allocation.',
@@ -86,6 +89,7 @@ describe('Non-targeted actions', () => {
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
+    expect(state.actionDiscardDeck.length).to.be.eq(1)
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 plays Strategic Allocation.',
@@ -99,6 +103,7 @@ describe('Non-targeted actions', () => {
     applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
+    expect(state.actionDiscardDeck.length).to.be.eq(2)
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 plays Strategic Allocation.',
@@ -116,6 +121,7 @@ describe('Targeted actions', () => {
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: 'P1' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
+    expect(state.actionDiscardDeck.length).to.be.eq(1)
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 plays Asteroids on themselves.',
@@ -129,6 +135,7 @@ describe('Targeted actions', () => {
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
+    expect(state.actionDiscardDeck.length).to.be.eq(1)
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 plays Asteroids on themselves.',
@@ -142,6 +149,7 @@ describe('Targeted actions', () => {
     applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
+    expect(state.actionDiscardDeck.length).to.be.eq(2)
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 plays Asteroids on themselves.',

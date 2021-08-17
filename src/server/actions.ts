@@ -449,7 +449,9 @@ function applyChooseCardAction(
             return false
           },
           counterAction(): boolean {
-            // The action is countered. Nothing happens.
+            // The action is countered. Nothing happens. Card should be
+            // discarded (it normally gets discarded in resolveActionCard).
+            state.actionDiscardDeck.push(card)
             return false
           },
         }

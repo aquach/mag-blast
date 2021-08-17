@@ -50,6 +50,7 @@ function obfuscateShips(ships: Ship[]): Ship[] {
       firesMags: false,
     },
     hasFiredThisTurn: false,
+    blastDamageHistory: [],
   }))
 }
 
@@ -505,6 +506,8 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
     ),
     actionDeckSize: state.actionDeck.length,
     actionDiscardDeckSize: state.actionDiscardDeck.length,
+    shipDeckSize: state.shipDeck.length,
+    shipDiscardDeckSize: state.shipDiscardDeck.length,
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,
     prompt: prompt(state, playerId),

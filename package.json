@@ -9,7 +9,7 @@
     "build-server": "cd src/server && tsc",
     "client": "cd src/client && webpack --watch",
     "server": "ts-node-dev -P src/server/tsconfig.json src/server/index.ts",
-    "server-test": "ts-mocha -p src/server/tsconfig.json src/server/**/*.spec.ts",
+    "test": "npm run build-server && ts-mocha -p src/server/tsconfig.json src/server/**/*.spec.ts",
     "start:prod": "NODE_ENV=production node dist/server/index.js",
     "format": "prettier --write 'src/**/*.ts' 'src/**/*.tsx'"
   },

@@ -26,6 +26,7 @@ function gameState(p2NumFluxes: number): GameState {
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {
@@ -50,6 +51,7 @@ function gameState(p2NumFluxes: number): GameState {
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {
@@ -89,6 +91,7 @@ function directHitState(): GameState {
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {
@@ -113,6 +116,7 @@ function directHitState(): GameState {
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       },
     ],
     commandShip: {
@@ -300,6 +304,7 @@ describe('Blasts', () => {
           damage: 0,
           temporaryDamage: 0,
           hasFiredThisTurn: false,
+          blastDamageHistory: [],
         },
       ],
       commandShip: {
@@ -324,6 +329,7 @@ describe('Blasts', () => {
           damage: 0,
           temporaryDamage: 0,
           hasFiredThisTurn: false,
+          blastDamageHistory: [],
         },
       ],
       commandShip: {
@@ -348,6 +354,7 @@ describe('Blasts', () => {
           damage: 0,
           temporaryDamage: 0,
           hasFiredThisTurn: false,
+          blastDamageHistory: [],
         },
       ],
       commandShip: {

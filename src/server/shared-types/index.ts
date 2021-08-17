@@ -18,8 +18,12 @@ export interface UIGameState {
   type: 'UIGameState'
   playerHand: ActionCard[]
   playerState: [PlayerId, UIPlayerState][]
+
   actionDeckSize: number
   actionDiscardDeckSize: number
+  shipDeckSize: number
+  shipDiscardDeckSize: number
+
   isActivePlayer: boolean
   eventLog: EventLogEntry[]
   prompt: Prompt

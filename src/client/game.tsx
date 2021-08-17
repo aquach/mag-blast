@@ -117,7 +117,7 @@ const EventLog: React.FunctionComponent<{ eventLog: EventLogEntry[] }> = ({
   return (
     <div
       className="ba pa1 overflow-y-scroll"
-      style={{ width: '20em', flexShrink: 0, height: 'calc(100vh - 1rem)' }}
+      style={{ width: '20em', flexShrink: 0, height: 'calc(100vh - 7rem)' }}
     >
       {eventLog.map((l, i) => (
         <div className="mv2" key={i}>
@@ -191,6 +191,20 @@ const EventLog: React.FunctionComponent<{ eventLog: EventLogEntry[] }> = ({
   )
 }
 
+const DeckDisplay: React.FunctionComponent<{
+  text: string
+  value: string | number
+}> = ({ text, value }) => {
+  return (
+    <div className="flex justify-center f5">
+      <div style={{ width: '8rem' }} className="tr mh1">
+        {text}
+      </div>
+      <div className="w1 mh1">{value}</div>
+    </div>
+  )
+}
+
 const Game: React.FunctionComponent<{
   comms: Comms
   uiState: UIGameState
@@ -211,7 +225,21 @@ const Game: React.FunctionComponent<{
 
   return (
     <div className="flex ma2">
-      <EventLog eventLog={uiState.eventLog} />
+      <div>
+        <EventLog eventLog={uiState.eventLog} />
+        <div className="pa1">
+          <DeckDisplay text="Action Deck" value={uiState.actionDeckSize} />
+          <DeckDisplay
+            text="Action Discard"
+            value={uiState.actionDiscardDeckSize}
+          />
+          <DeckDisplay text="Ship Deck" value={uiState.shipDeckSize} />
+          <DeckDisplay
+            text="Ship Discard"
+            value={uiState.shipDiscardDeckSize}
+          />
+        </div>
+      </div>
       <div className="ml2">
         <Board
           board={uiState.playerState}

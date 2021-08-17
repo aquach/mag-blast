@@ -194,6 +194,13 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
     })
   }
 
+  if (!playerState.isAlive) {
+    return ascribe<NoPrompt>({
+      type: 'NoPrompt',
+      text: 'You have been eliminated :(',
+    })
+  }
+
   if (state.turnState.type === 'PlayBlastRespondState') {
     const targetShip = state.turnState.targetShip
     if (

@@ -47,7 +47,7 @@ const games: Game[] = [
     gameState: { type: 'LobbyState' },
     lastUpdated: new Date().getTime(),
     gameSettings: {
-      startingHandSize: 15,
+      startingHandSize: 25,
       attackMode: 'FreeForAll',
     },
   },

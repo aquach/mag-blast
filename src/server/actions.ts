@@ -8,8 +8,9 @@ import {
   ChooseZoneAction,
   PassAction,
   ChooseCardAction,
+  ActionCard,
 } from './shared-types'
-import { assert, partition, warn } from './utils'
+import { assert, partition, stringList, warn } from './utils'
 import {
   canPlayCard,
   canRespondToBlast,
@@ -421,7 +422,8 @@ function applyChooseCardAction(
             'DirectHitPlayedDirectHitState') ||
         card.cardType === 'RammingSpeedCard' ||
         card.cardType === 'AsteroidsCard' ||
-        card.cardType === 'MinefieldCard'
+        card.cardType === 'MinefieldCard' ||
+        card.cardType === 'SpacedockCard'
 
       if (!playingCardHasMoreStates) {
         // These will get announced later by their respective states.
@@ -461,7 +463,9 @@ function applyChooseCardAction(
       break
 
     default:
-      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
+      console.warn(
+        `Encountered unhandled turn state ${state.turnState.type} for action ${action.type}.`
+      )
   }
 }
 
@@ -577,6 +581,65 @@ function applyChooseShipAction(
         const resolveAction = () => {
           targetPlayerState.minefieldUntilBeginningOfPlayerTurn =
             state.activePlayer
+        }
+
+        if (respondablePlayers.length > 0) {
+          state.turnState = {
+            type: 'PlayActionRespondState',
+            playingPlayer: state.activePlayer,
+            respondingPlayers: respondablePlayers,
+            resolveAction(): boolean {
+              resolveAction()
+              return false
+            },
+            counterAction(): boolean {
+              return false
+            },
+          }
+        } else {
+          resolveAction()
+          state.turnState = { type: 'AttackTurnState' }
+        }
+      }
+      break
+
+    case 'AttackChooseSpacedockShipState':
+      {
+        if (!Array.isArray(action.choice)) {
+          warn('choice should be an index for deciding Spacedock.')
+          break
+        }
+        const targetPlayer = action.choice[0]
+        const targetShip =
+          state.getPlayerState(targetPlayer).ships[action.choice[1]]
+
+        if (targetShip.damage <= 0) {
+          console.warn("Can't Spacedock an undamaged ship.")
+          break
+        }
+
+        state.pushEventLog(
+          event`${p(state.activePlayer)} plays Spacedock on ${
+            targetShip.shipType.name
+          }.`
+        )
+
+        const respondablePlayers = playersThatCanRespondToActions(
+          state,
+          state.activePlayer
+        )
+
+        const resolveAction = () => {
+          const healedDamage = _.max(targetShip.blastDamageHistory) ?? 0
+          const damageList = stringList(targetShip.blastDamageHistory)
+          targetShip.blastDamageHistory.splice(
+            targetShip.blastDamageHistory.indexOf(healedDamage),
+            1
+          )
+          targetShip.damage -= healedDamage
+          state.pushEventLog(
+            event`${targetShip.shipType.name} has been hit for ${damageList} damage, and so repairs ${healedDamage} damage (the largest single blast).`
+          )
         }
 
         if (respondablePlayers.length > 0) {
@@ -808,7 +871,10 @@ function applyChooseShipAction(
       break
 
     default:
-      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
+      console.warn(
+        `Encountered unhandled turn state ${state.turnState.type} for action ${action.type}.`
+      )
+      return
   }
 }
 
@@ -982,7 +1048,10 @@ function applyPassAction(
       break
 
     default:
-      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
+      console.warn(
+        `Encountered unhandled turn state ${state.turnState.type} for action ${action.type}.`
+      )
+      return
   }
 }
 
@@ -1013,6 +1082,7 @@ function applyChooseZoneAction(
       damage: 0,
       temporaryDamage: 0,
       hasFiredThisTurn: false,
+      blastDamageHistory: [],
     })
 
     state.pushEventLog(event`${p(playerId)} places a ship.`)
@@ -1072,6 +1142,7 @@ function applyChooseZoneAction(
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
+        blastDamageHistory: [],
       })
 
       state.pushEventLog(
@@ -1175,7 +1246,9 @@ function applyChooseZoneAction(
       break
 
     default:
-      assert(false, `Encountered unhandled turn state ${state.turnState.type}`)
+      console.warn(
+        `Encountered unhandled turn state ${state.turnState.type} for action ${action.type}.`
+      )
   }
 }
 
@@ -1190,29 +1263,32 @@ function applyCancelAction(
   }
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
+  let card: ActionCard
+
   switch (state.turnState.type) {
     case 'PlayBlastChooseFiringShipState':
     case 'PlayBlastChooseTargetShipState':
-      {
-        const card = state.turnState.blast
-        activePlayerState.hand.push(card)
-        _.remove(state.actionDiscardDeck, (c) => c === card)
-
-        state.turnState = {
-          type: 'AttackTurnState',
-        }
-      }
+      card = state.turnState.blast
       break
     case 'PlaySquadronChooseTargetShipState':
-      {
-        const card = state.turnState.squadron
-        activePlayerState.hand.push(card)
-        _.remove(state.actionDiscardDeck, (c) => c === card)
-        state.turnState = {
-          type: 'AttackTurnState',
-        }
-      }
+      card = state.turnState.squadron
       break
+    case 'AttackChooseAsteroidsPlayerTurnState':
+    case 'AttackChooseMinefieldPlayerTurnState':
+    case 'AttackChooseSpacedockShipState':
+      card = state.turnState.card
+    default:
+      console.warn(
+        `Don't know how to cancel from ${state.turnState.type} state.`
+      )
+      return
+  }
+
+  activePlayerState.hand.push(card)
+  _.remove(state.actionDiscardDeck, (c) => c === card)
+
+  state.turnState = {
+    type: 'AttackTurnState',
   }
 }
 

@@ -69,3 +69,16 @@ export function uniqueGroupBy<T>(
 ): Record<string, T> {
   return _.mapValues(_.groupBy(items, grouper), (v) => v[0])
 }
+
+export function stringList(x: { toString(): string }[]): string {
+  if (x.length === 0) {
+    return ''
+  }
+  if (x.length === 1) {
+    return x[0].toString()
+  }
+  if (x.length === 2) {
+    return x[0].toString() + 'and ' + x[1].toString()
+  }
+  return _.dropRight(x, 1).join(', ') + ', and ' + _.last(x)
+}

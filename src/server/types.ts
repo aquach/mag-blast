@@ -15,6 +15,7 @@ export interface Ship {
   damage: number
   temporaryDamage: number
   hasFiredThisTurn: boolean
+  blastDamageHistory: number[]
 }
 
 export interface CommandShip {
@@ -135,10 +136,17 @@ export interface AttackPlaceConcussiveBlastedShipsState {
 
 export interface AttackChooseAsteroidsPlayerTurnState {
   type: 'AttackChooseAsteroidsPlayerTurnState'
+  card: ActionCard
 }
 
 export interface AttackChooseMinefieldPlayerTurnState {
   type: 'AttackChooseMinefieldPlayerTurnState'
+  card: ActionCard
+}
+
+export interface AttackChooseSpacedockShipState {
+  type: 'AttackChooseSpacedockShipState'
+  card: ActionCard
 }
 
 export interface PlayBlastChooseFiringShipState {
@@ -198,6 +206,7 @@ export type TurnState =
   | AttackPlaceConcussiveBlastedShipsState
   | AttackChooseAsteroidsPlayerTurnState
   | AttackChooseMinefieldPlayerTurnState
+  | AttackChooseSpacedockShipState
   | PlayBlastChooseTargetShipState
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState

@@ -274,7 +274,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
               c.resources.circles > 0 ||
               c.resources.stars > 0
           ),
-          text: 'Choose cards to use for reinforcements (3 of a kind or 1 of each).',
+          text: 'Choose cards to use for reinforcements (3 symbols of a kind or 1 of each).',
           pass: {
             actionText: "I'm done ⏭️",
           },
@@ -321,9 +321,9 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       case 'AttackChooseAsteroidsPlayerTurnState': {
         return ascribe<ChooseShipPrompt>({
           type: 'ChooseShipPrompt',
-          text: 'Choose a player on which to play Asteroids.',
+          text: 'Choose a player on which to play Asteroids (probably should be yourself).',
           pass: undefined,
-          canCancel: false,
+          canCancel: true,
           allowableShipIndices: [],
           allowableCommandShips: state.playerTurnOrder,
         })
@@ -334,7 +334,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           type: 'ChooseShipPrompt',
           text: 'Choose a player on which to play a Minefield.',
           pass: undefined,
-          canCancel: false,
+          canCancel: true,
           allowableShipIndices: [],
           allowableCommandShips: state.playerTurnOrder,
         })
@@ -383,6 +383,20 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           pass: {
             actionText: "I'm done ⏭️",
           },
+        })
+      }
+
+      case 'AttackChooseSpacedockShipState': {
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a ship to repair damage to.',
+          allowableShipIndices: filterIndices(
+            playerState.ships,
+            (s) => s.damage > 0
+          ).map((i) => ascribe<[string, number]>([playerId, i])),
+          allowableCommandShips: [],
+          pass: undefined,
+          canCancel: true,
         })
       }
 
@@ -489,7 +503,8 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
           playerState.minefieldUntilBeginningOfPlayerTurn !== undefined,
       })).entries()
     ),
-    deckSize: state.actionDeck.length,
+    actionDeckSize: state.actionDeck.length,
+    actionDiscardDeckSize: state.actionDiscardDeck.length,
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,
     prompt: prompt(state, playerId),

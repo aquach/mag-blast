@@ -188,11 +188,18 @@ export function resolveBlastAttack(
   targetShip: Ship | CommandShip,
   blast: ActionCard
 ): boolean {
+  let damage
   if (blast.cardType === 'RammingSpeedCard') {
-    targetShip.damage += firingShip.shipType.movement
     destroyShip(state, firingShip)
+    damage = firingShip.shipType.movement
   } else {
-    targetShip.damage += blast.damage
+    damage = blast.damage
+  }
+
+  targetShip.damage += damage
+
+  if (targetShip.type === 'Ship') {
+    targetShip.blastDamageHistory.push(damage)
   }
 
   const [targetPlayer, targetPlayerState] = owningPlayer(
@@ -272,6 +279,11 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
     state.turnState = {
       type: 'PlayBlastChooseFiringShipState',
       blast: card,
+    }
+  } else if (card.cardType === 'SpacedockCard') {
+    state.turnState = {
+      type: 'AttackChooseSpacedockShipState',
+      card,
     }
   } else if (card.cardType === 'ReinforcementsCard') {
     const newShip = drawShipCard(state)
@@ -371,10 +383,12 @@ export function executeCardEffect(state: GameState, card: ActionCard): void {
   } else if (card.cardType === 'AsteroidsCard') {
     state.turnState = {
       type: 'AttackChooseAsteroidsPlayerTurnState',
+      card,
     }
   } else if (card.cardType === 'MinefieldCard') {
     state.turnState = {
       type: 'AttackChooseMinefieldPlayerTurnState',
+      card,
     }
   } else {
     warn(`Don't know how to handle choosing a ${card.cardType} card.`)

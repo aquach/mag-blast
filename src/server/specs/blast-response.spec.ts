@@ -6,7 +6,10 @@ import { GameState } from '../types'
 import { findActionCard, findShipCard, eventLogToText } from './test-utils'
 
 function gameState(p2NumFluxes: number): GameState {
-  const s = newGameState(new Set(['P1', 'P2']), { startingHandSize: 0 })
+  const s = newGameState(new Set(['P1', 'P2']), {
+    startingHandSize: 0,
+    attackMode: 'FreeForAll',
+  })
 
   s.turnState = { type: 'AttackTurnState' }
   s.activePlayer = 'P1'
@@ -71,6 +74,7 @@ function gameState(p2NumFluxes: number): GameState {
 function directHitState(): GameState {
   const state = newGameState(new Set(['P1', 'P2']), {
     startingHandSize: 0,
+    attackMode: 'FreeForAll',
   })
 
   state.turnState = { type: 'AttackTurnState' }
@@ -283,6 +287,7 @@ describe('Blasts', () => {
   it('should handle multiplayer', () => {
     const state = newGameState(new Set(['P1', 'P2', 'P3']), {
       startingHandSize: 0,
+      attackMode: 'FreeForAll',
     })
 
     state.turnState = { type: 'AttackTurnState' }

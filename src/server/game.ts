@@ -132,10 +132,16 @@ export function newGameState(
   return s
 }
 
-export function lobbyUiState(playerIds: PlayerId[]): UILobbyState {
+export function lobbyUiState(
+  gameSettings: GameSettings,
+  playerIds: PlayerId[]
+): UILobbyState {
   return {
     type: 'UILobbyState',
     playerIds,
+    gameSettings: {
+      attackMode: gameSettings.attackMode,
+    },
   }
 }
 
@@ -488,7 +494,9 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
           state.turnState.type === 'PlaceStartingShipsState' && pid !== playerId
             ? obfuscateShips(playerState.ships)
             : playerState.ships.map((s) => ({
-                ...s,
+                location: s.location,
+                shipType: s.shipType,
+                hasFiredThisTurn: s.hasFiredThisTurn,
                 damage: s.damage + s.temporaryDamage,
               })),
         commandShip: {

@@ -12,6 +12,7 @@ import { Prompt } from './prompts'
 export interface UILobbyState {
   type: 'UILobbyState'
   playerIds: string[]
+  gameSettings: UIGameSettings
 }
 
 export interface UIGameState {
@@ -27,6 +28,18 @@ export interface UIGameState {
   isActivePlayer: boolean
   eventLog: EventLogEntry[]
   prompt: Prompt
+}
+
+export type AttackMode = 'FreeForAll' | 'AttackRight' | 'AttackLeftRight'
+
+export const ATTACK_MODES: AttackMode[] = [
+  'FreeForAll',
+  'AttackRight',
+  'AttackLeftRight',
+]
+
+export interface UIGameSettings {
+  attackMode: AttackMode
 }
 
 export interface GameError {

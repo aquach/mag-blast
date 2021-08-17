@@ -1,6 +1,7 @@
 import { RawEventLog } from './events'
 import {
   ActionCard,
+  AttackMode,
   CommandShipCard,
   EventLogEntry,
   Location,
@@ -54,6 +55,7 @@ export type DirectHitState =
 
 export interface GameSettings {
   startingHandSize: number
+  attackMode: AttackMode
 }
 
 export interface GameState {

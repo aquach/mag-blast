@@ -1,25 +1,31 @@
-const path = require("path");
+const path = require('path')
 
 module.exports = {
-    mode: 'development',
-    entry: {
-        "game": "./game.tsx",
-        "index": "./index.tsx",
+  mode: process.env.NODE_ENV ?? 'development',
+  entry: {
+    game: './game.tsx',
+    index: './index.tsx',
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      '@shared-types': path.resolve(
+        __dirname,
+        '../server/shared-types/index.ts'
+      ),
     },
-    module: {
-        rules: [
-            {
-                test: /\.tsx?$/,
-                use: "ts-loader",
-                exclude: /node_modules/,
-            },
-        ],
-    },
-    resolve: {
-        extensions: [".tsx", ".ts", ".js"],
-    },
-    output: {
-        filename: "[name].js",
-        path: path.resolve(__dirname, "../../dist/client"),
-    },
-};
+  },
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, '../../dist/client'),
+  },
+}

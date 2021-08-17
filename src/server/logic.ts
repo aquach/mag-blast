@@ -436,20 +436,30 @@ export function canTargetPlayerWithBlastsOrSquadrons(
     return false
   }
 
-  // Enforce attack-right.
+  const prevPlayer = playerByTurnOffset(state, fromPlayerId, -1)
+  const nextPlayer = playerByTurnOffset(state, fromPlayerId, 1)
 
-  const playerIndex = state.playerTurnOrder.indexOf(fromPlayerId)
-  assert(
-    playerIndex !== -1,
-    "Couldn't find active player in player turn order."
-  )
-  const playerIndexToTheRight = (playerIndex + 1) % state.playerTurnOrder.length
-
-  if (state.playerTurnOrder[playerIndexToTheRight] !== toPlayerId) {
-    return false
+  switch (state.gameSettings.attackMode) {
+    case 'FreeForAll':
+      return true
+    case 'AttackRight':
+      return nextPlayer === toPlayerId
+    case 'AttackLeftRight':
+      return nextPlayer === toPlayerId || prevPlayer === toPlayerId
   }
+}
 
-  return true
+export function playerByTurnOffset(
+  state: GameState,
+  playerId: string,
+  offset: number
+) {
+  const playerIndex = state.playerTurnOrder.indexOf(playerId)
+  assert(playerIndex !== -1, "Couldn't find player in player turn order.")
+  return state.playerTurnOrder[
+    (playerIndex + offset + state.playerTurnOrder.length) %
+      state.playerTurnOrder.length
+  ]
 }
 
 export function canPlayCard(

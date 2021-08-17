@@ -6,7 +6,13 @@ import * as express from 'express'
 import * as _ from 'lodash'
 import { Server, Socket } from 'socket.io'
 
-import { Action, GameError, PlayerId } from './shared-types'
+import {
+  Action,
+  ATTACK_MODES,
+  GameError,
+  PlayerId,
+  UIGameSettings,
+} from './shared-types'
 import { gameUiState, lobbyUiState, newGameState } from './game'
 import { applyAction } from './actions'
 import { GameSettings, GameState } from './types'
@@ -42,6 +48,7 @@ const games: Game[] = [
     lastUpdated: new Date().getTime(),
     gameSettings: {
       startingHandSize: 15,
+      attackMode: 'FreeForAll',
     },
   },
 ]
@@ -70,6 +77,7 @@ app.post('/create-game', (req, res) => {
     lastUpdated: new Date().getTime(),
     gameSettings: {
       startingHandSize: STARTING_HAND_SIZE,
+      attackMode: 'AttackRight',
     },
   }
 
@@ -137,7 +145,10 @@ io.on('connection', (socket) => {
     game.bindings.forEach((b) => {
       const state =
         game.gameState.type === 'LobbyState'
-          ? lobbyUiState(_.uniq(game.bindings.map((b) => b.id)))
+          ? lobbyUiState(
+              game.gameSettings,
+              _.uniq(game.bindings.map((b) => b.id))
+            )
           : gameUiState(b.id, game.gameState)
       b.socket.emit('update', state)
     })
@@ -156,6 +167,25 @@ io.on('connection', (socket) => {
     broadcastUpdates()
   })
 
+  socket.on('set-settings', (settings: UIGameSettings) => {
+    if (game.gameState.type !== 'LobbyState') {
+      warn(`Game must be in LobbyState to set settings.`)
+      return
+    }
+
+    if (!ATTACK_MODES.includes(settings.attackMode)) {
+      warn(`${settings.attackMode} is not a valid attack mode.`)
+      return
+    }
+
+    game.gameSettings = _.merge({}, game.gameSettings, {
+      attackMode: settings.attackMode,
+    })
+
+    game.lastUpdated = new Date().getTime()
+    broadcastUpdates()
+  })
+
   socket.on('start-game', () => {
     if (game.gameState.type !== 'LobbyState') {
       warn(`Game must be in LobbyState to start game.`)
@@ -167,7 +197,11 @@ io.on('connection', (socket) => {
       return
     }
 
-    console.log(`Game ${game.gameId} has begun!`)
+    console.log(
+      `Game ${game.gameId} has begun! Settings: ${JSON.stringify(
+        game.gameSettings
+      )}`
+    )
 
     game.gameState = newGameState(uniquePlayers, game.gameSettings)
     game.lastUpdated = new Date().getTime()

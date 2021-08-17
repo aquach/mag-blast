@@ -7,7 +7,10 @@ import { GameState } from '../types'
 import { findActionCard, findShipCard, eventLogToText } from './test-utils'
 
 function gameState(p2Hand: ActionCard[]): GameState {
-  const s = newGameState(new Set(['P1', 'P2']), { startingHandSize: 0 })
+  const s = newGameState(new Set(['P1', 'P2']), {
+    startingHandSize: 0,
+    attackMode: 'FreeForAll',
+  })
 
   s.turnState = { type: 'AttackTurnState' }
   s.activePlayer = 'P1'

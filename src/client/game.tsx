@@ -2,9 +2,12 @@ import { io } from 'socket.io-client'
 import _ from 'lodash'
 import {
   Action,
+  AttackMode,
+  ATTACK_MODES,
   EventLogEntry,
   GameError,
   PlayerId,
+  UIGameSettings,
   UIGameState,
   UILobbyState,
 } from '@shared-types'
@@ -29,6 +32,7 @@ interface UIErrorState {
 interface Comms {
   uiState: UILobbyState | UIGameState | UIErrorState | null
   performAction(a: Action): void
+  setGameSettings(s: UIGameSettings): void
   startGame(): void
 }
 
@@ -36,6 +40,7 @@ function useComms(playerId: string): Comms {
   const [comms, setComms] = useState<Comms>({
     uiState: null,
     performAction() {},
+    setGameSettings() {},
     startGame() {},
   })
 
@@ -53,6 +58,9 @@ function useComms(playerId: string): Comms {
         uiState,
         performAction(a) {
           socket.emit('action', a)
+        },
+        setGameSettings(s) {
+          socket.emit('set-settings', s)
         },
         startGame() {
           socket.emit('start-game')
@@ -90,6 +98,7 @@ function useComms(playerId: string): Comms {
           text,
         },
         performAction() {},
+        setGameSettings() {},
         startGame() {},
       })
     })
@@ -308,7 +317,9 @@ const Game: React.FunctionComponent<{
 const Lobby: React.FunctionComponent<{
   players: string[]
   startGame: () => void
-}> = ({ players, startGame }) => {
+  gameSettings: UIGameSettings
+  setSettings: (_: UIGameSettings) => void
+}> = ({ players, startGame, gameSettings, setSettings }) => {
   return (
     <div className="flex flex-column vh-100 w-100 justify-center items-center">
       <h1 className="mv2">Lobby: {gameId}</h1>
@@ -321,7 +332,33 @@ const Lobby: React.FunctionComponent<{
         Start Game
       </button>
 
-      <h3 className="mv2">Players</h3>
+      <h3 className="mv2">Settings</h3>
+
+      <h4 className="mv1">Attack Mode (who can you attack?)</h4>
+
+      <div className="flex">
+        {ATTACK_MODES.map((m, i) => (
+          <div className="pa1" key={i}>
+            <input
+              type="radio"
+              id={m}
+              name="attackMode"
+              value={m}
+              checked={gameSettings.attackMode === m}
+              onChange={(e) =>
+                setSettings({
+                  ...gameSettings,
+                  attackMode: e.target.value as AttackMode,
+                })
+              }
+            />
+            &nbsp;
+            <label htmlFor={m}>{m}</label>
+          </div>
+        ))}
+      </div>
+
+      <h3 className="mv3">Players</h3>
 
       {players.map((p, i) => (
         <p className="ma0" key={i}>
@@ -355,7 +392,14 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
         </div>
       )
     case 'UILobbyState':
-      return <Lobby players={uiState.playerIds} startGame={comms.startGame} />
+      return (
+        <Lobby
+          players={uiState.playerIds}
+          startGame={comms.startGame}
+          gameSettings={uiState.gameSettings}
+          setSettings={comms.setGameSettings}
+        />
+      )
     case 'UIGameState':
       return <Game clientPlayerId={playerId} comms={comms} uiState={uiState} />
   }

@@ -290,6 +290,7 @@ describe('Bombers', () => {
       "P1 deploys a Bomber targeting P2's Woden, dealing 4 damage.",
       "P2's Woden is destroyed!",
     ])
+    expect(state.actionDiscardDeck.length).to.be.eq(0)
     expect(state.getPlayerState('P2').ships).to.be.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(4)
     expect(state.getPlayerState('P2').hand.length).to.be.eq(0)
@@ -311,6 +312,7 @@ describe('Bombers', () => {
       "P1 deploys a Bomber targeting P2's Woden, dealing 4 damage.",
       "P2's Woden is destroyed!",
     ])
+    expect(state.actionDiscardDeck.length).to.be.eq(0)
     expect(state.getPlayerState('P2').ships).to.be.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(4)
     expect(state.getPlayerState('P2').hand.length).to.be.eq(3)
@@ -336,6 +338,7 @@ describe('Bombers', () => {
       "P1's Bomber is discarded.",
       "P2's Fighter returns to their hand.",
     ])
+    expect(state.actionDiscardDeck.length).to.be.eq(1)
     expect(state.getPlayerState('P2').ships).to.be.not.empty
     expect(state.getPlayerState('P1').usedSquadronCards).to.be.empty
     expect(state.getPlayerState('P2').usedSquadronCards).to.be.empty
@@ -362,6 +365,7 @@ describe('Bombers', () => {
       '...but P2 responds with Temporal Flux, canceling its effect!',
       "P1's Bomber is discarded.",
     ])
+    expect(state.actionDiscardDeck.length).to.be.eq(2)
     expect(state.getPlayerState('P2').ships).to.be.not.empty
     expect(state.getPlayerState('P1').usedSquadronCards).to.be.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(4)
@@ -390,6 +394,7 @@ describe('Bombers', () => {
       '...but P1 responds with Temporal Flux, canceling its effect!',
       "P2's Woden is destroyed!",
     ])
+    expect(state.actionDiscardDeck.length).to.be.eq(2)
     expect(state.getPlayerState('P2').ships).to.be.empty
     expect(state.getPlayerState('P1').usedSquadronCards).to.be.not.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(3)
@@ -416,6 +421,7 @@ describe('Bombers', () => {
       '...but P1 responds with Temporal Flux, canceling its effect!',
       "P2's Woden is destroyed!",
     ])
+    expect(state.actionDiscardDeck.length).to.be.eq(2)
     expect(state.getPlayerState('P2').ships).to.be.empty
     expect(state.getPlayerState('P1').usedSquadronCards).to.be.not.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(3)
@@ -453,6 +459,7 @@ describe('Bombers', () => {
       "P2's Fighter is discarded.",
       "P2's Woden is destroyed!",
     ])
+    expect(state.actionDiscardDeck.length).to.be.eq(2)
     expect(state.getPlayerState('P2').ships).to.be.empty
     expect(state.getPlayerState('P1').usedSquadronCards).to.be.not.empty
     expect(state.getPlayerState('P2').usedSquadronCards).to.be.empty

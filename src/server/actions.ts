@@ -46,8 +46,6 @@ function applyChooseCardAction(
   playerId: string,
   action: ChooseCardAction
 ): void {
-  console.log(playerId, JSON.stringify(action))
-
   if (state.turnState.type === 'ChooseStartingShipsState') {
     const dealtShipCards = state.turnState.dealtShipCards.get(playerId)
     assert(
@@ -127,12 +125,10 @@ function applyChooseCardAction(
           respondingPlayers: respondablePlayers,
           resolveAction(): boolean {
             // The counter is successful, nothing happens.
-            console.log('response to blast was successful, nothing happens')
             return false
           },
           counterAction(): boolean {
             // The counter is countered, resolve the blast.
-            console.log('response to blast was unsuccessful, blast happens')
             return resolveBlast()
           },
         }
@@ -296,7 +292,6 @@ function applyChooseCardAction(
 
     const respondablePlayers = playersThatCanRespondToActions(state, playerId)
     if (respondablePlayers.length > 0) {
-      console.log(`Respondable players: ${respondablePlayers.join(',')}`)
       const resolveAction = state.turnState.resolveAction
       const counterAction = state.turnState.counterAction
 
@@ -305,22 +300,15 @@ function applyChooseCardAction(
         playingPlayer: playerId,
         respondingPlayers: respondablePlayers,
         resolveAction(): boolean {
-          console.log(
-            `${respondingCard.name} played by ${playerId} was ultimately successful.`
-          )
           // The counter is successful.
           return counterAction()
         },
         counterAction(): boolean {
           // The counter is countered, resolve the action.
-          console.log(
-            `${respondingCard.name} played by ${playerId} was ultimately not successful and the underlying action will happen.`
-          )
           return resolveAction()
         },
       }
     } else {
-      console.log('No respondable players, counter resolves immediately.')
       if (!state.turnState.counterAction()) {
         state.turnState = {
           type: 'AttackTurnState',

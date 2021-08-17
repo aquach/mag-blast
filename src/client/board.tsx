@@ -47,9 +47,9 @@ export const BoardShip: React.FunctionComponent<{
 
   return (
     <div
-      className={`ba br1 ma1 pa1 bg-light-gray relative ${
-        clickable ? 'clickable pointer' : ''
-      }`}
+      className={`ba br1 ma1 pa1 ${
+        ship.hasFiredThisTurn ? 'bg-light-silver' : 'bg-light-gray'
+      } relative ${clickable ? 'clickable pointer' : ''}`}
       style={{ width: '4rem', height: '7.2rem' }}
       onClick={() =>
         clickable

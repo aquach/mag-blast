@@ -126,6 +126,9 @@ export function newGameState(
     pushEventLog(r: RawEventLog): void {
       this.eventLog.push(parseEventLog(this, r))
     },
+
+    lastError: undefined,
+    erroringPlayer: undefined,
   }
 
   s.pushEventLog(event`${bold('Welcome to Mag Blast!')}`)
@@ -527,5 +530,11 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,
     prompt: prompt(state, playerId),
+    actionError:
+      state.erroringPlayer === playerId &&
+      state.lastError !== undefined &&
+      state.lastError.time >= new Date().getTime() - 10000
+        ? state.lastError
+        : undefined,
   }
 }

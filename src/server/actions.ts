@@ -9,6 +9,8 @@ import {
   PassAction,
   ChooseCardAction,
   ActionCard,
+  LOCATIONS,
+  ActionError,
 } from './shared-types'
 import { assert, partition, stringList, warn } from './utils'
 import {
@@ -47,7 +49,7 @@ function applyChooseCardAction(
   state: GameState,
   playerId: string,
   action: ChooseCardAction
-): void {
+): ActionError | undefined {
   if (state.turnState.type === 'ChooseStartingShipsState') {
     const dealtShipCards = state.turnState.dealtShipCards.get(playerId)
     assert(
@@ -67,6 +69,11 @@ function applyChooseCardAction(
     const chosenCardIndices = action.handIndex
 
     if (chosenCardIndices.length !== NUM_STARTING_SHIPS) {
+      return {
+        type: 'ActionError',
+        message: `Please choose exactly ${NUM_STARTING_SHIPS} ships.`,
+        time: new Date().getTime(),
+      }
       return
     }
 
@@ -392,7 +399,11 @@ function applyChooseCardAction(
           newShip,
         }
       } else {
-        // TODO
+        return {
+          type: 'ActionError',
+          message: 'Insufficient resources to reinforce.',
+          time: new Date().getTime(),
+        }
       }
       break
 
@@ -475,7 +486,7 @@ function applyChooseShipAction(
   state: GameState,
   playerId: string,
   action: ChooseShipAction
-): void {
+): ActionError | undefined {
   if (state.activePlayer !== playerId) {
     warn('A player acted that was not the active player.')
     return
@@ -884,7 +895,7 @@ function applyPassAction(
   state: GameState,
   playerId: string,
   action: PassAction
-): void {
+): ActionError | undefined {
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
   switch (state.turnState.type) {
@@ -952,8 +963,17 @@ function applyPassAction(
           (s) => s.location
         )
 
-        if (_.some(shipsByLocation, (zone) => zone.length > MAX_ZONE_SHIPS)) {
-          // TODO: report error
+        const zoneWithTooManyShips = LOCATIONS.find(
+          (l) => (shipsByLocation[l] ?? []).length > MAX_ZONE_SHIPS
+        )
+        if (zoneWithTooManyShips !== undefined) {
+          return {
+            type: 'ActionError',
+            message: `Too many ships in the ${locationToString(
+              zoneWithTooManyShips
+            )} zone (max ${MAX_ZONE_SHIPS}).`,
+            time: new Date().getTime(),
+          }
         } else {
           state.turnState = {
             type: 'AttackTurnState',
@@ -1055,7 +1075,7 @@ function applyChooseZoneAction(
   state: GameState,
   playerId: string,
   action: ChooseZoneAction
-): void {
+): ActionError | undefined {
   if (state.turnState.type === 'PlaceStartingShipsState') {
     const chosenShipCards = state.turnState.chosenShipCards.get(playerId)
     assert(
@@ -1252,7 +1272,7 @@ function applyCancelAction(
   state: GameState,
   playerId: string,
   action: CancelAction
-): void {
+): ActionError | undefined {
   if (state.activePlayer !== playerId) {
     warn('A player acted that was not the active player.')
     return
@@ -1293,26 +1313,26 @@ export function applyAction(
   state: GameState,
   playerId: string,
   action: Action
-): void {
+): ActionError | undefined {
   switch (action.type) {
     case 'ChooseCardAction':
-      applyChooseCardAction(state, playerId, action)
+      return applyChooseCardAction(state, playerId, action)
       break
 
     case 'ChooseShipAction':
-      applyChooseShipAction(state, playerId, action)
+      return applyChooseShipAction(state, playerId, action)
       break
 
     case 'PassAction':
-      applyPassAction(state, playerId, action)
+      return applyPassAction(state, playerId, action)
       break
 
     case 'ChooseZoneAction':
-      applyChooseZoneAction(state, playerId, action)
+      return applyChooseZoneAction(state, playerId, action)
       break
 
     case 'CancelAction':
-      applyCancelAction(state, playerId, action)
+      return applyCancelAction(state, playerId, action)
       break
 
     default:

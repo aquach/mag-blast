@@ -1,6 +1,7 @@
 import { RawEventLog } from './events'
 import {
   ActionCard,
+  ActionError,
   AttackMode,
   CommandShipCard,
   EventLogEntry,
@@ -80,6 +81,9 @@ export interface GameState {
 
   getPlayerState(playerId: string): PlayerState
   pushEventLog(r: RawEventLog): void
+
+  lastError: ActionError | undefined
+  erroringPlayer: PlayerId | undefined
 }
 
 export interface ChooseStartingShipsState {

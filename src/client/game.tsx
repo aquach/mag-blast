@@ -232,6 +232,16 @@ const Game: React.FunctionComponent<{
     prompt.type === 'ChooseShipPrompt' &&
     prompt.canCancel
 
+  const error = uiState.actionError
+
+  const [showError, setShowError] = useState(false)
+
+  useEffect(() => {
+    setShowError(true)
+    const h = setTimeout(() => setShowError(false), 3000)
+    return () => clearTimeout(h)
+  }, [JSON.stringify(error)])
+
   return (
     <div className="flex ma2">
       <div>
@@ -258,6 +268,7 @@ const Game: React.FunctionComponent<{
         />
 
         {prompt && <h3 className="ma1 mv2">{prompt.text}</h3>}
+        {showError && error && <h3 className="ma1 mv2 red">{error.message}</h3>}
         {prompt && prompt.type === 'PlaceShipPrompt' && (
           <div className="flex">
             {prompt.newShips.map((s, i) => (

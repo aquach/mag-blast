@@ -29,3 +29,9 @@ export type Action =
   | PassAction
   | ChooseZoneAction
   | CancelAction
+
+export interface ActionError {
+  type: 'ActionError'
+  message: string
+  time: number
+}

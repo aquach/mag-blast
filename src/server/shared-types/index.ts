@@ -4,6 +4,7 @@ export * from './cards'
 export * from './events'
 export * from './prompts'
 
+import { ActionError } from './actions'
 import { PlayerId } from './base'
 import { ActionCard, UIPlayerState } from './cards'
 import { EventLogEntry } from './events'
@@ -28,6 +29,8 @@ export interface UIGameState {
   isActivePlayer: boolean
   eventLog: EventLogEntry[]
   prompt: Prompt
+
+  actionError: ActionError | undefined
 }
 
 export type AttackMode = 'FreeForAll' | 'AttackRight' | 'AttackLeftRight'

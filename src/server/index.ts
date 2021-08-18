@@ -161,7 +161,11 @@ io.on('connection', (socket) => {
       return
     }
 
-    applyAction(game.gameState, binding.id, a)
+    const error = applyAction(game.gameState, binding.id, a)
+    if (error !== undefined) {
+      game.gameState.lastError = error
+      game.gameState.erroringPlayer = binding.id
+    }
     game.lastUpdated = new Date().getTime()
 
     broadcastUpdates()

@@ -1053,11 +1053,11 @@ function applyPassAction(
       for (const [pid, ps] of state.playerState.entries()) {
         if (ps.asteroidsUntilBeginningOfPlayerTurn === state.activePlayer) {
           ps.asteroidsUntilBeginningOfPlayerTurn = undefined
-          state.pushEventLog(event`${p(pid)}'s Asteroids wears off.`)
+          state.pushEventLog(event`${p(pid)}'s ${'Asteroids'} wears off.`)
         }
         if (ps.minefieldUntilBeginningOfPlayerTurn === state.activePlayer) {
           ps.minefieldUntilBeginningOfPlayerTurn = undefined
-          state.pushEventLog(event`${p(pid)}'s Minefield wears off.`)
+          state.pushEventLog(event`${p(pid)}'s ${'Minefield'} wears off.`)
         }
       }
 

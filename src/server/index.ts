@@ -63,18 +63,6 @@ setInterval(() => {
 
 app.set('etag', false)
 
-app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../client/index.html'), {
-    etag: false,
-  })
-})
-
-app.get('/favicon.png', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../client/favicon.png'), {
-    etag: false,
-  })
-})
-
 app.post('/create-game', (req, res) => {
   const g: Game = {
     gameId: crypto.randomBytes(3).toString('hex'),
@@ -91,23 +79,22 @@ app.post('/create-game', (req, res) => {
   res.send({ gameId: g.gameId })
 })
 
-app.get('/game/:gameId', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../client/game.html'), {
-    etag: false,
-  })
-})
+const routes = new Map([
+  ['/', '/../client/index.html'],
+  ['/favicon.png', '/../client/favicon.png'],
+  ['/beep.mp3', '/../client/beep.mp3'],
+  ['/game/:gameId', '/../client/game.html'],
+  ['/index.js', '/../../dist/client/index.js'],
+  ['/game.js', '/../../dist/client/game.js'],
+])
 
-app.get('/index.js', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../../dist/client/index.js'), {
-    etag: false,
+for (const [p, file] of routes.entries()) {
+  app.get(p, (req, res) => {
+    res.sendFile(path.resolve(__dirname + file), {
+      etag: false,
+    })
   })
-})
-
-app.get('/game.js', (req, res) => {
-  res.sendFile(path.resolve(__dirname + '/../../dist/client/game.js'), {
-    etag: false,
-  })
-})
+}
 
 io.on('connection', (socket) => {
   const gameId = socket.handshake.query.gameId as string

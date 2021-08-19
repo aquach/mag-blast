@@ -214,6 +214,18 @@ const DeckDisplay: React.FunctionComponent<{
   )
 }
 
+function usePrevious<T, U>(value: T, beginningValue: U): T | U {
+  // The ref object is a generic container whose current property is mutable ...
+  // ... and can hold any value, similar to an instance property on a class
+  const ref = useRef<T | U>(beginningValue)
+  // Store current value in ref
+  useEffect(() => {
+    ref.current = value
+  }, [value]) // Only re-run if value changes
+  // Return previous value (happens before update in useEffect above)
+  return ref.current
+}
+
 const Game: React.FunctionComponent<{
   comms: Comms
   uiState: UIGameState
@@ -242,8 +254,24 @@ const Game: React.FunctionComponent<{
     return () => clearTimeout(h)
   }, [JSON.stringify(error)])
 
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const previousPrompt = usePrevious(prompt, null)
+
+  useEffect(() => {
+    if (
+      previousPrompt !== null &&
+      previousPrompt.type === 'NoPrompt' &&
+      prompt.type !== 'NoPrompt'
+    ) {
+      if (document.hidden && audioRef.current !== null) {
+        audioRef.current.play()
+      }
+    }
+  }, [JSON.stringify(prompt)])
+
   return (
     <div className="flex ma2">
+      <audio src="/beep.mp3" ref={audioRef} />
       <div>
         <EventLog eventLog={uiState.eventLog} />
         <div className="pa1">

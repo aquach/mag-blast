@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build-client": "cd src/client && webpack",
-    "build": "npm run build-client && npm run build-server && cp src/client/*.html src/client/*.png dist/client",
+    "build": "npm run build-client && npm run build-server && cp src/client/*.html src/client/*.png src/client/*.mp3 dist/client",
     "build-server": "cd src/server && tsc",
     "client": "cd src/client && webpack --watch",
     "server": "ts-node-dev -P src/server/tsconfig.json src/server/index.ts",

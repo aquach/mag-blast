@@ -69,6 +69,12 @@ app.get('/', (req, res) => {
   })
 })
 
+app.get('/favicon.png', (req, res) => {
+  res.sendFile(path.resolve(__dirname + '/../client/favicon.png'), {
+    etag: false,
+  })
+})
+
 app.post('/create-game', (req, res) => {
   const g: Game = {
     gameId: crypto.randomBytes(3).toString('hex'),

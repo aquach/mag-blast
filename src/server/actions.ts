@@ -536,7 +536,7 @@ function applyChooseShipAction(
         const targetPlayerState = state.getPlayerState(action.choice)
 
         state.pushEventLog(
-          event`${p(state.activePlayer)} plays Asteroids on ${
+          event`${p(state.activePlayer)} plays ${'Asteroids'} on ${
             targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
           }.`
         )
@@ -581,7 +581,7 @@ function applyChooseShipAction(
         const targetPlayerState = state.getPlayerState(action.choice)
 
         state.pushEventLog(
-          event`${p(state.activePlayer)} plays a Minefield on ${
+          event`${p(state.activePlayer)} plays a ${'Minefield'} on ${
             targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
           }.`
         )
@@ -632,7 +632,7 @@ function applyChooseShipAction(
         }
 
         state.pushEventLog(
-          event`${p(state.activePlayer)} plays Spacedock on ${
+          event`${p(state.activePlayer)} plays ${'Spacedock'} on ${
             targetShip.shipType.name
           }.`
         )

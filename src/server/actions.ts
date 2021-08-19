@@ -190,8 +190,6 @@ function applyChooseCardAction(
     state.actionDiscardDeck.push(respondingCard)
     playerState.hand.splice(action.handIndex, 1)
 
-    const handIndex = action.handIndex
-
     const resolveCounter = () => {
       // By default, squadrons will go back to the attacking player's hand.
       // But Temporal Flux and Fighters will destroy the attacking squadron.
@@ -218,10 +216,10 @@ function applyChooseCardAction(
           state.pushEventLog(
             event`${p(playerId)}'s ${
               respondingCard.name
-            } returns to their hand.`
+            } will return to their hand at end of turn.`
           )
           _.remove(state.actionDiscardDeck, (c) => c === respondingCard)
-          playerState.hand.push(respondingCard)
+          playerState.usedSquadronCards.push(respondingCard)
         } else {
           // Point out the Fighter loss.
           state.pushEventLog(
@@ -429,9 +427,7 @@ function applyChooseCardAction(
 
       const playingCardHasMoreStates =
         card.isSquadron ||
-        (card.isBlast &&
-          state.directHitStateMachine?.type !==
-            'DirectHitPlayedDirectHitState') ||
+        card.isBlast ||
         card.cardType === 'RammingSpeedCard' ||
         card.cardType === 'AsteroidsCard' ||
         card.cardType === 'MinefieldCard' ||
@@ -1010,17 +1006,15 @@ function applyPassAction(
           )
           ps.commandShip.temporaryDamage = 0
         }
-      }
 
-      activePlayerState.usedSquadronCards.forEach((c) => {
-        state.pushEventLog(
-          event`${p(state.activePlayer)}'s deployed ${
-            c.name
-          } returns to their hand.`
-        )
-        activePlayerState.hand.push(c)
-      })
-      activePlayerState.usedSquadronCards = []
+        ps.usedSquadronCards.forEach((c) => {
+          state.pushEventLog(
+            event`${p(pid)}'s deployed ${c.name} returns to their hand.`
+          )
+          ps.hand.push(c)
+        })
+        ps.usedSquadronCards = []
+      }
 
       activePlayerState.ships.forEach((s) => {
         s.hasFiredThisTurn = false
@@ -1288,6 +1282,7 @@ function applyCancelAction(
       break
     case 'PlaySquadronChooseTargetShipState':
       card = state.turnState.squadron
+      _.remove(activePlayerState.usedSquadronCards, (c) => c === card)
       break
     case 'AttackChooseAsteroidsPlayerTurnState':
     case 'AttackChooseMinefieldPlayerTurnState':

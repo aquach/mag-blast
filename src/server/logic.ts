@@ -242,7 +242,6 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
     if (state.directHitStateMachine?.type === 'DirectHitPlayedDirectHitState') {
       const firingShip = state.directHitStateMachine.firingShip
       const targetShip = state.directHitStateMachine.targetShip
-      targetShip.damage += card.damage
 
       const [targetPlayer, targetPlayerState] = owningPlayer(
         state.playerState,
@@ -257,15 +256,24 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
         }, dealing ${card.damage} damage.`
       )
 
-      let isGameOver = false
-      if (isDead(targetShip)) {
-        isGameOver = destroyShip(state, targetShip)
-      }
-
-      if (!isGameOver) {
+      const respondablePlayers = playersThatCanRespondToActions(
+        state,
+        state.activePlayer
+      )
+      if (respondablePlayers.length > 0) {
         state.turnState = {
-          type: 'AttackTurnState',
+          type: 'PlayActionRespondState',
+          playingPlayer: state.activePlayer,
+          respondingPlayers: respondablePlayers,
+          resolveAction(): boolean {
+            return resolveBlastAttack(state, firingShip, targetShip, card)
+          },
+          counterAction(): boolean {
+            return false
+          },
         }
+      } else {
+        resolveBlastAttack(state, firingShip, targetShip, card)
       }
     } else {
       state.turnState = {
@@ -421,6 +429,7 @@ export function canRespondToSquadron(
   return (
     respondingCard.canRespondToBlast ||
     (respondingCard.canRespondToSquadron &&
+      targetPlayerState.minefieldUntilBeginningOfPlayerTurn === undefined &&
       ownsCarrier(targetPlayerState.ships))
   )
 }

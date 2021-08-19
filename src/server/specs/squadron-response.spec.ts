@@ -368,14 +368,14 @@ describe('Bombers', () => {
       "P1 deploys a Bomber targeting P2's Woden, dealing 4 damage.",
       '...but P2 responds with Fighter, canceling its effect!',
       "P1's Bomber is discarded.",
-      "P2's Fighter returns to their hand.",
+      "P2's Fighter will return to their hand at end of turn.",
     ])
     expect(state.actionDiscardDeck.length).to.be.eq(1)
     expect(state.getPlayerState('P2').ships).to.be.not.empty
     expect(state.getPlayerState('P1').usedSquadronCards).to.be.empty
-    expect(state.getPlayerState('P2').usedSquadronCards).to.be.empty
+    expect(state.getPlayerState('P2').usedSquadronCards).to.not.be.empty
     expect(state.getPlayerState('P1').hand.length).to.be.eq(4)
-    expect(state.getPlayerState('P2').hand.length).to.be.eq(3)
+    expect(state.getPlayerState('P2').hand.length).to.be.eq(2)
   })
 
   it('should fail when responded to with a Temporal Flux', () => {

@@ -78,7 +78,7 @@ export function stringList(x: { toString(): string }[]): string {
     return x[0].toString()
   }
   if (x.length === 2) {
-    return x[0].toString() + 'and ' + x[1].toString()
+    return x[0].toString() + ' and ' + x[1].toString()
   }
   return _.dropRight(x, 1).join(', ') + ', and ' + _.last(x)
 }

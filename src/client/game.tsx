@@ -414,7 +414,7 @@ const Lobby: React.FunctionComponent<{
               }
             />
             &nbsp;
-            <label htmlFor={m}>
+            <label htmlFor={m.attackMode}>
               {m.name}: {m.description}
             </label>
           </div>

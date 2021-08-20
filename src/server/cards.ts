@@ -100,6 +100,7 @@ export const actionCards: ActionCard[] = actionCSVRows.flatMap((row) => {
 interface CommandShipCSVRow {
   Name: string
   Type: string
+  'Num Activations': number | ''
   Text: string
 }
 
@@ -119,6 +120,8 @@ export const commandShipCards: CommandShipCard[] = commandShipCSVRows.map(
     name: row.Name,
     commandType: row.Type,
     text: row.Text,
+    numAbilityActivations:
+      row['Num Activations'] === '' ? undefined : row['Num Activations'],
     hp: COMMAND_SHIP_HP,
   })
 )

@@ -74,15 +74,17 @@ export function newGameState(
   shipDeck.splice(0, NUM_STARTING_SHIP_CARDS * playerIds.length)
 
   const players = playerIds.map((playerId, i) => {
+    const assignedCommandShip = randomizedCommandShipCards[i]
     const playerState: PlayerState = {
       hand: [],
       usedSquadronCards: [],
       ships: [],
       commandShip: {
         type: 'CommandShip',
-        shipType: randomizedCommandShipCards[i],
+        shipType: assignedCommandShip,
         damage: 0,
         temporaryDamage: 0,
+        remainingAbilityActivations: assignedCommandShip.numAbilityActivations,
       },
       isAlive: true,
       asteroidsUntilBeginningOfPlayerTurn: undefined,
@@ -515,6 +517,8 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
           damage:
             playerState.commandShip.damage +
             playerState.commandShip.temporaryDamage,
+          remainingAbilityActivations:
+            playerState.commandShip.remainingAbilityActivations,
         },
         isAlive: playerState.isAlive,
         hasAsteroids:

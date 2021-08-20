@@ -163,7 +163,12 @@ const EventLogEntryComponent: React.FunctionComponent<{
                   className="tooltip"
                 >
                   <CommandShip
-                    ship={{ shipType: t.commandShipType, damage: 0 }}
+                    ship={{
+                      shipType: t.commandShipType,
+                      damage: 0,
+                      remainingAbilityActivations:
+                        t.commandShipType.numAbilityActivations,
+                    }}
                     prompt={{ type: 'NoPrompt', text: '' }}
                     performAction={_.noop}
                     playerId=""

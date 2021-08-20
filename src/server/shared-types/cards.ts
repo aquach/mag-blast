@@ -17,6 +17,7 @@ export interface CommandShipCard {
   commandType: string
   hp: number
   text: string
+  numAbilityActivations: number | undefined
 }
 
 export interface Resources {
@@ -59,4 +60,5 @@ export interface UIShip {
 export interface UICommandShip {
   damage: number
   shipType: CommandShipCard
+  remainingAbilityActivations: number | undefined
 }

@@ -178,6 +178,21 @@ export const CommandShip: React.FunctionComponent<{
         {commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
       </p>
       {expanded && <p className="f8 tc">{ship.shipType.text}</p>}
+      {ship.remainingAbilityActivations !== undefined && (
+        <div
+          className="absolute"
+          style={{
+            bottom: 0,
+            left: 0,
+            padding: '0.125rem 0.25rem',
+            borderRight: '1px solid',
+            borderTop: '1px solid',
+            background: 'white',
+          }}
+        >
+          {ship.remainingAbilityActivations}
+        </div>
+      )}
       <div
         className="absolute red"
         style={{

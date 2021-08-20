@@ -25,6 +25,7 @@ export interface CommandShip {
   shipType: CommandShipCard
   damage: number
   temporaryDamage: number
+  remainingAbilityActivations: number | undefined
 }
 
 export interface PlayerState {

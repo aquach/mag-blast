@@ -1,11 +1,11 @@
-Name,Type,Text
-Overseers of Kalgon,OverseersofKalgon,"Three times per game during your Draw phase, instead of drawing cards, you may take up to 3 Blast cards from the action discard pile."
-The Glorp,TheGlorp,"Each time one of your fleet ships is attacked by a Squadron, the Squadron only deals half its normal damage."
-Alpha Mazons,AlphaMazons,"Three times per game during your Atttack phase, you may play a Direct Hit Effect after a Blast without playing a Direct Hit."
-Freep,Freep,"Three times per game during your maneuver phase, you may steal 3 random action cards from another player's hand."
-Recyclons v40K,Recyclonsv40K,"Each time a fleet ship in your fleet is destroyed, draw two cards."
-Tri-Bot rent-akill series IG44 mark IIV,TriBot,"Three times per game during your Reinforce phase, you may expend resources to recruit any ship from the fleet discard pile."
-Mhee Yow-Meex,MheeYowMeex,"Each time you draw a fleet ship, you draw 2 fleet ships and choose the one you prefer. The other fleet ship is discarded."
-BZZGZZRT!,BZZGZZRT,Your fleet ships with speed 1 have the carrier special ability and your fleet ships with speed 2 have the minesweeper special ability.
-Brotherhood of Peace,BrotherhoodOfPeace,"Three times per game during your Discard phase, you may transfer a Blast from one of your fleet ships to an oppenent's fleet ship."
-Cranium Consortium,CraniumConsortium,"Each time a Blast is played on one of your fleet ships, you may discard 2 resources of any kind to cancel the Blast."
+Name,Type,Num Activations,Text
+Overseers of Kalgon,OverseersofKalgon,3,"Three times per game during your Draw phase, instead of drawing cards, you may take up to 3 Blast cards from the action discard pile."
+The Glorp,TheGlorp,,"Each time one of your fleet ships is attacked by a Squadron, the Squadron only deals half its normal damage."
+Alpha Mazons,AlphaMazons,3,"Three times per game during your attack phase, you may play a Direct Hit Effect after a Blast without playing a Direct Hit."
+Freep,Freep,3,"Three times per game during your maneuver phase, you may steal 3 random action cards from another player's hand."
+Recyclons v40K,Recyclonsv40K,,"Each time a fleet ship in your fleet is destroyed, draw two cards."
+Tri-Bot rent-a-kill series IG44 mark IIV,TriBot,3,"Three times per game during your Reinforce phase, you may expend resources to recruit any ship from the fleet discard pile."
+Mhee Yow-Meex,MheeYowMeex,,"Each time you draw a fleet ship, you draw 2 fleet ships and choose the one you prefer. The other fleet ship is discarded."
+BZZGZZRT!,BZZGZZRT,,Your fleet ships with speed 1 have the carrier special ability and your fleet ships with speed 2 have the minesweeper special ability.
+Brotherhood of Peace,BrotherhoodOfPeace,3,"Three times per game during your Discard phase, you may transfer a Blast from one of your fleet ships to an oppenent's fleet ship."
+Cranium Consortium,CraniumConsortium,,"Each time a Blast is played on one of your fleet ships, you may discard 2 resources of any kind to cancel the Blast."

@@ -397,15 +397,15 @@ const Lobby: React.FunctionComponent<{
 
       <h4 className="mv1">Attack Mode (who can you attack?)</h4>
 
-      <div className="flex">
+      <div className="flex flex-column">
         {ATTACK_MODES.map((m, i) => (
           <div className="pa1" key={i}>
             <input
               type="radio"
-              id={m}
+              id={m.attackMode}
               name="attackMode"
-              value={m}
-              checked={gameSettings.attackMode === m}
+              value={m.attackMode}
+              checked={gameSettings.attackMode === m.attackMode}
               onChange={(e) =>
                 setSettings({
                   ...gameSettings,
@@ -414,7 +414,9 @@ const Lobby: React.FunctionComponent<{
               }
             />
             &nbsp;
-            <label htmlFor={m}>{m}</label>
+            <label htmlFor={m}>
+              {m.name}: {m.description}
+            </label>
           </div>
         ))}
       </div>

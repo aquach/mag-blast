@@ -35,10 +35,28 @@ export interface UIGameState {
 
 export type AttackMode = 'FreeForAll' | 'AttackRight' | 'AttackLeftRight'
 
-export const ATTACK_MODES: AttackMode[] = [
-  'FreeForAll',
-  'AttackRight',
-  'AttackLeftRight',
+export interface AttackModeInfo {
+  attackMode: AttackMode
+  name: string
+  description: string
+}
+
+export const ATTACK_MODES: AttackModeInfo[] = [
+  {
+    attackMode: 'FreeForAll',
+    name: 'Free For All',
+    description: 'Anyone can attack anyone.',
+  },
+  {
+    attackMode: 'AttackRight',
+    name: 'Attack Right',
+    description: 'You can only attack the player on your right.',
+  },
+  {
+    attackMode: 'AttackLeftRight',
+    name: 'Attack Left & Right',
+    description: 'You can only attack the players to your left and right.',
+  },
 ]
 
 export interface UIGameSettings {

@@ -11,6 +11,11 @@ export interface ShipEventLogToken {
   shipType: ShipCard
 }
 
+export interface CommandShipEventLogToken {
+  type: 'CommandShipEventLogToken'
+  commandShipType: CommandShipCard
+}
+
 export interface ActionCardEventLogToken {
   type: 'ActionCardEventLogToken'
   card: ActionCard
@@ -25,6 +30,7 @@ export interface TextEventLogToken {
 export type EventLogToken =
   | PlayerEventLogToken
   | ShipEventLogToken
+  | CommandShipEventLogToken
   | ActionCardEventLogToken
   | TextEventLogToken
 

@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import { actionCards, shipCards } from './cards'
+import { actionCards, commandShipCards, shipCards } from './cards'
 import {
   EventLogEntry,
   EventLogToken,
@@ -36,6 +36,7 @@ export function bold(t: string): TextEventLogToken {
 
 const actionCardsByName = uniqueGroupBy(actionCards, (c) => c.name)
 const shipsByName = uniqueGroupBy(shipCards, (c) => c.name)
+const commandShipsByName = uniqueGroupBy(commandShipCards, (c) => c.name)
 
 export function parseEventLog(game: GameState, r: RawEventLog): EventLogEntry {
   const constants = r[0].map((s) =>
@@ -74,6 +75,11 @@ export function parseEventLog(game: GameState, r: RawEventLog): EventLogEntry {
       return {
         type: 'ActionCardEventLogToken',
         card: actionCardsByName[s],
+      }
+    } else if (commandShipsByName[s]) {
+      return {
+        type: 'CommandShipEventLogToken',
+        commandShipType: commandShipsByName[s],
       }
     } else if (shipsByName[s]) {
       return {

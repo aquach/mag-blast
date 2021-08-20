@@ -142,7 +142,7 @@ const commandShipBreaks: Record<string, JSX.Element> = {
   ),
 }
 
-const CommandShip: React.FunctionComponent<{
+export const CommandShip: React.FunctionComponent<{
   ship: UICommandShip
   prompt: Prompt
   performAction: (a: Action) => void

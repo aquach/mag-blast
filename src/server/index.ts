@@ -170,7 +170,7 @@ io.on('connection', (socket) => {
       return
     }
 
-    if (!ATTACK_MODES.includes(settings.attackMode)) {
+    if (!ATTACK_MODES.map((m) => m.name).includes(settings.attackMode)) {
       warn(`${settings.attackMode} is not a valid attack mode.`)
       return
     }

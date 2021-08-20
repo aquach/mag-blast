@@ -10,6 +10,7 @@ import {
 } from '@shared-types'
 import React, { Fragment } from 'react'
 import { shipClassBreaks } from './hand'
+import ReactTooltip from 'react-tooltip'
 
 export const TurretMarker: React.FunctionComponent<{
   type: 'laser' | 'beam' | 'mag'
@@ -33,13 +34,12 @@ export const TurretMarker: React.FunctionComponent<{
 
 export const BoardShip: React.FunctionComponent<{
   ship: UIShip
-  prompt: Prompt | undefined
+  prompt: Prompt
   performAction: (a: Action) => void
   index: number
   playerId: PlayerId
 }> = ({ ship, prompt, performAction, index, playerId }) => {
   const clickable =
-    prompt !== undefined &&
     prompt.type === 'ChooseShipPrompt' &&
     prompt.allowableShipIndices.some(
       ([pid, i]) => pid === playerId && i === index
@@ -144,12 +144,12 @@ const commandShipBreaks: Record<string, JSX.Element> = {
 
 const CommandShip: React.FunctionComponent<{
   ship: UICommandShip
-  prompt: Prompt | undefined
+  prompt: Prompt
   performAction: (a: Action) => void
   playerId: PlayerId
-}> = ({ ship, prompt, performAction, playerId }) => {
+  expanded?: boolean
+}> = ({ ship, prompt, performAction, playerId, expanded }) => {
   const clickable =
-    prompt !== undefined &&
     prompt.type === 'ChooseShipPrompt' &&
     prompt.allowableCommandShips.includes(playerId)
 
@@ -158,7 +158,11 @@ const CommandShip: React.FunctionComponent<{
       className={`ba br1 ma1 pa1 bg-light-gray relative ${
         clickable ? 'clickable pointer' : ''
       }`}
-      style={{ width: '4rem', height: '7.825rem' }}
+      style={
+        expanded
+          ? { width: '6rem', height: '11.73em' }
+          : { width: '4rem', height: '7.825rem' }
+      }
       onClick={() =>
         clickable
           ? performAction({
@@ -167,10 +171,13 @@ const CommandShip: React.FunctionComponent<{
             })
           : undefined
       }
+      data-tip
+      data-for={ship.shipType.commandType}
     >
       <p className="f7 tc b">
         {commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
       </p>
+      {expanded && <p className="f8 tc">{ship.shipType.text}</p>}
       <div
         className="absolute red"
         style={{
@@ -184,6 +191,24 @@ const CommandShip: React.FunctionComponent<{
       >
         {Math.max(ship.shipType.hp - ship.damage, 0)}
       </div>
+
+      {!expanded && (
+        <ReactTooltip
+          id={ship.shipType.commandType}
+          place="bottom"
+          type="light"
+          effect="solid"
+          className="tooltip"
+        >
+          <CommandShip
+            ship={ship}
+            prompt={{ type: 'NoPrompt', text: '' }}
+            expanded
+            performAction={_.noop}
+            playerId={playerId}
+          />
+        </ReactTooltip>
+      )}
     </div>
   )
 }
@@ -192,7 +217,7 @@ const ShipZone: React.FunctionComponent<{
   shipsWithIndices: [UIShip, number][]
   playerId: PlayerId
   clientPlayerId: PlayerId
-  prompt: Prompt | undefined
+  prompt: Prompt
   performAction: (a: Action) => void
   location: ShipLocation
   color: 'yellow' | 'blue' | 'red' | 'green'
@@ -206,7 +231,6 @@ const ShipZone: React.FunctionComponent<{
   color,
 }) => {
   const clickable =
-    prompt !== undefined &&
     ((prompt.type === 'PlaceShipPrompt' && playerId === clientPlayerId) ||
       (prompt.type === 'ChooseZonePrompt' && playerId === prompt.player)) &&
     prompt.allowableZones.includes(location)
@@ -252,7 +276,7 @@ const ShipZone: React.FunctionComponent<{
 const BoardPlayer: React.FunctionComponent<{
   playerId: PlayerId
   playerState: UIPlayerState
-  prompt: Prompt | undefined
+  prompt: Prompt
   performAction: (a: Action) => void
   clientPlayerId: PlayerId
 }> = ({ playerId, playerState, prompt, performAction, clientPlayerId }) => {
@@ -328,7 +352,7 @@ const BoardPlayer: React.FunctionComponent<{
 
 export const Board: React.FunctionComponent<{
   board: [PlayerId, UIPlayerState][]
-  prompt: Prompt | undefined
+  prompt: Prompt
   performAction: (a: Action) => void
   clientPlayerId: PlayerId
 }> = ({ board, prompt, performAction, clientPlayerId }) => {

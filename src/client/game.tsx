@@ -258,15 +258,10 @@ const Game: React.FunctionComponent<{
   const prompt = uiState.prompt
 
   const passOptions =
-    prompt !== undefined && prompt.type === 'ChooseShipPrompt'
-      ? prompt.pass
-      : undefined
+    prompt.type === 'ChooseShipPrompt' ? prompt.pass : undefined
   const canPass = passOptions !== undefined
 
-  const canCancel =
-    prompt !== undefined &&
-    prompt.type === 'ChooseShipPrompt' &&
-    prompt.canCancel
+  const canCancel = prompt.type === 'ChooseShipPrompt' && prompt.canCancel
 
   const error = uiState.actionError
 

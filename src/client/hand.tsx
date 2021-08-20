@@ -98,21 +98,17 @@ export const ActionCardComponent: React.FunctionComponent<{
 
 export const Hand: React.FunctionComponent<{
   hand: ActionCard[]
-  prompt: Prompt | undefined
+  prompt: Prompt
   performAction: (a: Action) => void
 }> = ({ hand, prompt, performAction }) => {
   const [selectedCards, setSelectedCards] = useState<number[]>([])
 
   const passOptions =
-    prompt !== undefined && prompt.type === 'ChooseCardPrompt'
-      ? prompt.pass
-      : undefined
+    prompt.type === 'ChooseCardPrompt' ? prompt.pass : undefined
   const canPass = passOptions !== undefined
 
   const multiSelectOptions =
-    prompt !== undefined && prompt.type === 'ChooseCardPrompt'
-      ? prompt.multiselect
-      : undefined
+    prompt.type === 'ChooseCardPrompt' ? prompt.multiselect : undefined
   const canMultiselect = multiSelectOptions !== undefined
 
   const actionText = multiSelectOptions?.actionText
@@ -150,7 +146,6 @@ export const Hand: React.FunctionComponent<{
       <div className="flex mv1">
         {hand.map((c, i) => {
           const clickable =
-            prompt !== undefined &&
             prompt.type === 'ChooseCardPrompt' &&
             prompt.selectableCardIndices.includes(i)
 

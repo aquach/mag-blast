@@ -8,7 +8,7 @@ import { ActionError } from './actions'
 import { PlayerId } from './base'
 import { ActionCard, UIPlayerState } from './cards'
 import { EventLogEntry } from './events'
-import { Prompt } from './prompts'
+import { CommandShipAbilityPrompt, Prompt } from './prompts'
 
 export interface UILobbyState {
   type: 'UILobbyState'
@@ -29,6 +29,7 @@ export interface UIGameState {
   isActivePlayer: boolean
   eventLog: EventLogEntry[]
   prompt: Prompt
+  commandShipAbilityPrompt: CommandShipAbilityPrompt | undefined
 
   actionError: ActionError | undefined
 }

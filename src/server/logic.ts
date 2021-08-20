@@ -239,7 +239,10 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
   if (card.isBlast) {
-    if (state.directHitStateMachine?.type === 'DirectHitPlayedDirectHitState') {
+    if (
+      state.directHitStateMachine?.type === 'DirectHitPlayedDirectHitState' &&
+      state.directHitStateMachine?.canBlastAgain
+    ) {
       const firingShip = state.directHitStateMachine.firingShip
       const targetShip = state.directHitStateMachine.targetShip
 
@@ -323,6 +326,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
       type: 'DirectHitPlayedDirectHitState',
       firingShip: state.directHitStateMachine.firingShip,
       targetShip: state.directHitStateMachine.targetShip,
+      canBlastAgain: true,
     }
   } else if (card.isDirectHitEffect) {
     if (state.directHitStateMachine?.type !== 'DirectHitPlayedDirectHitState') {
@@ -740,4 +744,16 @@ export function playersThatCanRespondToActions(
   return playersAfterPlayingPlayerInTurnOrder.filter((p) =>
     respondablePlayers.includes(p)
   )
+}
+
+export function canUseCommandShipAbility(playerState: PlayerState): boolean {
+  if (playerState.commandShip.remainingAbilityActivations === undefined) {
+    return false
+  }
+
+  if (playerState.commandShip.remainingAbilityActivations <= 0) {
+    return false
+  }
+
+  return true
 }

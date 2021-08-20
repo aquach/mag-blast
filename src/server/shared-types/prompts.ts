@@ -51,3 +51,8 @@ export type Prompt =
   | ChooseZonePrompt
   | ChooseShipCardPrompt
   | NoPrompt
+
+export interface CommandShipAbilityPrompt {
+  type: 'CommandShipAbilityPrompt'
+  text: string
+}

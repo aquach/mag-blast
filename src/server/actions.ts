@@ -11,6 +11,7 @@ import {
   ActionCard,
   LOCATIONS,
   ActionError,
+  ActivateCommandShipAbilityAction,
 } from './shared-types'
 import { assert, partition, stringList, warn } from './utils'
 import {
@@ -37,6 +38,7 @@ import {
   resolveActionCard,
   playersThatCanRespondToActions,
   alivePlayerByTurnOffset,
+  canUseCommandShipAbility,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -1304,6 +1306,84 @@ function applyCancelAction(
   }
 }
 
+function applyActivateCommandShipAbilityAction(
+  state: GameState,
+  playerId: string,
+  action: ActivateCommandShipAbilityAction
+): ActionError | undefined {
+  const playerState = state.getPlayerState(playerId)
+
+  if (!canUseCommandShipAbility(playerState)) {
+    warn(`${playerId} can't use their command ship ability.`)
+    return
+  }
+
+  playerState.commandShip.remainingAbilityActivations! -= 1
+
+  if (
+    state.turnState.type === 'PlayBlastRespondState' &&
+    playerState.commandShip.shipType.commandType === 'CraniumConsortium'
+  ) {
+    // TODO
+    return
+  }
+
+  if (state.activePlayer !== playerId) {
+    warn('A player acted that was not the active player.')
+    return
+  }
+  const activePlayerState = state.getPlayerState(state.activePlayer)
+
+  if (
+    state.turnState.type === 'DiscardTurnState' &&
+    playerState.commandShip.shipType.commandType === 'OverseersOfKalgon'
+  ) {
+  }
+
+  if (
+    state.turnState.type === 'DiscardTurnState' &&
+    playerState.commandShip.shipType.commandType === 'BrotherhoodOfPeace'
+  ) {
+  }
+
+  if (
+    state.turnState.type === 'ReinforceTurnState' &&
+    playerState.commandShip.shipType.commandType === 'TriBot'
+  ) {
+  }
+
+  if (
+    state.turnState.type === 'ManeuverTurnState' &&
+    playerState.commandShip.shipType.commandType === 'Freep'
+  ) {
+  }
+
+  if (
+    state.turnState.type === 'AttackTurnState' &&
+    state.directHitStateMachine?.type === 'BlastPlayedDirectHitState' &&
+    playerState.commandShip.shipType.commandType === 'AlphaMazons'
+  ) {
+    if (
+      activePlayerState.commandShip.remainingAbilityActivations !== undefined
+    ) {
+      activePlayerState.commandShip.remainingAbilityActivations -= 1
+    }
+    state.pushEventLog(
+      event`${state.activePlayer} activates ${activePlayerState.commandShip.shipType.name}!`
+    )
+    state.directHitStateMachine = {
+      type: 'DirectHitPlayedDirectHitState',
+      firingShip: state.directHitStateMachine.firingShip,
+      targetShip: state.directHitStateMachine.targetShip,
+      canBlastAgain: false,
+    }
+  }
+
+  warn(
+    `Don't know how to activate ${playerState.commandShip.shipType.commandType}'s ability in state ${state.turnState.type}.`
+  )
+}
+
 export function applyAction(
   state: GameState,
   playerId: string,
@@ -1328,6 +1408,10 @@ export function applyAction(
 
     case 'CancelAction':
       return applyCancelAction(state, playerId, action)
+      break
+
+    case 'ActivateCommandShipAbilityAction':
+      return applyActivateCommandShipAbilityAction(state, playerId, action)
       break
 
     default:

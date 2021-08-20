@@ -1,7 +1,13 @@
 import * as _ from 'lodash'
 import * as parse from 'csv-parse/lib/sync'
 import * as fs from 'fs'
-import { ActionCard, CommandShipCard, ShipCard } from './shared-types'
+import {
+  ActionCard,
+  ActionCardType,
+  CommandShipCard,
+  CommandShipType,
+  ShipCard,
+} from './shared-types'
 import { COMMAND_SHIP_HP } from './constants'
 
 interface ShipCSVRow {
@@ -37,7 +43,7 @@ export const shipCards: ShipCard[] = shipCSVRows.map((row) => ({
 
 interface ActionCSVRow {
   Name: string
-  Type: string
+  Type: ActionCardType
   'Num No Resources': number
   'Resource Variants': string
   Damage: number
@@ -99,7 +105,7 @@ export const actionCards: ActionCard[] = actionCSVRows.flatMap((row) => {
 
 interface CommandShipCSVRow {
   Name: string
-  Type: string
+  Type: CommandShipType
   'Num Activations': number | ''
   Text: string
 }

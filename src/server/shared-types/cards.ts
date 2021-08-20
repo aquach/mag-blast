@@ -1,5 +1,37 @@
 import { Location } from './base'
 
+export type ActionCardType =
+  | 'TemporalFluxCard'
+  | 'StrategicAllocationCard'
+  | 'CatastrophicDamageCard'
+  | 'BoardingPartyCard'
+  | 'ReinforcementsCard'
+  | 'ConcussiveBlastCard'
+  | 'EvasiveActionCard'
+  | 'MinefieldCard'
+  | 'FighterCard'
+  | 'BridgeHitCard'
+  | 'SpacedockCard'
+  | 'RammingSpeedCard'
+  | 'AsteroidsCard'
+  | 'MagBlastCard'
+  | 'BeamBlastCard'
+  | 'LaserBlastCard'
+  | 'BomberCard'
+  | 'DirectHitCard'
+
+export type CommandShipType =
+  | 'OverseersOfKalgon'
+  | 'TheGlorp'
+  | 'AlphaMazons'
+  | 'Freep'
+  | 'Recyclonsv40K'
+  | 'TriBot'
+  | 'MheeYowMeex'
+  | 'BZZGZZRT'
+  | 'BrotherhoodOfPeace'
+  | 'CraniumConsortium'
+
 export interface ShipCard {
   type: 'ShipCard'
   name: string
@@ -14,7 +46,7 @@ export interface ShipCard {
 export interface CommandShipCard {
   type: 'CommandShipCard'
   name: string
-  commandType: string
+  commandType: CommandShipType
   hp: number
   text: string
   numAbilityActivations: number | undefined
@@ -29,7 +61,7 @@ export interface Resources {
 export interface ActionCard {
   type: 'ActionCard'
   name: string
-  cardType: string
+  cardType: ActionCardType
   damage: number
   resources: Resources
   text: string

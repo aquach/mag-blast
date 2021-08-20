@@ -48,6 +48,7 @@ export interface DirectHitPlayedDirectHitState {
   type: 'DirectHitPlayedDirectHitState'
   firingShip: Ship
   targetShip: Ship | CommandShip
+  canBlastAgain: boolean
 }
 
 export type DirectHitState =

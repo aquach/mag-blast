@@ -23,11 +23,16 @@ export interface CancelAction {
   type: 'CancelAction'
 }
 
+export interface ActivateCommandShipAbilityAction {
+  type: 'ActivateCommandShipAbilityAction'
+}
+
 export type Action =
   | ChooseCardAction
   | ChooseShipAction
   | PassAction
   | ChooseZoneAction
+  | ActivateCommandShipAbilityAction
   | CancelAction
 
 export interface ActionError {

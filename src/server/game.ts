@@ -30,6 +30,7 @@ import {
   ShipCard,
   ChooseShipCardPrompt,
   NoPrompt,
+  CommandShipAbilityPrompt,
 } from './shared-types'
 import { GameSettings, GameState, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
@@ -495,6 +496,14 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
   const cantGetHere: never = state.turnState
 }
 
+export function commandShipAbilityPrompt(
+  state: GameState,
+  playerId: PlayerId
+): CommandShipAbilityPrompt | undefined {
+  // TODO
+  return undefined
+}
+
 export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
   const playerState = state.getPlayerState(playerId)
 
@@ -534,6 +543,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,
     prompt: prompt(state, playerId),
+    commandShipAbilityPrompt: commandShipAbilityPrompt(state, playerId),
     actionError:
       state.erroringPlayer === playerId &&
       state.lastError !== undefined &&

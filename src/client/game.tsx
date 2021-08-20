@@ -7,6 +7,7 @@ import {
   EventLogEntry,
   GameError,
   PlayerId,
+  Prompt,
   UIGameSettings,
   UIGameState,
   UILobbyState,
@@ -226,6 +227,29 @@ function usePrevious<T, U>(value: T, beginningValue: U): T | U {
   return ref.current
 }
 
+const TurnAlert: React.FunctionComponent<{
+  prompt: Prompt
+  playSounds: boolean
+}> = ({ prompt, playSounds }) => {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const previousPrompt = usePrevious(prompt, null)
+
+  useEffect(() => {
+    if (
+      playSounds &&
+      previousPrompt !== null &&
+      previousPrompt.type === 'NoPrompt' &&
+      prompt.type !== 'NoPrompt'
+    ) {
+      if (document.hidden && audioRef.current !== null) {
+        audioRef.current.play()
+      }
+    }
+  }, [JSON.stringify(prompt)])
+
+  return <audio src="/beep.mp3" ref={audioRef} />
+}
+
 const Game: React.FunctionComponent<{
   comms: Comms
   uiState: UIGameState
@@ -254,39 +278,37 @@ const Game: React.FunctionComponent<{
     return () => clearTimeout(h)
   }, [JSON.stringify(error)])
 
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const previousPrompt = usePrevious(prompt, null)
-
-  useEffect(() => {
-    if (
-      previousPrompt !== null &&
-      previousPrompt.type === 'NoPrompt' &&
-      prompt.type !== 'NoPrompt'
-    ) {
-      if (document.hidden && audioRef.current !== null) {
-        audioRef.current.play()
-      }
-    }
-  }, [JSON.stringify(prompt)])
+  const [playSounds, setPlaySounds] = useState(true)
 
   return (
     <div className="flex ma2">
-      <audio src="/beep.mp3" ref={audioRef} />
       <div>
         <EventLog eventLog={uiState.eventLog} />
-        <div className="pa1">
-          <DeckDisplay text="Action Deck" value={uiState.actionDeckSize} />
-          <DeckDisplay
-            text="Action Discard"
-            value={uiState.actionDiscardDeckSize}
-          />
-          <DeckDisplay text="Ship Deck" value={uiState.shipDeckSize} />
-          <DeckDisplay
-            text="Ship Discard"
-            value={uiState.shipDiscardDeckSize}
-          />
+        <div className="flex">
+          <div className="pa1">
+            <DeckDisplay text="Action Deck" value={uiState.actionDeckSize} />
+            <DeckDisplay
+              text="Action Discard"
+              value={uiState.actionDiscardDeckSize}
+            />
+            <DeckDisplay text="Ship Deck" value={uiState.shipDeckSize} />
+            <DeckDisplay
+              text="Ship Discard"
+              value={uiState.shipDiscardDeckSize}
+            />
+          </div>
+          <div className="pa1">
+            <TurnAlert prompt={prompt} playSounds={playSounds} />
+            <input
+              type="checkbox"
+              checked={playSounds}
+              onChange={(e) => setPlaySounds(e.target.checked)}
+            />
+            <span className="pa1">Sounds</span>
+          </div>
         </div>
       </div>
+
       <div className="ml2">
         <Board
           board={uiState.playerState}
@@ -460,7 +482,9 @@ const App: React.FunctionComponent = () => {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          setPlayerInfo({ ...playerInfo, confirmed: true })
+          if (playerInfo.playerId.length > 0) {
+            setPlayerInfo({ ...playerInfo, confirmed: true })
+          }
         }}
       >
         <input

@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { applyAction } from '../applyChooseCardAction'
+import { applyAction } from '../actions'
 import { commandShipCards } from '../cards'
 import { gameUiState, newGameState } from '../game'
 import { ActionCard } from '../shared-types'
@@ -56,7 +56,7 @@ function gameState(): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[1],
+      shipType: commandShipCards[2],
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,

@@ -234,12 +234,27 @@ export function resolveBlastAttack(
   }
 }
 
+export function squadronDamage(
+  state: GameState,
+  targetShip: Ship | CommandShip,
+  squadron: ActionCard
+): number {
+  if (
+    owningPlayer(state.playerState, targetShip)[1].commandShip.shipType
+      .commandType === 'TheGlorp' &&
+    targetShip.type === 'Ship'
+  ) {
+    return squadron.damage / 2
+  }
+  return squadron.damage
+}
+
 export function resolveSquadronAttack(
   state: GameState,
   targetShip: Ship | CommandShip,
   squadron: ActionCard
 ): boolean {
-  targetShip.temporaryDamage += squadron.damage
+  targetShip.temporaryDamage += squadronDamage(state, targetShip, squadron)
 
   if (isDead(targetShip)) {
     return destroyShip(state, targetShip)

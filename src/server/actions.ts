@@ -41,6 +41,7 @@ import {
   playersThatCanRespondToActions,
   alivePlayerByTurnOffset,
   hasCommandShipAbilityActivations,
+  squadronDamage,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -853,7 +854,7 @@ function applyChooseShipAction(
             squadron.name
           } targeting ${p(targetPlayerId)}'s ${
             designatedShip.shipType.name
-          }, dealing ${squadron.damage} damage.`
+          }, dealing ${squadronDamage(state, designatedShip, squadron)} damage.`
         )
 
         if (

@@ -12,6 +12,8 @@ import {
   LOCATIONS,
   ActionError,
   ActivateCommandShipAbilityAction,
+  CommandShipType,
+  PlayerId,
 } from './shared-types'
 import { assert, partition, stringList, warn } from './utils'
 import {
@@ -38,7 +40,7 @@ import {
   resolveActionCard,
   playersThatCanRespondToActions,
   alivePlayerByTurnOffset,
-  canUseCommandShipAbility,
+  hasCommandShipAbilityActivations,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -46,10 +48,11 @@ import {
   MAX_ZONE_SHIPS,
 } from './constants'
 import { bold, event, p } from './events'
+import { executeAbility } from './abilities'
 
 function applyChooseCardAction(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   action: ChooseCardAction
 ): ActionError | undefined {
   if (state.turnState.type === 'ChooseStartingShipsState') {
@@ -482,7 +485,7 @@ function applyChooseCardAction(
 
 function applyChooseShipAction(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   action: ChooseShipAction
 ): ActionError | undefined {
   if (state.activePlayer !== playerId) {
@@ -891,7 +894,7 @@ function applyChooseShipAction(
 
 function applyPassAction(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   action: PassAction
 ): ActionError | undefined {
   const activePlayerState = state.getPlayerState(state.activePlayer)
@@ -1069,7 +1072,7 @@ function applyPassAction(
 
 function applyChooseZoneAction(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   action: ChooseZoneAction
 ): ActionError | undefined {
   if (state.turnState.type === 'PlaceStartingShipsState') {
@@ -1266,7 +1269,7 @@ function applyChooseZoneAction(
 
 function applyCancelAction(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   action: CancelAction
 ): ActionError | undefined {
   if (state.activePlayer !== playerId) {
@@ -1308,85 +1311,26 @@ function applyCancelAction(
 
 function applyActivateCommandShipAbilityAction(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   action: ActivateCommandShipAbilityAction
 ): ActionError | undefined {
   const playerState = state.getPlayerState(playerId)
 
-  if (!canUseCommandShipAbility(playerState)) {
+  if (!hasCommandShipAbilityActivations(playerState)) {
     warn(`${playerId} can't use their command ship ability.`)
     return
   }
 
-  playerState.commandShip.remainingAbilityActivations! -= 1
-
-  if (
-    state.turnState.type === 'PlayBlastRespondState' &&
-    playerState.commandShip.shipType.commandType === 'CraniumConsortium'
-  ) {
-    // TODO
-    return
-  }
-
-  if (state.activePlayer !== playerId) {
-    warn('A player acted that was not the active player.')
-    return
-  }
-  const activePlayerState = state.getPlayerState(state.activePlayer)
-
-  if (
-    state.turnState.type === 'DiscardTurnState' &&
-    playerState.commandShip.shipType.commandType === 'OverseersOfKalgon'
-  ) {
-  }
-
-  if (
-    state.turnState.type === 'DiscardTurnState' &&
-    playerState.commandShip.shipType.commandType === 'BrotherhoodOfPeace'
-  ) {
-  }
-
-  if (
-    state.turnState.type === 'ReinforceTurnState' &&
-    playerState.commandShip.shipType.commandType === 'TriBot'
-  ) {
-  }
-
-  if (
-    state.turnState.type === 'ManeuverTurnState' &&
-    playerState.commandShip.shipType.commandType === 'Freep'
-  ) {
-  }
-
-  if (
-    state.turnState.type === 'AttackTurnState' &&
-    state.directHitStateMachine?.type === 'BlastPlayedDirectHitState' &&
-    playerState.commandShip.shipType.commandType === 'AlphaMazons'
-  ) {
-    if (
-      activePlayerState.commandShip.remainingAbilityActivations !== undefined
-    ) {
-      activePlayerState.commandShip.remainingAbilityActivations -= 1
-    }
-    state.pushEventLog(
-      event`${state.activePlayer} activates ${activePlayerState.commandShip.shipType.name}!`
-    )
-    state.directHitStateMachine = {
-      type: 'DirectHitPlayedDirectHitState',
-      firingShip: state.directHitStateMachine.firingShip,
-      targetShip: state.directHitStateMachine.targetShip,
-      canBlastAgain: false,
-    }
-  }
-
-  warn(
-    `Don't know how to activate ${playerState.commandShip.shipType.commandType}'s ability in state ${state.turnState.type}.`
+  state.pushEventLog(
+    event`${state.activePlayer} activates ${playerState.commandShip.shipType.name}!`
   )
+  playerState.commandShip.remainingAbilityActivations! -= 1
+  executeAbility(state, playerId)
 }
 
 export function applyAction(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   action: Action
 ): ActionError | undefined {
   switch (action.type) {

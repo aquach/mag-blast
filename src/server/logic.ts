@@ -64,10 +64,23 @@ export function discardActivePlayerCards(
   discardedCards.forEach((c) => state.actionDiscardDeck.push(c))
 }
 
-export function sufficientForReinforcement(cards: ActionCard[]): boolean {
+export function resources(cards: ActionCard[]): {
+  numStars: number
+  numCircles: number
+  numDiamonds: number
+} {
   const numStars = _.sum(cards.map((c) => c.resources.stars))
   const numCircles = _.sum(cards.map((c) => c.resources.circles))
   const numDiamonds = _.sum(cards.map((c) => c.resources.diamonds))
+  return {
+    numDiamonds,
+    numCircles,
+    numStars,
+  }
+}
+
+export function sufficientForReinforcement(cards: ActionCard[]): boolean {
+  const { numStars, numCircles, numDiamonds } = resources(cards)
 
   return (
     numStars === 3 ||
@@ -483,7 +496,7 @@ export function alivePlayers(state: GameState): PlayerId[] {
 
 export function alivePlayerByTurnOffset(
   state: GameState,
-  playerId: string,
+  playerId: PlayerId,
   offset: number
 ): [number, PlayerId] {
   const players = alivePlayers(state)
@@ -746,7 +759,9 @@ export function playersThatCanRespondToActions(
   )
 }
 
-export function canUseCommandShipAbility(playerState: PlayerState): boolean {
+export function hasCommandShipAbilityActivations(
+  playerState: PlayerState
+): boolean {
   if (playerState.commandShip.remainingAbilityActivations === undefined) {
     return false
   }

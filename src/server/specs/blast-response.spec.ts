@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { applyAction } from '../actions'
+import { applyAction } from '../applyChooseCardAction'
 import { commandShipCards } from '../cards'
 import { gameUiState, newGameState } from '../game'
 import { GameState } from '../types'

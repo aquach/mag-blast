@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import { canExecuteAbility } from './abilities'
 import { actionCards, commandShipCards, shipCards } from './cards'
 import { NUM_STARTING_SHIP_CARDS } from './constants'
 import { bold, event, parseEventLog, RawEventLog } from './events'
@@ -17,6 +18,7 @@ import {
   canRespondToSquadron,
   canRespondToAnything,
   alivePlayers,
+  hasCommandShipAbilityActivations,
 } from './logic'
 import {
   ChooseShipPrompt,
@@ -120,7 +122,7 @@ export function newGameState(
 
     gameSettings,
 
-    getPlayerState(playerId: string): PlayerState {
+    getPlayerState(playerId: PlayerId): PlayerState {
       const playerState = this.playerState.get(playerId)
       assert(playerState !== undefined, `Player ID ${playerId} not found.`)
       return playerState
@@ -500,8 +502,20 @@ export function commandShipAbilityPrompt(
   state: GameState,
   playerId: PlayerId
 ): CommandShipAbilityPrompt | undefined {
-  // TODO
-  return undefined
+  const playerState = state.getPlayerState(playerId)
+
+  if (!hasCommandShipAbilityActivations(playerState)) {
+    return undefined
+  }
+
+  if (!canExecuteAbility(state, playerId)) {
+    return undefined
+  }
+
+  return {
+    type: 'CommandShipAbilityPrompt',
+    text: 'Activate Command Ability',
+  }
 }
 
 export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {

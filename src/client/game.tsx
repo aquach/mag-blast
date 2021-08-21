@@ -37,7 +37,7 @@ interface Comms {
   startGame(): void
 }
 
-function useComms(playerId: string): Comms {
+function useComms(playerId: PlayerId): Comms {
   const [comms, setComms] = useState<Comms>({
     uiState: null,
     performAction() {},
@@ -298,6 +298,8 @@ const Game: React.FunctionComponent<{
 
   const canCancel = prompt.type === 'ChooseShipPrompt' && prompt.canCancel
 
+  const canActivateAbility = uiState.commandShipAbilityPrompt !== undefined
+
   const error = uiState.actionError
 
   const [showError, setShowError] = useState(false)
@@ -395,6 +397,19 @@ const Game: React.FunctionComponent<{
           </button>
         ) : null}
 
+        {canActivateAbility ? (
+          <button
+            className="ma1 pa1 f5"
+            onClick={() =>
+              comms.performAction({
+                type: 'ActivateCommandShipAbilityAction',
+              })
+            }
+          >
+            Activate Command Ship Ability ✨
+          </button>
+        ) : null}
+
         <Hand
           hand={uiState.playerHand}
           prompt={prompt}
@@ -462,7 +477,7 @@ const Lobby: React.FunctionComponent<{
   )
 }
 
-const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
+const ConnectedApp: React.FunctionComponent<{ playerId: PlayerId }> = ({
   playerId,
 }) => {
   const comms = useComms(playerId)
@@ -501,7 +516,7 @@ const ConnectedApp: React.FunctionComponent<{ playerId: string }> = ({
 const App: React.FunctionComponent = () => {
   const [playerInfo, setPlayerInfo] = useState<{
     confirmed: boolean
-    playerId: string
+    playerId: PlayerId
   }>({ confirmed: false, playerId: '' })
 
   if (playerInfo.confirmed) {

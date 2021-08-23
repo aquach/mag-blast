@@ -90,6 +90,7 @@ export interface UIPlayerState {
   isAlive: boolean
   hasAsteroids: boolean
   hasMinefield: boolean
+  cardsInHand: number
 }
 
 export interface UIShip {

@@ -147,8 +147,9 @@ export const CommandShip: React.FunctionComponent<{
   prompt: Prompt
   performAction: (a: Action) => void
   playerId: PlayerId
+  cardsInHand?: number
   expanded?: boolean
-}> = ({ ship, prompt, performAction, playerId, expanded }) => {
+}> = ({ ship, prompt, performAction, playerId, cardsInHand, expanded }) => {
   const clickable =
     prompt.type === 'ChooseShipPrompt' &&
     prompt.allowableCommandShips.includes(playerId)
@@ -177,6 +178,11 @@ export const CommandShip: React.FunctionComponent<{
       <p className="f7 tc b">
         {commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
       </p>
+      {expanded && cardsInHand !== undefined && (
+        <p className="f8 tc">
+          {cardsInHand} card{cardsInHand === 1 ? '' : 's'} in hand
+        </p>
+      )}
       {expanded && <p className="f8 tc">{ship.shipType.text}</p>}
       {ship.remainingAbilityActivations !== undefined && (
         <div
@@ -221,6 +227,7 @@ export const CommandShip: React.FunctionComponent<{
             expanded
             performAction={_.noop}
             playerId={playerId}
+            cardsInHand={cardsInHand}
           />
         </ReactTooltip>
       )}
@@ -339,6 +346,7 @@ const BoardPlayer: React.FunctionComponent<{
           prompt={prompt}
           performAction={performAction}
           playerId={playerId}
+          cardsInHand={playerState.cardsInHand}
         />
         <ShipZone
           clientPlayerId={clientPlayerId}

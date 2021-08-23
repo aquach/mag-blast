@@ -619,6 +619,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
           playerState.asteroidsUntilBeginningOfPlayerTurn !== undefined,
         hasMinefield:
           playerState.minefieldUntilBeginningOfPlayerTurn !== undefined,
+        cardsInHand: playerState.hand.length,
       })).entries()
     ),
     actionDeckSize: state.actionDeck.length,

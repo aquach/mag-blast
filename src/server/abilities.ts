@@ -46,10 +46,24 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
   },
   {
     commandType: 'Freep',
-    activate(s, playerId) {
-      return (
-        s.turnState.type === 'ManeuverTurnState' && s.activePlayer === playerId
-      )
+    activate(s, playerId, dryRun) {
+      if (
+        s.turnState.type === 'ManeuverTurnState' &&
+        s.activePlayer === playerId
+      ) {
+        if (dryRun) {
+          return true
+        }
+
+        s.turnState = {
+          type: 'FreepChoosePlayerToStealCardsState',
+          originalState: s.turnState,
+        }
+
+        return true
+      }
+
+      return false
     },
   },
   {

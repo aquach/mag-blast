@@ -367,6 +367,17 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         })
       }
 
+      case 'FreepChoosePlayerToStealCardsState': {
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a player to steal cards from.',
+          pass: undefined,
+          canCancel: false,
+          allowableShipIndices: [],
+          allowableCommandShips: alivePlayers(state),
+        })
+      }
+
       case 'ManeuverTurnState': {
         return ascribe<ChooseShipPrompt>({
           type: 'ChooseShipPrompt',

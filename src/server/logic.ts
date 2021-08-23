@@ -412,18 +412,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
         break
 
       case 'BridgeHitCard':
-        state.pushEventLog(
-          event`${p(state.activePlayer)} takes three cards at random from ${p(
-            targetPlayer
-          )}'s hand.`
-        )
-        const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
-        stealCards.forEach((c) => {
-          activePlayerState.hand.push(c)
-        })
-        targetPlayerState.hand = targetPlayerState.hand.filter(
-          (c) => !stealCards.includes(c)
-        )
+        stealThreeCardsAndGiveToActivePlayer(state, targetPlayer)
         break
 
       default:
@@ -444,6 +433,26 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
   }
 
   return false
+}
+
+export function stealThreeCardsAndGiveToActivePlayer(
+  state: GameState,
+  targetPlayer: PlayerId
+): void {
+  const activePlayerState = state.getPlayerState(state.activePlayer)
+  const targetPlayerState = state.getPlayerState(targetPlayer)
+  state.pushEventLog(
+    event`${p(state.activePlayer)} takes three cards at random from ${p(
+      targetPlayer
+    )}'s hand.`
+  )
+  const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
+  stealCards.forEach((c) => {
+    activePlayerState.hand.push(c)
+  })
+  targetPlayerState.hand = targetPlayerState.hand.filter(
+    (c) => !stealCards.includes(c)
+  )
 }
 
 export function canRespondToBlast(c: ActionCard): boolean {

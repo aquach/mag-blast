@@ -1,14 +1,14 @@
 import { GameState } from '../types'
 
 import { Action, ActionError, PlayerId } from '../shared-types'
-import { applyChooseCardAction } from './applyChooseCardAction'
-import { applyChooseShipAction } from './applyChooseShipAction'
-import { applyPassAction } from './applyPassAction'
-import { applyChooseZoneAction } from './applyChooseZoneAction'
-import { applyCancelAction } from './applyCancelAction'
-import { applyActivateCommandShipAbilityAction } from './applyActivateCommandShipAbilityAction'
-import { applyActivateMinesweeperAbilityAction } from './applyActivateMinesweeperAbilityAction'
-import { applyChooseAction } from './applyChooseAction'
+import { applyChooseCardAction } from './choose-card-action'
+import { applyChooseShipAction } from './choose-ship-action'
+import { applyPassAction } from './pass-action'
+import { applyChooseZoneAction } from './choose-zone-action'
+import { applyCancelAction } from './cancel-action'
+import { applyActivateCommandShipAbilityAction } from './activate-command-ship-ability-action'
+import { applyActivateMinesweeperAbilityAction } from './activate-minesweeper-ability-action'
+import { applyChooseAction } from './choose-action'
 
 export function applyAction(
   state: GameState,

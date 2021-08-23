@@ -211,6 +211,11 @@ export interface PlayActionRespondState {
   counterAction(): boolean
 }
 
+export interface FreepChoosePlayerToStealCardsState {
+  type: 'FreepChoosePlayerToStealCardsState'
+  originalState: ManeuverTurnState
+}
+
 export interface EndGameState {
   type: 'EndGameState'
 }
@@ -240,4 +245,5 @@ export type TurnState =
   | PlaySquadronChooseTargetShipState
   | PlaySquadronRespondState
   | PlayActionRespondState
+  | FreepChoosePlayerToStealCardsState
   | EndGameState

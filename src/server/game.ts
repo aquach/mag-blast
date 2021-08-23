@@ -494,7 +494,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         })
       }
 
-      case 'PlayBlastChooseFiringShipState':
+      case 'PlayBlastChooseFiringShipState': {
         const turnState = state.turnState
         return ascribe<ChooseShipPrompt>({
           type: 'ChooseShipPrompt',
@@ -512,6 +512,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           pass: undefined,
           canCancel: true,
         })
+      }
 
       case 'PlayBlastChooseTargetShipState': {
         const firingShip = state.turnState.firingShip
@@ -522,6 +523,43 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           allowableCommandShips: blastableCommandShipPlayers(state, firingShip),
           pass: undefined,
           canCancel: true,
+        })
+      }
+
+      case 'BrotherhoodChooseShipToTransferFromState': {
+        const turnState = state.turnState
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a ship to take a blast from.',
+          allowableShipIndices: filterIndices(
+            playerState.ships,
+            (s) => s.damage > 0
+          ).map((i) => ascribe<[string, number]>([playerId, i])),
+          allowableCommandShips: [],
+          pass: undefined,
+          canCancel: false,
+        })
+      }
+
+      case 'BrotherhoodChooseShipToTransferToState': {
+        const fromShip = state.turnState.fromShip
+        const [fromPlayerId, _] = owningPlayer(state.playerState, fromShip)
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a ship to transfer the blast to.',
+          allowableShipIndices: Array.from(state.playerState.entries()).flatMap(
+            ([targetPlayerId, targetPlayerState]) => {
+              if (targetPlayerId === fromPlayerId) {
+                return []
+              }
+              return filterIndices(targetPlayerState.ships, () => true).map<
+                [PlayerId, number]
+              >((shipIndex) => [targetPlayerId, shipIndex])
+            }
+          ),
+          allowableCommandShips: [],
+          pass: undefined,
+          canCancel: false,
         })
       }
 

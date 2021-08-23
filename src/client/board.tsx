@@ -176,7 +176,9 @@ export const CommandShip: React.FunctionComponent<{
       data-for={ship.shipType.commandType}
     >
       <p className="f7 tc b">
-        {commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
+        {expanded
+          ? ship.shipType.name
+          : commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
       </p>
       {expanded && cardsInHand !== undefined && (
         <p className="f8 tc">

@@ -221,6 +221,15 @@ export interface CraniumConsortiumChooseResourcesToDiscardState {
   respondingPlayer: PlayerId
 }
 
+export interface BrotherhoodChooseShipToTransferFromState {
+  type: 'BrotherhoodChooseShipToTransferFromState'
+}
+
+export interface BrotherhoodChooseShipToTransferToState {
+  type: 'BrotherhoodChooseShipToTransferToState'
+  fromShip: Ship
+}
+
 export interface EndGameState {
   type: 'EndGameState'
 }
@@ -252,4 +261,6 @@ export type TurnState =
   | PlayActionRespondState
   | FreepChoosePlayerToStealCardsState
   | CraniumConsortiumChooseResourcesToDiscardState
+  | BrotherhoodChooseShipToTransferFromState
+  | BrotherhoodChooseShipToTransferToState
   | EndGameState

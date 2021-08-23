@@ -351,9 +351,9 @@ function handleCraniumConsortiumChooseResourcesToDiscardState(
     discardPlayerHandCards(state, respondingPlayer, discardIndices)
 
     state.pushEventLog(
-      event`${p(state.activePlayer)} discards ${
-        discardIndices.length
-      } cards to cancel the incoming blast!`
+      event`${p(state.activePlayer)} discards ${discardIndices.length} card${
+        discardIndices.length === 1 ? '' : 's'
+      } to cancel the incoming blast!`
     )
 
     state.turnState = {

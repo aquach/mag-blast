@@ -18,6 +18,8 @@ import {
   minesweeperTargets,
   activableMinesweepers,
   stealThreeCardsAndGiveToActivePlayer,
+  destroyShip,
+  isDead,
 } from '../logic'
 import { event, p } from '../events'
 
@@ -459,6 +461,94 @@ export function applyChooseShipAction(
               type: 'AttackTurnState',
             }
           }
+        }
+      }
+      break
+
+    case 'BrotherhoodChooseShipToTransferFromState':
+      {
+        if (!Array.isArray(action.choice)) {
+          warn('choice should be an array for choosing firing ship.')
+          break
+        }
+
+        if (action.choice[0] !== state.activePlayer) {
+          warn(
+            `Player ${state.activePlayer} chose a firing ship that belongs to ${action.choice[0]}.`
+          )
+          break
+        }
+
+        if (
+          action.choice[1] < 0 ||
+          action.choice[1] >= activePlayerState.ships.length
+        ) {
+          warn(
+            `Player ${state.activePlayer} chose invalid ship index ${action.choice[1]}.`
+          )
+          break
+        }
+
+        const designatedShip = activePlayerState.ships[action.choice[1]]
+
+        if (designatedShip.damage <= 0) {
+          warn(`Player ${state.activePlayer} chose a ship with no damage.`)
+          break
+        }
+
+        state.turnState = {
+          type: 'BrotherhoodChooseShipToTransferToState',
+          fromShip: designatedShip,
+        }
+      }
+      break
+
+    case 'BrotherhoodChooseShipToTransferToState':
+      {
+        if (!Array.isArray(action.choice)) {
+          warn('choice should be an array for choosing firing ship.')
+          break
+        }
+
+        const targetPlayerId = action.choice[0]
+        const targetPlayerState = state.getPlayerState(targetPlayerId)
+
+        const toShip = targetPlayerState.ships[action.choice[1]]
+
+        if (toShip === undefined) {
+          warn('Player chose an invalid ship.')
+          break
+        }
+
+        const fromShip = state.turnState.fromShip
+        const healedDamage = _.max(fromShip.blastDamageHistory) ?? 0
+
+        state.pushEventLog(
+          event`${p(
+            state.activePlayer
+          )} transfers ${healedDamage} damage from ${
+            fromShip.shipType.name
+          } to ${p(targetPlayerId)}'s ${toShip.shipType.name}.`
+        )
+
+        fromShip.blastDamageHistory.splice(
+          fromShip.blastDamageHistory.indexOf(healedDamage),
+          1
+        )
+        fromShip.damage -= healedDamage
+
+        toShip.damage += healedDamage
+
+        if (toShip.type === 'Ship') {
+          toShip.blastDamageHistory.push(healedDamage)
+        }
+
+        if (isDead(toShip)) {
+          destroyShip(state, toShip) // Can't end the game; only fleet ships allowed.
+        }
+
+        state.turnState = {
+          type: 'DiscardTurnState',
         }
       }
       break

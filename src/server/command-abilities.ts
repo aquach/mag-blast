@@ -49,10 +49,23 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
   },
   {
     commandType: 'BrotherhoodOfPeace',
-    activate(s, playerId) {
-      return (
-        s.turnState.type === 'DiscardTurnState' && s.activePlayer === playerId
-      )
+    activate(s, playerId, dryRun) {
+      if (
+        s.turnState.type === 'DiscardTurnState' &&
+        s.activePlayer === playerId
+      ) {
+        if (dryRun) {
+          return true
+        }
+
+        s.turnState = {
+          type: 'BrotherhoodChooseShipToTransferFromState',
+        }
+
+        return true
+      }
+
+      return false
     },
   },
   {

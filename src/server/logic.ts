@@ -10,6 +10,7 @@ import {
 } from './shared-types'
 import { MAX_ZONE_SHIPS } from './constants'
 import { event, p } from './events'
+import { canExecuteAbility } from './command-abilities'
 
 export function drawActivePlayerCards(
   state: GameState,
@@ -51,16 +52,17 @@ export function drawShipCard(state: GameState): ShipCard {
   return topCard
 }
 
-export function discardActivePlayerCards(
+export function discardPlayerHandCards(
   state: GameState,
+  playerId: PlayerId,
   cardIndices: number[]
 ): void {
-  const activePlayerState = state.getPlayerState(state.activePlayer)
+  const playerState = state.getPlayerState(playerId)
 
-  const [discardedCards, newHand] = partition(activePlayerState.hand, (c, i) =>
+  const [discardedCards, newHand] = partition(playerState.hand, (c, i) =>
     cardIndices.includes(i)
   )
-  activePlayerState.hand = newHand
+  playerState.hand = newHand
   discardedCards.forEach((c) => state.actionDiscardDeck.push(c))
 }
 
@@ -455,8 +457,20 @@ export function stealThreeCardsAndGiveToActivePlayer(
   )
 }
 
-export function canRespondToBlast(c: ActionCard): boolean {
-  return c.canRespondToBlast
+export function canRespondToBlast(
+  state: GameState,
+  playerId: PlayerId
+): boolean {
+  const playerState = state.getPlayerState(playerId)
+  return (
+    playerState.hand.some((c) => c.canRespondToBlast) ||
+    (playerState.commandShip.shipType.commandType === 'CraniumConsortium' &&
+      sufficientForCraniumCounter(playerState.hand))
+  )
+}
+
+export function sufficientForCraniumCounter(cards: ActionCard[]): boolean {
+  return _.sum(Object.values(resources(cards))) >= 2
 }
 
 export function canRespondToAnything(c: ActionCard): boolean {
@@ -535,7 +549,7 @@ export function alivePlayerByTurnOffset(
   return [otherIndex, players[otherIndex]]
 }
 
-export function canPlayCard(
+export function canPlayCardDuringAttackPhase(
   state: GameState,
   playerState: PlayerState,
   card: ActionCard

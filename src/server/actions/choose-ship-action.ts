@@ -432,7 +432,7 @@ export function applyChooseShipAction(
 
         turnState.firingShip.hasFiredThisTurn = true
 
-        if (targetPlayerState.hand.some(canRespondToBlast)) {
+        if (canRespondToBlast(state, targetPlayerId)) {
           state.turnState = {
             type: 'PlayBlastRespondState',
             blast: turnState.blast,

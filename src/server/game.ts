@@ -1,10 +1,10 @@
 import * as _ from 'lodash'
-import { canExecuteAbility } from './abilities'
+import { canExecuteAbility } from './command-abilities'
 import { actionCards, commandShipCards, shipCards } from './cards'
 import { NUM_STARTING_SHIP_CARDS } from './constants'
 import { bold, event, parseEventLog, RawEventLog } from './events'
 import {
-  canPlayCard,
+  canPlayCardDuringAttackPhase,
   movableZones,
   nonfullZones,
   owningPlayer,
@@ -219,8 +219,9 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
       (targetShip.type === 'Ship' && playerState.ships.includes(targetShip)) ||
       playerState.commandShip === targetShip
     ) {
-      const playableCardIndices = filterIndices(playerState.hand, (c) =>
-        canRespondToBlast(c)
+      const playableCardIndices = filterIndices(
+        playerState.hand,
+        (c) => c.canRespondToBlast
       )
 
       return ascribe<ChooseCardPrompt>({
@@ -233,6 +234,27 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         },
       })
     }
+  }
+
+  if (
+    state.turnState.type === 'CraniumConsortiumChooseResourcesToDiscardState' &&
+    state.turnState.respondingPlayer === playerId
+  ) {
+    return ascribe<ChooseCardPrompt>({
+      type: 'ChooseCardPrompt',
+      selectableCardIndices: filterIndices(
+        playerState.hand,
+        (c) =>
+          c.resources.diamonds > 0 ||
+          c.resources.circles > 0 ||
+          c.resources.stars > 0
+      ),
+      text: 'Choose two resources to discard to cancel the incoming blast.',
+      pass: undefined,
+      multiselect: {
+        actionText: 'Cancel Enemy Blast 🛑',
+      },
+    })
   }
 
   if (state.turnState.type === 'PlaySquadronRespondState') {
@@ -410,7 +432,7 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
 
       case 'AttackTurnState': {
         const playableCardIndices = filterIndices(playerState.hand, (c) =>
-          canPlayCard(state, playerState, c)
+          canPlayCardDuringAttackPhase(state, playerState, c)
         )
 
         return ascribe<ChooseCardPrompt>({
@@ -529,6 +551,12 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           text: `Waiting for ${
             owningPlayer(state.playerState, state.turnState.targetShip)[0]
           } to respond...`,
+        })
+
+      case 'CraniumConsortiumChooseResourcesToDiscardState':
+        return ascribe<NoPrompt>({
+          type: 'NoPrompt',
+          text: `Waiting for ${state.turnState.respondingPlayer} to respond...`,
         })
 
       case 'PlayActionRespondState':

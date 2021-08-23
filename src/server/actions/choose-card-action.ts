@@ -3,14 +3,16 @@ import { GameState } from '../types'
 import { ChooseCardAction, ActionError, PlayerId } from '../shared-types'
 import { assert, partition, warn } from '../utils'
 import {
-  canPlayCard,
-  discardActivePlayerCards,
+  canPlayCardDuringAttackPhase,
+  discardPlayerHandCards,
   drawActivePlayerCards,
   drawShipCard,
   fullOnShips,
   sufficientForReinforcement,
   resolveActionCard,
   playersThatCanRespondToActions,
+  resources,
+  sufficientForCraniumCounter,
 } from '../logic'
 import { NUM_STARTING_SHIPS, DRAW_UP_TO_HAND_SIZE } from '../constants'
 import { event, p } from '../events'
@@ -44,7 +46,6 @@ export function applyChooseCardAction(
         message: `Please choose exactly ${NUM_STARTING_SHIPS} ships.`,
         time: new Date().getTime(),
       }
-      return
     }
 
     const [chosenCards, notChosenCards] = partition(dealtShipCards, (v, i) =>
@@ -295,6 +296,48 @@ export function applyChooseCardAction(
     return
   }
 
+  if (
+    state.turnState.type === 'CraniumConsortiumChooseResourcesToDiscardState'
+  ) {
+    if (!Array.isArray(action.handIndex)) {
+      warn('handIndex should be an array for reinforcing.')
+      return
+    }
+    const discardIndices = action.handIndex
+
+    const respondingPlayer = state.turnState.respondingPlayer
+    const respondingPlayerState = state.getPlayerState(respondingPlayer)
+
+    if (
+      sufficientForCraniumCounter(
+        discardIndices.map((i) => respondingPlayerState.hand[i])
+      )
+    ) {
+      discardPlayerHandCards(state, respondingPlayer, discardIndices)
+
+      state.pushEventLog(
+        event`${p(state.activePlayer)} discards ${
+          discardIndices.length
+        } cards to cancel the incoming blast!`
+      )
+
+      state.turnState = {
+        type: 'AttackTurnState',
+      }
+
+      return
+    } else {
+      return {
+        type: 'ActionError',
+        message:
+          "You didn't select enough resources (two of any kind required).",
+        time: new Date().getTime(),
+      }
+    }
+
+    const cantGetHere: never = null as never
+  }
+
   if (state.activePlayer !== playerId) {
     warn('A player acted that was not the active player.')
     return
@@ -311,7 +354,7 @@ export function applyChooseCardAction(
       }
 
       const discardIndices = action.handIndex
-      discardActivePlayerCards(state, discardIndices)
+      discardPlayerHandCards(state, state.activePlayer, discardIndices)
 
       if (discardIndices.length > 0) {
         state.pushEventLog(
@@ -340,36 +383,38 @@ export function applyChooseCardAction(
       break
 
     case 'ReinforceTurnState':
-      if (!Array.isArray(action.handIndex)) {
-        warn('handIndex should be an array for reinforcing.')
-        break
-      }
-      const reinforceIndices = action.handIndex
-
-      if (
-        sufficientForReinforcement(
-          reinforceIndices.map((i) => activePlayerState.hand[i])
-        )
-      ) {
-        discardActivePlayerCards(state, reinforceIndices)
-
-        state.pushEventLog(
-          event`${p(state.activePlayer)} uses ${
-            reinforceIndices.length
-          } cards to draw reinforcements.`
-        )
-
-        const newShip = drawShipCard(state)
-
-        state.turnState = {
-          type: 'ReinforcePlaceShipState',
-          newShip,
+      {
+        if (!Array.isArray(action.handIndex)) {
+          warn('handIndex should be an array for reinforcing.')
+          break
         }
-      } else {
-        return {
-          type: 'ActionError',
-          message: "You didn't select enough resources to reinforce.",
-          time: new Date().getTime(),
+        const reinforceIndices = action.handIndex
+
+        if (
+          sufficientForReinforcement(
+            reinforceIndices.map((i) => activePlayerState.hand[i])
+          )
+        ) {
+          discardPlayerHandCards(state, state.activePlayer, reinforceIndices)
+
+          state.pushEventLog(
+            event`${p(state.activePlayer)} discards ${
+              reinforceIndices.length
+            } cards to draw reinforcements.`
+          )
+
+          const newShip = drawShipCard(state)
+
+          state.turnState = {
+            type: 'ReinforcePlaceShipState',
+            newShip,
+          }
+        } else {
+          return {
+            type: 'ActionError',
+            message: "You didn't select enough resources to reinforce.",
+            time: new Date().getTime(),
+          }
         }
       }
       break
@@ -386,7 +431,7 @@ export function applyChooseCardAction(
         return
       }
 
-      if (!canPlayCard(state, activePlayerState, card)) {
+      if (!canPlayCardDuringAttackPhase(state, activePlayerState, card)) {
         warn(`${state.activePlayer} current can't play ${card.name}.`)
         return
       }

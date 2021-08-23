@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import { warn } from 'console'
-import { owningPlayer, resources } from './logic'
+import { owningPlayer, resources, sufficientForCraniumCounter } from './logic'
 import { CommandShipType, PlayerId } from './shared-types'
 import { GameState } from './types'
 
@@ -12,12 +12,31 @@ interface ActivatedCommandShipAbility {
 const ABILITIES: ActivatedCommandShipAbility[] = [
   {
     commandType: 'CraniumConsortium',
-    activate(s, playerId) {
-      return (
-        s.turnState.type === 'PlayBlastRespondState' &&
-        owningPlayer(s.playerState, s.turnState.targetShip)[0] === playerId &&
-        _.sum(Object.values(resources(s.getPlayerState(playerId).hand))) >= 2
-      )
+    activate(s, playerId, dryRun) {
+      if (s.turnState.type === 'PlayBlastRespondState') {
+        const [respondingPlayer, respondingPlayerState] = owningPlayer(
+          s.playerState,
+          s.turnState.targetShip
+        )
+
+        if (
+          respondingPlayer === playerId &&
+          sufficientForCraniumCounter(respondingPlayerState.hand)
+        ) {
+          if (dryRun) {
+            return true
+          }
+
+          s.turnState = {
+            type: 'CraniumConsortiumChooseResourcesToDiscardState',
+            respondingPlayer,
+          }
+
+          return true
+        }
+      }
+
+      return false
     },
   },
   {

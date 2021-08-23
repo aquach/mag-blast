@@ -216,6 +216,11 @@ export interface FreepChoosePlayerToStealCardsState {
   originalState: ManeuverTurnState
 }
 
+export interface CraniumConsortiumChooseResourcesToDiscardState {
+  type: 'CraniumConsortiumChooseResourcesToDiscardState'
+  respondingPlayer: PlayerId
+}
+
 export interface EndGameState {
   type: 'EndGameState'
 }
@@ -246,4 +251,5 @@ export type TurnState =
   | PlaySquadronRespondState
   | PlayActionRespondState
   | FreepChoosePlayerToStealCardsState
+  | CraniumConsortiumChooseResourcesToDiscardState
   | EndGameState

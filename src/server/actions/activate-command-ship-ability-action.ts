@@ -7,7 +7,7 @@ import {
 import { warn } from '../utils'
 import { hasCommandShipAbilityActivations } from '../logic'
 import { event } from '../events'
-import { executeAbility } from '../abilities'
+import { executeAbility } from '../command-abilities'
 
 export function applyActivateCommandShipAbilityAction(
   state: GameState,

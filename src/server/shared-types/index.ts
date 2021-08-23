@@ -8,7 +8,11 @@ import { ActionError } from './actions'
 import { PlayerId } from './base'
 import { ActionCard, UIPlayerState } from './cards'
 import { EventLogEntry } from './events'
-import { CommandShipAbilityPrompt, Prompt } from './prompts'
+import {
+  CommandShipAbilityPrompt,
+  MinesweeperAbilityPrompt,
+  Prompt,
+} from './prompts'
 
 export interface UILobbyState {
   type: 'UILobbyState'
@@ -30,6 +34,7 @@ export interface UIGameState {
   eventLog: EventLogEntry[]
   prompt: Prompt
   commandShipAbilityPrompt: CommandShipAbilityPrompt | undefined
+  minesweeperAbilityPrompt: MinesweeperAbilityPrompt | undefined
 
   actionError: ActionError | undefined
 }

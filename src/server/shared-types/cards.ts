@@ -32,12 +32,22 @@ export type CommandShipType =
   | 'BrotherhoodOfPeace'
   | 'CraniumConsortium'
 
+export type ShipClass =
+  | 'Carrier'
+  | 'Cruiser'
+  | 'Destroyer'
+  | 'Dreadnought'
+  | 'Gunship'
+  | 'Minesweeper'
+  | 'Scout'
+  | 'Unknown'
+
 export interface ShipCard {
   type: 'ShipCard'
   name: string
   movement: number
   hp: number
-  shipClass: string
+  shipClass: ShipClass
   firesLasers: boolean
   firesBeams: boolean
   firesMags: boolean

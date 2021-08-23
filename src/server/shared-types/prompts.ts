@@ -54,5 +54,8 @@ export type Prompt =
 
 export interface CommandShipAbilityPrompt {
   type: 'CommandShipAbilityPrompt'
-  text: string
+}
+
+export interface MinesweeperAbilityPrompt {
+  type: 'MinesweeperAbilityPrompt'
 }

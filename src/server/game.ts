@@ -19,6 +19,8 @@ import {
   canRespondToAnything,
   alivePlayers,
   hasCommandShipAbilityActivations,
+  minesweeperTargets,
+  activableMinesweepers,
 } from './logic'
 import {
   ChooseShipPrompt,
@@ -33,6 +35,7 @@ import {
   ChooseShipCardPrompt,
   NoPrompt,
   CommandShipAbilityPrompt,
+  MinesweeperAbilityPrompt,
 } from './shared-types'
 import { GameSettings, GameState, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
@@ -423,6 +426,31 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         })
       }
 
+      case 'AttackChooseMinesweeperState': {
+        const minesweepers = activableMinesweepers(playerState)
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a minesweeper to activate.',
+          allowableShipIndices: filterIndices(playerState.ships, (s) =>
+            minesweepers.includes(s)
+          ).map((i) => ascribe<[string, number]>([playerId, i])),
+          allowableCommandShips: [],
+          pass: undefined,
+          canCancel: true,
+        })
+      }
+
+      case 'AttackChoosePlayerToMinesweepState': {
+        return ascribe<ChooseShipPrompt>({
+          type: 'ChooseShipPrompt',
+          text: 'Choose a player to destroy their Asteroids or Minefield.',
+          pass: undefined,
+          canCancel: true,
+          allowableShipIndices: [],
+          allowableCommandShips: minesweeperTargets(state, playerId),
+        })
+      }
+
       case 'PlayBlastChooseFiringShipState':
         const turnState = state.turnState
         return ascribe<ChooseShipPrompt>({
@@ -504,6 +532,14 @@ export function commandShipAbilityPrompt(
 ): CommandShipAbilityPrompt | undefined {
   const playerState = state.getPlayerState(playerId)
 
+  if (state.turnState.type !== 'AttackTurnState') {
+    return undefined
+  }
+
+  if (state.activePlayer !== playerId) {
+    return undefined
+  }
+
   if (!hasCommandShipAbilityActivations(playerState)) {
     return undefined
   }
@@ -514,7 +550,21 @@ export function commandShipAbilityPrompt(
 
   return {
     type: 'CommandShipAbilityPrompt',
-    text: 'Activate Command Ability',
+  }
+}
+
+export function minesweeperAbilityPrompt(
+  state: GameState,
+  playerId: PlayerId
+): MinesweeperAbilityPrompt | undefined {
+  const playerState = state.getPlayerState(playerId)
+
+  if (minesweeperTargets(state, playerId).length === 0) {
+    return undefined
+  }
+
+  return {
+    type: 'MinesweeperAbilityPrompt',
   }
 }
 
@@ -558,6 +608,7 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
     eventLog: state.eventLog,
     prompt: prompt(state, playerId),
     commandShipAbilityPrompt: commandShipAbilityPrompt(state, playerId),
+    minesweeperAbilityPrompt: minesweeperAbilityPrompt(state, playerId),
     actionError:
       state.erroringPlayer === playerId &&
       state.lastError !== undefined &&

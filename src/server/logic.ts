@@ -480,11 +480,15 @@ export function fullOnShips(ships: Ship[]): boolean {
 export function canTargetPlayerWithBlastsOrSquadrons(
   state: GameState,
   fromPlayerId: string,
-  toPlayerId: string
+  toPlayerId: string,
+  options: { ignoreAsteroids: boolean }
 ): boolean {
   const toPlayerState = state.getPlayerState(toPlayerId)
 
-  if (toPlayerState.asteroidsUntilBeginningOfPlayerTurn) {
+  if (
+    toPlayerState.asteroidsUntilBeginningOfPlayerTurn &&
+    !options.ignoreAsteroids
+  ) {
     return false
   }
 
@@ -608,7 +612,8 @@ export function blastableShipIndices(
         !canTargetPlayerWithBlastsOrSquadrons(
           state,
           firingPlayerId,
-          targetPlayerId
+          targetPlayerId,
+          { ignoreAsteroids: false }
         )
       ) {
         return []
@@ -641,7 +646,8 @@ export function blastableCommandShipPlayers(
         !canTargetPlayerWithBlastsOrSquadrons(
           state,
           firingPlayerId,
-          targetPlayerId
+          targetPlayerId,
+          { ignoreAsteroids: false }
         )
       ) {
         return []
@@ -685,7 +691,9 @@ export function squadronableShipIndices(
       }
 
       if (
-        !canTargetPlayerWithBlastsOrSquadrons(state, playerId, targetPlayerId)
+        !canTargetPlayerWithBlastsOrSquadrons(state, playerId, targetPlayerId, {
+          ignoreAsteroids: false,
+        })
       ) {
         return []
       }
@@ -718,7 +726,9 @@ export function squadronableCommandShipPlayers(
       }
 
       if (
-        !canTargetPlayerWithBlastsOrSquadrons(state, playerId, targetPlayerId)
+        !canTargetPlayerWithBlastsOrSquadrons(state, playerId, targetPlayerId, {
+          ignoreAsteroids: false,
+        })
       ) {
         return []
       }
@@ -786,4 +796,44 @@ export function hasCommandShipAbilityActivations(
   }
 
   return true
+}
+
+export function minesweeperTargets(
+  state: GameState,
+  playerId: PlayerId
+): PlayerId[] {
+  const playerState = state.getPlayerState(playerId)
+
+  if (activableMinesweepers(playerState).length === 0) {
+    return []
+  }
+
+  const otherPlayers = Array.from(state.playerState.entries())
+    .filter(
+      (e) =>
+        canTargetPlayerWithBlastsOrSquadrons(state, playerId, e[0], {
+          ignoreAsteroids: true,
+        }) &&
+        (e[1].asteroidsUntilBeginningOfPlayerTurn !== undefined ||
+          e[1].minefieldUntilBeginningOfPlayerTurn !== undefined)
+    )
+    .map((e) => e[0])
+
+  const me =
+    playerState.minefieldUntilBeginningOfPlayerTurn !== undefined ||
+    playerState.asteroidsUntilBeginningOfPlayerTurn !== undefined
+      ? [playerId]
+      : []
+
+  return [...otherPlayers, ...me]
+}
+
+export function activableMinesweepers(playerState: PlayerState): Ship[] {
+  return playerState.ships.filter(
+    (s) =>
+      (s.shipType.shipClass === 'Minesweeper' ||
+        (playerState.commandShip.shipType.commandType === 'BZZGZZRT' &&
+          s.shipType.movement === 2)) &&
+      !s.hasFiredThisTurn
+  )
 }

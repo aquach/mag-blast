@@ -44,12 +44,12 @@ const games: Game[] = [
   {
     gameId: 'test',
     bindings: [],
-    gameState: { type: 'LobbyState' },
-    lastUpdated: new Date().getTime(),
-    gameSettings: {
+    gameState: newGameState(new Set(['a', 'b']), {
       startingHandSize: 25,
       attackMode: 'FreeForAll',
-    },
+    }),
+    lastUpdated: new Date().getTime(),
+    gameSettings: null as any,
   },
 ]
 

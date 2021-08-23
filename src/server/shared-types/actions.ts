@@ -27,12 +27,17 @@ export interface ActivateCommandShipAbilityAction {
   type: 'ActivateCommandShipAbilityAction'
 }
 
+export interface ActivateMinesweeperAbilityAction {
+  type: 'ActivateMinesweeperAbilityAction'
+}
+
 export type Action =
   | ChooseCardAction
   | ChooseShipAction
   | PassAction
   | ChooseZoneAction
   | ActivateCommandShipAbilityAction
+  | ActivateMinesweeperAbilityAction
   | CancelAction
 
 export interface ActionError {

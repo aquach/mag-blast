@@ -299,6 +299,7 @@ const Game: React.FunctionComponent<{
   const canCancel = prompt.type === 'ChooseShipPrompt' && prompt.canCancel
 
   const canActivateAbility = uiState.commandShipAbilityPrompt !== undefined
+  const canActivateMinesweeper = uiState.minesweeperAbilityPrompt !== undefined
 
   const error = uiState.actionError
 
@@ -407,6 +408,19 @@ const Game: React.FunctionComponent<{
             }
           >
             Activate Command Ship Ability ✨
+          </button>
+        ) : null}
+
+        {canActivateMinesweeper ? (
+          <button
+            className="ma1 pa1 f5"
+            onClick={() =>
+              comms.performAction({
+                type: 'ActivateMinesweeperAbilityAction',
+              })
+            }
+          >
+            Activate Minesweeper Ability 🧹
           </button>
         ) : null}
 

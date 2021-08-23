@@ -14,6 +14,7 @@ import {
   ActivateCommandShipAbilityAction,
   CommandShipType,
   PlayerId,
+  ActivateMinesweeperAbilityAction,
 } from './shared-types'
 import { assert, partition, stringList, warn } from './utils'
 import {
@@ -42,6 +43,8 @@ import {
   alivePlayerByTurnOffset,
   hasCommandShipAbilityActivations,
   squadronDamage,
+  minesweeperTargets,
+  activableMinesweepers,
 } from './logic'
 import {
   NUM_STARTING_SHIPS,
@@ -527,6 +530,93 @@ function applyChooseShipAction(
 
       break
     }
+
+    case 'AttackChooseMinesweeperState': {
+      if (!Array.isArray(action.choice)) {
+        warn('choice should be an array for choosing ship to move.')
+        break
+      }
+
+      if (action.choice[0] !== state.activePlayer) {
+        warn(`Player ${state.activePlayer} doesn't own the selected ship.`)
+        break
+      }
+
+      const designatedShip = activePlayerState.ships[action.choice[1]]
+
+      if (!activableMinesweepers(activePlayerState).includes(designatedShip)) {
+        warn(`Player ${state.activePlayer} can't activate the chosen ship.`)
+        break
+      }
+
+      state.turnState = {
+        type: 'AttackChoosePlayerToMinesweepState',
+        minesweeper: designatedShip,
+      }
+
+      break
+    }
+
+    case 'AttackChoosePlayerToMinesweepState':
+      {
+        if (typeof action.choice !== 'string') {
+          warn('choice should be an index for deciding Asteroids.')
+          break
+        }
+
+        const targetPlayer = action.choice
+        if (!minesweeperTargets(state, playerId).includes(targetPlayer)) {
+          warn(`${targetPlayer} is not eligible for minesweeping.`)
+          break
+        }
+        const targetPlayerState = state.getPlayerState(action.choice)
+
+        const minesweeper = state.turnState.minesweeper
+
+        if (minesweeper.hasFiredThisTurn) {
+          warn(
+            `Minesweeper ${minesweeper.shipType.name} has already fired this turn.`
+          )
+          break
+        }
+
+        state.pushEventLog(
+          event`${state.activePlayer} activates their Minesweeper ${
+            minesweeper.shipType.name
+          } on ${
+            targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
+          }!`
+        )
+
+        minesweeper.hasFiredThisTurn = true
+
+        if (
+          targetPlayerState.asteroidsUntilBeginningOfPlayerTurn !== undefined &&
+          targetPlayerState.minefieldUntilBeginningOfPlayerTurn !== undefined
+        ) {
+          // TODO
+        } else if (
+          targetPlayerState.asteroidsUntilBeginningOfPlayerTurn !== undefined
+        ) {
+          targetPlayerState.asteroidsUntilBeginningOfPlayerTurn = undefined
+          state.pushEventLog(
+            event`${targetPlayer}'s ${'Asteroids'} are destroyed!`
+          )
+        } else if (
+          targetPlayerState.minefieldUntilBeginningOfPlayerTurn !== undefined
+        ) {
+          targetPlayerState.minefieldUntilBeginningOfPlayerTurn = undefined
+          state.pushEventLog(
+            event`${targetPlayer}'s ${'Minefield'} is destroyed!`
+          )
+        } else {
+          warn(`${targetPlayer} has neither Asteroids nor Minefields.`)
+          break
+        }
+
+        state.turnState = { type: 'AttackTurnState' }
+      }
+      break
 
     case 'AttackChooseAsteroidsPlayerTurnState':
       {
@@ -1279,7 +1369,7 @@ function applyCancelAction(
   }
   const activePlayerState = state.getPlayerState(state.activePlayer)
 
-  let card: ActionCard
+  let card: ActionCard | undefined
 
   switch (state.turnState.type) {
     case 'PlayBlastChooseFiringShipState':
@@ -1289,6 +1379,10 @@ function applyCancelAction(
     case 'PlaySquadronChooseTargetShipState':
       card = state.turnState.squadron
       _.remove(activePlayerState.usedSquadronCards, (c) => c === card)
+      break
+    case 'AttackChooseMinesweeperState':
+    case 'AttackChoosePlayerToMinesweepState':
+      card = undefined
       break
     case 'AttackChooseAsteroidsPlayerTurnState':
     case 'AttackChooseMinefieldPlayerTurnState':
@@ -1302,8 +1396,10 @@ function applyCancelAction(
       return
   }
 
-  activePlayerState.hand.push(card)
-  _.remove(state.actionDiscardDeck, (c) => c === card)
+  if (card !== undefined) {
+    activePlayerState.hand.push(card)
+    _.remove(state.actionDiscardDeck, (c) => c === card)
+  }
 
   state.turnState = {
     type: 'AttackTurnState',
@@ -1327,6 +1423,26 @@ function applyActivateCommandShipAbilityAction(
   )
   playerState.commandShip.remainingAbilityActivations! -= 1
   executeAbility(state, playerId)
+}
+
+function applyActivateMinesweeperAbilityAction(
+  state: GameState,
+  playerId: PlayerId,
+  action: ActivateMinesweeperAbilityAction
+): ActionError | undefined {
+  if (state.activePlayer !== playerId) {
+    warn('A player acted that was not the active player.')
+    return
+  }
+
+  if (!minesweeperTargets(state, playerId)) {
+    warn(`${playerId} has no valid minesweeper targets.`)
+    return
+  }
+
+  state.turnState = {
+    type: 'AttackChooseMinesweeperState',
+  }
 }
 
 export function applyAction(
@@ -1357,6 +1473,10 @@ export function applyAction(
 
     case 'ActivateCommandShipAbilityAction':
       return applyActivateCommandShipAbilityAction(state, playerId, action)
+      break
+
+    case 'ActivateMinesweeperAbilityAction':
+      return applyActivateMinesweeperAbilityAction(state, playerId, action)
       break
 
     default:

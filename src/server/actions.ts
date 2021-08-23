@@ -15,6 +15,7 @@ import {
   CommandShipType,
   PlayerId,
   ActivateMinesweeperAbilityAction,
+  ChooseAction,
 } from './shared-types'
 import { assert, partition, stringList, warn } from './utils'
 import {
@@ -580,41 +581,61 @@ function applyChooseShipAction(
           break
         }
 
-        state.pushEventLog(
-          event`${state.activePlayer} activates their Minesweeper ${
-            minesweeper.shipType.name
-          } on ${
-            targetPlayer === state.activePlayer ? 'themselves' : p(targetPlayer)
-          }!`
-        )
+        const resolveActivation = () => {
+          state.pushEventLog(
+            event`${state.activePlayer} activates their Minesweeper ${
+              minesweeper.shipType.name
+            } on ${
+              targetPlayer === state.activePlayer
+                ? 'themselves'
+                : p(targetPlayer)
+            }!`
+          )
 
-        minesweeper.hasFiredThisTurn = true
+          minesweeper.hasFiredThisTurn = true
+        }
+
+        const resolveAsteroids = () => {
+          resolveActivation()
+          targetPlayerState.asteroidsUntilBeginningOfPlayerTurn = undefined
+          state.pushEventLog(
+            event`${targetPlayer}'s ${'Asteroids'} are destroyed!`
+          )
+
+          state.turnState = { type: 'AttackTurnState' }
+        }
+
+        const resolveMinefield = () => {
+          resolveActivation()
+          targetPlayerState.minefieldUntilBeginningOfPlayerTurn = undefined
+          state.pushEventLog(
+            event`${targetPlayer}'s ${'Minefield'} is destroyed!`
+          )
+
+          state.turnState = { type: 'AttackTurnState' }
+        }
 
         if (
           targetPlayerState.asteroidsUntilBeginningOfPlayerTurn !== undefined &&
           targetPlayerState.minefieldUntilBeginningOfPlayerTurn !== undefined
         ) {
-          // TODO
+          state.turnState = {
+            type: 'AttackChooseAsteroidOrMinefieldToSweepState',
+            resolveAsteroids,
+            resolveMinefield,
+          }
         } else if (
           targetPlayerState.asteroidsUntilBeginningOfPlayerTurn !== undefined
         ) {
-          targetPlayerState.asteroidsUntilBeginningOfPlayerTurn = undefined
-          state.pushEventLog(
-            event`${targetPlayer}'s ${'Asteroids'} are destroyed!`
-          )
+          resolveAsteroids()
         } else if (
           targetPlayerState.minefieldUntilBeginningOfPlayerTurn !== undefined
         ) {
-          targetPlayerState.minefieldUntilBeginningOfPlayerTurn = undefined
-          state.pushEventLog(
-            event`${targetPlayer}'s ${'Minefield'} is destroyed!`
-          )
+          resolveMinefield()
         } else {
           warn(`${targetPlayer} has neither Asteroids nor Minefields.`)
           break
         }
-
-        state.turnState = { type: 'AttackTurnState' }
       }
       break
 
@@ -1382,6 +1403,7 @@ function applyCancelAction(
       break
     case 'AttackChooseMinesweeperState':
     case 'AttackChoosePlayerToMinesweepState':
+    case 'AttackChooseAsteroidOrMinefieldToSweepState':
       card = undefined
       break
     case 'AttackChooseAsteroidsPlayerTurnState':
@@ -1445,6 +1467,35 @@ function applyActivateMinesweeperAbilityAction(
   }
 }
 
+function applyChooseAction(
+  state: GameState,
+  playerId: PlayerId,
+  action: ChooseAction
+): ActionError | undefined {
+  if (state.activePlayer !== playerId) {
+    warn('A player acted that was not the active player.')
+    return
+  }
+
+  switch (state.turnState.type) {
+    case 'AttackChooseAsteroidOrMinefieldToSweepState':
+      switch (action.choice) {
+        case 'Asteroids':
+          state.turnState.resolveAsteroids()
+        case 'Minefield':
+          state.turnState.resolveMinefield()
+        default:
+          console.warn(`Unknown choice ${action.choice}.`)
+          break
+      }
+      break
+    default:
+      console.warn(
+        `Don't know how to choose from ${state.turnState.type} state.`
+      )
+  }
+}
+
 export function applyAction(
   state: GameState,
   playerId: PlayerId,
@@ -1477,6 +1528,10 @@ export function applyAction(
 
     case 'ActivateMinesweeperAbilityAction':
       return applyActivateMinesweeperAbilityAction(state, playerId, action)
+      break
+
+    case 'ChooseAction':
+      return applyChooseAction(state, playerId, action)
       break
 
     default:

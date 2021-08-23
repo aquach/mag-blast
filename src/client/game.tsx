@@ -371,6 +371,22 @@ const Game: React.FunctionComponent<{
             performAction={comms.performAction}
           />
         )}
+        {prompt &&
+          prompt.type === 'ChoicePrompt' &&
+          prompt.choices.map((c, i) => (
+            <button
+              key={i}
+              className="ma1 pa1 f5"
+              onClick={() =>
+                comms.performAction({
+                  type: 'ChooseAction',
+                  choice: c,
+                })
+              }
+            >
+              {c}
+            </button>
+          ))}
 
         {canPass ? (
           <button

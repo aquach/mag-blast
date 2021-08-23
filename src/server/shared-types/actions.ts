@@ -31,6 +31,11 @@ export interface ActivateMinesweeperAbilityAction {
   type: 'ActivateMinesweeperAbilityAction'
 }
 
+export interface ChooseAction {
+  type: 'ChooseAction'
+  choice: string
+}
+
 export type Action =
   | ChooseCardAction
   | ChooseShipAction
@@ -38,6 +43,7 @@ export type Action =
   | ChooseZoneAction
   | ActivateCommandShipAbilityAction
   | ActivateMinesweeperAbilityAction
+  | ChooseAction
   | CancelAction
 
 export interface ActionError {

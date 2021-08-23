@@ -161,6 +161,12 @@ export interface AttackChoosePlayerToMinesweepState {
   minesweeper: Ship
 }
 
+export interface AttackChooseAsteroidOrMinefieldToSweepState {
+  type: 'AttackChooseAsteroidOrMinefieldToSweepState'
+  resolveAsteroids: () => void
+  resolveMinefield: () => void
+}
+
 export interface AttackChooseSpacedockShipState {
   type: 'AttackChooseSpacedockShipState'
   card: ActionCard
@@ -226,6 +232,7 @@ export type TurnState =
   | AttackChooseSpacedockShipState
   | AttackChooseMinesweeperState
   | AttackChoosePlayerToMinesweepState
+  | AttackChooseAsteroidOrMinefieldToSweepState
   | PlayBlastChooseTargetShipState
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState

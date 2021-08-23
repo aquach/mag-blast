@@ -39,6 +39,13 @@ export interface ChooseShipCardPrompt {
   multiselect: { actionText: string } | undefined
 }
 
+export interface ChoicePrompt {
+  type: 'ChoicePrompt'
+  text: string
+  choices: string[]
+  canCancel: boolean
+}
+
 export interface NoPrompt {
   type: 'NoPrompt'
   text: string
@@ -50,6 +57,7 @@ export type Prompt =
   | PlaceShipPrompt
   | ChooseZonePrompt
   | ChooseShipCardPrompt
+  | ChoicePrompt
   | NoPrompt
 
 export interface CommandShipAbilityPrompt {

@@ -36,6 +36,7 @@ import {
   NoPrompt,
   CommandShipAbilityPrompt,
   MinesweeperAbilityPrompt,
+  ChoicePrompt,
 } from './shared-types'
 import { GameSettings, GameState, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
@@ -451,6 +452,15 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         })
       }
 
+      case 'AttackChooseAsteroidOrMinefieldToSweepState': {
+        return ascribe<ChoicePrompt>({
+          type: 'ChoicePrompt',
+          text: 'Choose to destroy the Asteroids or the Minefield.',
+          choices: ['Asteroids', 'Minefield'],
+          canCancel: true,
+        })
+      }
+
       case 'PlayBlastChooseFiringShipState':
         const turnState = state.turnState
         return ascribe<ChooseShipPrompt>({
@@ -532,14 +542,6 @@ export function commandShipAbilityPrompt(
 ): CommandShipAbilityPrompt | undefined {
   const playerState = state.getPlayerState(playerId)
 
-  if (state.turnState.type !== 'AttackTurnState') {
-    return undefined
-  }
-
-  if (state.activePlayer !== playerId) {
-    return undefined
-  }
-
   if (!hasCommandShipAbilityActivations(playerState)) {
     return undefined
   }
@@ -558,6 +560,14 @@ export function minesweeperAbilityPrompt(
   playerId: PlayerId
 ): MinesweeperAbilityPrompt | undefined {
   const playerState = state.getPlayerState(playerId)
+
+  if (state.turnState.type !== 'AttackTurnState') {
+    return undefined
+  }
+
+  if (state.activePlayer !== playerId) {
+    return undefined
+  }
 
   if (minesweeperTargets(state, playerId).length === 0) {
     return undefined

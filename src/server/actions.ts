@@ -409,7 +409,7 @@ function applyChooseCardAction(
       } else {
         return {
           type: 'ActionError',
-          message: 'Insufficient resources to reinforce.',
+          message: "You didn't select enough resources to reinforce.",
           time: new Date().getTime(),
         }
       }
@@ -1482,8 +1482,10 @@ function applyChooseAction(
       switch (action.choice) {
         case 'Asteroids':
           state.turnState.resolveAsteroids()
+          break
         case 'Minefield':
           state.turnState.resolveMinefield()
+          break
         default:
           console.warn(`Unknown choice ${action.choice}.`)
           break

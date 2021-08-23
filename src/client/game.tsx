@@ -296,7 +296,9 @@ const Game: React.FunctionComponent<{
     prompt.type === 'ChooseShipPrompt' ? prompt.pass : undefined
   const canPass = passOptions !== undefined
 
-  const canCancel = prompt.type === 'ChooseShipPrompt' && prompt.canCancel
+  const canCancel =
+    (prompt.type === 'ChooseShipPrompt' || prompt.type === 'ChoicePrompt') &&
+    prompt.canCancel
 
   const canActivateAbility = uiState.commandShipAbilityPrompt !== undefined
   const canActivateMinesweeper = uiState.minesweeperAbilityPrompt !== undefined

@@ -471,7 +471,7 @@ export function canRespondToSquadron(
     respondingCard.canRespondToBlast ||
     (respondingCard.canRespondToSquadron &&
       targetPlayerState.minefieldUntilBeginningOfPlayerTurn === undefined &&
-      ownsCarrier(targetPlayerState.ships))
+      carriers(targetPlayerState).length > 0)
   )
 }
 
@@ -580,14 +580,19 @@ export function canPlayCard(
   }
 
   if (card.isSquadron) {
-    return ownsCarrier(playerState.ships)
+    return carriers(playerState).length > 0
   }
 
   return true
 }
 
-export function ownsCarrier(ships: Ship[]): boolean {
-  return ships.some((s) => s.shipType.shipClass === 'Carrier')
+export function carriers(playerState: PlayerState): Ship[] {
+  return playerState.ships.filter(
+    (s) =>
+      s.shipType.shipClass === 'Carrier' ||
+      (playerState.commandShip.shipType.commandType === 'BZZGZZRT' &&
+        s.shipType.movement === 1)
+  )
 }
 
 export function zoneEmpty(ships: Ship[], location: Location): boolean {
@@ -688,11 +693,7 @@ export function squadronableShipIndices(
   squadronCard: ActionCard
 ): [PlayerId, number][] {
   const playerState = state.getPlayerState(playerId)
-  const carrierLocations = _.uniq(
-    playerState.ships
-      .filter((s) => s.shipType.shipClass === 'Carrier')
-      .map((s) => s.location)
-  )
+  const carrierLocations = _.uniq(carriers(playerState).map((s) => s.location))
   return Array.from(state.playerState.entries()).flatMap(
     ([targetPlayerId, targetPlayerState]) => {
       if (targetPlayerId === playerId) {
@@ -723,11 +724,7 @@ export function squadronableCommandShipPlayers(
   squadronCard: ActionCard
 ): PlayerId[] {
   const playerState = state.getPlayerState(playerId)
-  const carrierLocations = _.uniq(
-    playerState.ships
-      .filter((s) => s.shipType.shipClass === 'Carrier')
-      .map((s) => s.location)
-  )
+  const carrierLocations = _.uniq(carriers(playerState).map((s) => s.location))
   return Array.from(state.playerState.entries()).flatMap(
     ([targetPlayerId, targetPlayerState]) => {
       if (targetPlayerId === playerId) {

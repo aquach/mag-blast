@@ -7,11 +7,12 @@ import {
   CommandShipCard,
   CommandShipType,
   ShipCard,
+  ShipClass,
 } from './shared-types'
 import { COMMAND_SHIP_HP } from './constants'
 
 interface ShipCSVRow {
-  Type: string
+  Type: ShipClass
   'Fires L': string
   'Fires B': string
   'Fires M': string

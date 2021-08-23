@@ -103,7 +103,7 @@ export function executeAbility(state: GameState, playerId: PlayerId): void {
     return
   }
 
-  ability.activate(state, playerId, true)
+  ability.activate(state, playerId, false)
 }
 
 export function canExecuteAbility(
@@ -119,5 +119,5 @@ export function canExecuteAbility(
     return false
   }
 
-  return ability.activate(state, playerId, false)
+  return ability.activate(state, playerId, true)
 }

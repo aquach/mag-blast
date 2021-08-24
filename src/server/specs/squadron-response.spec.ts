@@ -10,6 +10,7 @@ function gameState(p2Hand: ActionCard[]): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
     startingHandSize: 0,
     attackMode: 'FreeForAll',
+    gameFlavor: 'Rebalanced',
   })
 
   s.turnState = { type: 'AttackTurnState' }

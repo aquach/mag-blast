@@ -689,9 +689,9 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
       })).entries()
     ),
     actionDeckSize: state.actionDeck.length,
-    actionDiscardDeckSize: state.actionDiscardDeck.length,
+    actionDiscardDeck: state.actionDiscardDeck,
     shipDeckSize: state.shipDeck.length,
-    shipDiscardDeckSize: state.shipDiscardDeck.length,
+    shipDiscardDeck: state.shipDiscardDeck,
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,
     prompt: prompt(state, playerId),

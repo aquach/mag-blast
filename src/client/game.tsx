@@ -1,243 +1,24 @@
-import { io } from 'socket.io-client'
 import _ from 'lodash'
 import {
-  Action,
   AttackMode,
   ATTACK_MODES,
-  EventLogEntry,
-  GameError,
   PlayerId,
   Prompt,
   UIGameSettings,
   UIGameState,
-  UILobbyState,
 } from '@shared-types'
-import React, { useState, useEffect, useRef, Fragment } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
-import { Board, CommandShip } from './board'
-import {
-  ActionCardComponent,
-  Hand,
-  ShipCardComponent,
-  ShipCardSelector,
-} from './hand'
+import { Board } from './board'
+import { Hand, ShipCardComponent, ShipCardSelector } from './hand'
+import { Comms, useComms } from './comms'
+import { CardLink, EventLog, ShipLink } from './event-log'
 import ReactTooltip from 'react-tooltip'
 
 const gameId = _.last(window.location.pathname.split('/')) as string
 
-interface UIErrorState {
-  type: 'UIErrorState'
-  text: JSX.Element
-}
-
-interface Comms {
-  uiState: UILobbyState | UIGameState | UIErrorState | null
-  performAction(a: Action): void
-  setGameSettings(s: UIGameSettings): void
-  startGame(): void
-}
-
-function useComms(playerId: PlayerId): Comms {
-  const [comms, setComms] = useState<Comms>({
-    uiState: null,
-    performAction() {},
-    setGameSettings() {},
-    startGame() {},
-  })
-
-  useEffect(() => {
-    console.log('Connecting to server...')
-    const socket = io({
-      query: {
-        playerId,
-        gameId,
-      },
-    })
-
-    socket.on('update', (uiState) => {
-      setComms({
-        uiState,
-        performAction(a) {
-          socket.emit('action', a)
-        },
-        setGameSettings(s) {
-          socket.emit('set-settings', s)
-        },
-        startGame() {
-          socket.emit('start-game')
-        },
-      })
-    })
-
-    socket.on('error', (e: GameError) => {
-      const text = (() => {
-        switch (e.type) {
-          case 'GameNotFound':
-            return (
-              <div>
-                Game not found. Click <a href="../">here</a> to return to the
-                main page.
-              </div>
-            )
-          case 'TooManyPlayers':
-            return <div>This game is already full (8 players).</div>
-          case 'TooFewPlayers':
-            return (
-              <div>
-                Can't start a game with just one player. Hope you can find
-                someone to play with! Click <a href="../">here</a> to return to
-                the main page.
-              </div>
-            )
-          case 'GameAlreadyStartedCantAddNewPlayer':
-            return <div>This game has already started, so you can't join.</div>
-        }
-      })()
-      setComms({
-        uiState: {
-          type: 'UIErrorState',
-          text,
-        },
-        performAction() {},
-        setGameSettings() {},
-        startGame() {},
-      })
-    })
-
-    return () => {
-      socket.disconnect()
-    }
-  }, [])
-
-  return comms
-}
-
-const EventLogEntryComponent: React.FunctionComponent<{
-  entry: EventLogEntry
-}> = ({ entry }) => {
-  return (
-    <div className="mv2">
-      {entry.tokens.map((t, j) => {
-        const id = _.uniqueId()
-        switch (t.type) {
-          case 'ShipEventLogToken':
-            return (
-              <Fragment key={j}>
-                <span className="b underline" data-tip data-for={id}>
-                  {t.shipType.name}
-                </span>
-                <ReactTooltip
-                  id={id}
-                  place="bottom"
-                  type="light"
-                  effect="solid"
-                  className="tooltip"
-                >
-                  <ShipCardComponent
-                    shipType={t.shipType}
-                    clickable={false}
-                    selected={false}
-                    onClick={_.noop}
-                  />
-                </ReactTooltip>
-              </Fragment>
-            )
-
-          case 'TextEventLogToken':
-            return (
-              <span key={j} className={t.bold ? 'b' : ''}>
-                {t.text}
-              </span>
-            )
-          case 'CommandShipEventLogToken':
-            return (
-              <Fragment key={j}>
-                <span className="b underline" data-tip data-for={id}>
-                  {t.commandShipType.name}
-                </span>
-                <ReactTooltip
-                  id={id}
-                  place="bottom"
-                  type="light"
-                  effect="solid"
-                  className="tooltip"
-                >
-                  <CommandShip
-                    ship={{
-                      shipType: t.commandShipType,
-                      damage: 0,
-                      remainingAbilityActivations:
-                        t.commandShipType.numAbilityActivations,
-                    }}
-                    prompt={{ type: 'NoPrompt', text: '' }}
-                    performAction={_.noop}
-                    playerId=""
-                    expanded
-                  />
-                </ReactTooltip>
-              </Fragment>
-            )
-          case 'ActionCardEventLogToken':
-            return (
-              <Fragment key={j}>
-                <span className="b underline" data-tip data-for={id}>
-                  {t.card.name}
-                </span>
-                <ReactTooltip
-                  id={id}
-                  place="bottom"
-                  type="light"
-                  effect="solid"
-                  className="tooltip"
-                >
-                  <ActionCardComponent
-                    card={t.card}
-                    clickable={false}
-                    selected={false}
-                    onClick={_.noop}
-                  />
-                </ReactTooltip>
-              </Fragment>
-            )
-          case 'PlayerEventLogToken':
-            return (
-              <span key={j} className="b">
-                {t.player}
-              </span>
-            )
-        }
-      })}
-    </div>
-  )
-}
-
-const EventLog: React.FunctionComponent<{ eventLog: EventLogEntry[] }> = ({
-  eventLog,
-}) => {
-  const bottomRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    })
-  }, [eventLog])
-
-  return (
-    <div
-      className="ba pa1 overflow-y-scroll"
-      style={{ width: '20em', flexShrink: 0, height: 'calc(100vh - 7rem)' }}
-    >
-      {eventLog.map((l, i) => (
-        <EventLogEntryComponent entry={l} key={i} />
-      ))}
-      <div ref={bottomRef} />
-    </div>
-  )
-}
-
 const DeckDisplay: React.FunctionComponent<{
-  text: string
+  text: string | JSX.Element
   value: string | number
 }> = ({ text, value }) => {
   return (
@@ -285,6 +66,25 @@ const TurnAlert: React.FunctionComponent<{
   return <audio src="/beep.mp3" ref={audioRef} />
 }
 
+const DeckData: React.FunctionComponent<{
+  uiState: UIGameState
+}> = ({ uiState }) => {
+  return (
+    <div className="pa2">
+      <DeckDisplay text="Action Deck" value={uiState.actionDeckSize} />
+      <DeckDisplay
+        text="Action Discard"
+        value={uiState.actionDiscardDeck.length}
+      />
+      <DeckDisplay text="Ship Deck" value={uiState.shipDeckSize} />
+      <DeckDisplay
+        text="Ship Discard"
+        value={uiState.shipDiscardDeck.length}
+      />
+    </div>
+  )
+}
+
 const Game: React.FunctionComponent<{
   comms: Comms
   uiState: UIGameState
@@ -315,24 +115,60 @@ const Game: React.FunctionComponent<{
 
   const [playSounds, setPlaySounds] = useState(true)
 
+  type TabType = 'event-log' | 'action-discard' | 'ship-discard'
+  const [tab, setTab] = useState<TabType>('event-log')
+
+  const tabs: Record<TabType, string> = {
+    'event-log': 'Event Log',
+    'action-discard': 'Action Discard Pile',
+    'ship-discard': 'Ship Discard Pile',
+  }
+
   return (
     <div className="flex ma2">
       <div>
-        <EventLog eventLog={uiState.eventLog} />
+        <div className="flex justify-between">
+          {Object.entries(tabs).map(([key, name]) => (
+            <div
+              key={key}
+              className={`f6 pa1 ${tab === key ? 'b' : 'underline pointer'}`}
+              style={{ textDecorationStyle: 'solid' }}
+              onClick={() => setTab(key as TabType)}
+            >
+              {name}
+            </div>
+          ))}
+        </div>
+        <div
+          className="ba pa1 overflow-y-scroll"
+          style={{
+            width: '22em',
+            flexShrink: 0,
+            height: 'calc(100vh - 11rem)',
+          }}
+        >
+          {tab === 'event-log' ? (
+            <EventLog eventLog={uiState.eventLog} />
+          ) : null}
+          {tab === 'action-discard'
+            ? uiState.actionDiscardDeck.map((d) => (
+                <div className="pv1">
+                  <CardLink card={d} />
+                </div>
+              ))
+            : null}
+          {tab === 'ship-discard'
+            ? uiState.shipDiscardDeck.map((d) => (
+                <div className="pv1">
+                  <ShipLink shipCard={d} />
+                </div>
+              ))
+            : null}
+        </div>
+
         <div className="flex">
-          <div className="pa1">
-            <DeckDisplay text="Action Deck" value={uiState.actionDeckSize} />
-            <DeckDisplay
-              text="Action Discard"
-              value={uiState.actionDiscardDeckSize}
-            />
-            <DeckDisplay text="Ship Deck" value={uiState.shipDeckSize} />
-            <DeckDisplay
-              text="Ship Discard"
-              value={uiState.shipDiscardDeckSize}
-            />
-          </div>
-          <div className="pa1">
+          <DeckData uiState={uiState} />
+          <div className="pa2">
             <TurnAlert prompt={prompt} playSounds={playSounds} />
             <input
               type="checkbox"
@@ -512,7 +348,7 @@ const Lobby: React.FunctionComponent<{
 const ConnectedApp: React.FunctionComponent<{ playerId: PlayerId }> = ({
   playerId,
 }) => {
-  const comms = useComms(playerId)
+  const comms = useComms(gameId, playerId)
 
   const uiState = comms.uiState
 

@@ -175,17 +175,17 @@ export const CommandShip: React.FunctionComponent<{
       data-tip
       data-for={ship.shipType.commandType}
     >
-      <p className="f7 tc b">
+      <p className="f7 tc b mv1">
         {expanded
           ? ship.shipType.name
           : commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
       </p>
       {expanded && cardsInHand !== undefined && (
-        <p className="f8 tc">
+        <p className="f8 tc mv1">
           {cardsInHand} card{cardsInHand === 1 ? '' : 's'} in hand
         </p>
       )}
-      {expanded && <p className="f8 tc">{ship.shipType.text}</p>}
+      {expanded && <p className="mv1 f8 tc">{ship.shipType.text}</p>}
       {ship.remainingAbilityActivations !== undefined && (
         <div
           className="absolute"

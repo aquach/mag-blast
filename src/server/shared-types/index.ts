@@ -6,7 +6,7 @@ export * from './prompts'
 
 import { ActionError } from './actions'
 import { PlayerId } from './base'
-import { ActionCard, UIPlayerState } from './cards'
+import { ActionCard, ShipCard, UIPlayerState } from './cards'
 import { EventLogEntry } from './events'
 import {
   CommandShipAbilityPrompt,
@@ -26,9 +26,9 @@ export interface UIGameState {
   playerState: [PlayerId, UIPlayerState][]
 
   actionDeckSize: number
-  actionDiscardDeckSize: number
+  actionDiscardDeck: ActionCard[]
   shipDeckSize: number
-  shipDiscardDeckSize: number
+  shipDiscardDeck: ShipCard[]
 
   isActivePlayer: boolean
   eventLog: EventLogEntry[]

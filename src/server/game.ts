@@ -24,6 +24,7 @@ import {
 import {
   ChoicePrompt,
   ChooseCardFromActionDiscardPrompt,
+  ChooseCardFromShipDiscardPrompt,
   ChooseCardPrompt,
   ChooseShipCardPrompt,
   ChooseShipPrompt,
@@ -327,7 +328,15 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         })
       }
 
-      case 'ReinforceTurnState': {
+      case 'TribotChooseShipState': {
+        return ascribe<ChooseCardFromShipDiscardPrompt>({
+          type: 'ChooseCardFromShipDiscardPrompt',
+          text: 'Choose a ship to take from the ship discard pile.',
+        })
+      }
+
+      case 'ReinforceTurnState':
+      case 'TribotReinforceTurnState': {
         return ascribe<ChooseCardPrompt>({
           type: 'ChooseCardPrompt',
           selectableCardIndices: filterIndices(
@@ -337,7 +346,11 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
               c.resources.circles > 0 ||
               c.resources.stars > 0
           ),
-          text: 'Choose cards to use for reinforcements (3 symbols of a kind or 1 of each).',
+          text: `Choose cards to use for reinforcements ${
+            state.turnState.type === 'TribotReinforceTurnState'
+              ? 'from the ship discard pile'
+              : ''
+          } (3 symbols of a kind or 1 of each).`,
           pass: {
             actionText: "I'm done ⏭️",
           },

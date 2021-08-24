@@ -506,35 +506,63 @@ export function applyChooseCardAction(
       break
 
     case 'MheeChooseShipState':
-      if (Array.isArray(action.cardIndex)) {
-        warn(
-          'cardIndex should be a single value for choosing MheeYowMeex ship.'
+      {
+        if (Array.isArray(action.cardIndex)) {
+          warn(
+            'cardIndex should be a single value for choosing MheeYowMeex ship.'
+          )
+          break
+        }
+
+        const chosenCardIndex = action.cardIndex
+        const chosenCard = state.turnState.ships[chosenCardIndex]
+        const notChosenCards = state.turnState.ships.filter(
+          (v, i) => chosenCardIndex !== i
         )
-        break
+
+        if (notChosenCards.length !== state.turnState.ships.length - 1) {
+          warn('Invalid cardIndex for choosing MheeYowMeex ship.')
+          break
+        }
+
+        notChosenCards.forEach((c) => state.shipDiscardDeck.push(c))
+
+        state.pushEventLog(
+          event`${p(
+            state.activePlayer
+          )} draws two ships and chooses one, thanks to ${
+            state.getPlayerState(state.activePlayer).commandShip.shipType.name
+          }.`
+        )
+
+        state.turnState = state.turnState.nextState(chosenCard)
       }
+      break
 
-      const chosenCardIndex = action.cardIndex
-      const chosenCard = state.turnState.ships[chosenCardIndex]
-      const notChosenCards = state.turnState.ships.filter(
-        (v, i) => chosenCardIndex !== i
-      )
+    case 'TribotChooseShipState':
+      {
+        if (Array.isArray(action.cardIndex)) {
+          warn('cardIndex should be a single value for choosing Tribot ship.')
+          break
+        }
 
-      if (notChosenCards.length !== state.turnState.ships.length - 1) {
-        warn('Invalid cardIndex for choosing MheeYowMeex ship.')
-        break
+        const chosenCardIndex = action.cardIndex
+        const chosenCard = state.shipDiscardDeck[chosenCardIndex]
+
+        if (!chosenCard) {
+          warn(
+            `${state.activePlayer} chose invalid card index ${chosenCardIndex}.`
+          )
+          break
+        }
+
+        state.shipDiscardDeck.splice(chosenCardIndex, 1)
+
+        state.turnState = {
+          type: 'ReinforcePlaceShipState',
+          newShip: chosenCard,
+        }
       }
-
-      notChosenCards.forEach((c) => state.shipDiscardDeck.push(c))
-
-      state.pushEventLog(
-        event`${p(
-          state.activePlayer
-        )} draws two ships and chooses one, thanks to ${
-          state.getPlayerState(state.activePlayer).commandShip.shipType.name
-        }.`
-      )
-
-      state.turnState = state.turnState.nextState(chosenCard)
 
       break
 
@@ -562,6 +590,39 @@ export function applyChooseCardAction(
             type: 'ReinforcePlaceShipState',
             newShip,
           }))
+        } else {
+          return {
+            type: 'ActionError',
+            message: "You didn't select enough resources to reinforce.",
+            time: new Date().getTime(),
+          }
+        }
+      }
+      break
+
+    case 'TribotReinforceTurnState':
+      {
+        if (!Array.isArray(action.cardIndex)) {
+          warn('cardIndex should be an array for reinforcing.')
+          break
+        }
+        const reinforceIndices = action.cardIndex
+
+        if (
+          sufficientForReinforcement(
+            reinforceIndices.map((i) => activePlayerState.hand[i])
+          )
+        ) {
+          discardPlayerHandCards(state, state.activePlayer, reinforceIndices)
+
+          state.pushEventLog(
+            event`${p(state.activePlayer)} discards ${
+              reinforceIndices.length
+            } cards to draw reinforcements from the ship discard pile.`
+          )
+          state.turnState = {
+            type: 'TribotChooseShipState',
+          }
         } else {
           return {
             type: 'ActionError',

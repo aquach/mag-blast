@@ -1,5 +1,9 @@
 import { warn } from 'console'
-import { owningPlayer, sufficientForCraniumCounter } from './logic'
+import {
+  owningPlayer,
+  sufficientForCraniumCounter,
+  sufficientForReinforcement,
+} from './logic'
 import { CommandShipType, PlayerId } from './shared-types'
 import { GameState } from './types'
 
@@ -86,13 +90,17 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
     activate(s, playerId, dryRun) {
       if (
         s.turnState.type === 'ReinforceTurnState' &&
-        s.activePlayer === playerId
+        s.activePlayer === playerId &&
+        sufficientForReinforcement(s.getPlayerState(playerId).hand) &&
+        s.shipDiscardDeck.length > 0
       ) {
         if (dryRun) {
           return true
         }
 
-        // TODO
+        s.turnState = {
+          type: 'TribotReinforceTurnState',
+        }
 
         return true
       }

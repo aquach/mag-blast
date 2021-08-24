@@ -241,6 +241,14 @@ export interface OverseersChooseBlastsState {
   type: 'OverseersChooseBlastsState'
 }
 
+export interface TribotReinforceTurnState {
+  type: 'TribotReinforceTurnState'
+}
+
+export interface TribotChooseShipState {
+  type: 'TribotChooseShipState'
+}
+
 export interface EndGameState {
   type: 'EndGameState'
 }
@@ -276,4 +284,6 @@ export type TurnState =
   | BrotherhoodChooseShipToTransferToState
   | MheeChooseShipState
   | OverseersChooseBlastsState
+  | TribotReinforceTurnState
+  | TribotChooseShipState
   | EndGameState

@@ -1,4 +1,4 @@
-import { PlayerId, Location } from './base'
+import { Location, PlayerId } from './base'
 
 export interface ChooseCardAction {
   type: 'ChooseCardAction'

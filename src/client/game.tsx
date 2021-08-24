@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import {
   AttackMode,
   ATTACK_MODES,
@@ -7,13 +6,13 @@ import {
   UIGameSettings,
   UIGameState,
 } from '@shared-types'
-import React, { useState, useEffect, useRef } from 'react'
+import _ from 'lodash'
+import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Board } from './board'
-import { Hand, ShipCardComponent, ShipCardSelector } from './hand'
 import { Comms, useComms } from './comms'
 import { CardLink, EventLog, ShipLink } from './event-log'
-import ReactTooltip from 'react-tooltip'
+import { Hand, ShipCardComponent, ShipCardSelector } from './hand'
 
 const gameId = _.last(window.location.pathname.split('/')) as string
 
@@ -77,10 +76,7 @@ const DeckData: React.FunctionComponent<{
         value={uiState.actionDiscardDeck.length}
       />
       <DeckDisplay text="Ship Deck" value={uiState.shipDeckSize} />
-      <DeckDisplay
-        text="Ship Discard"
-        value={uiState.shipDiscardDeck.length}
-      />
+      <DeckDisplay text="Ship Discard" value={uiState.shipDiscardDeck.length} />
     </div>
   )
 }

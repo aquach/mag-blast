@@ -230,6 +230,12 @@ export interface BrotherhoodChooseShipToTransferToState {
   fromShip: Ship
 }
 
+export interface MheeChooseShipState {
+  type: 'MheeChooseShipState'
+  ships: ShipCard[]
+  nextState: (_: ShipCard) => TurnState
+}
+
 export interface EndGameState {
   type: 'EndGameState'
 }
@@ -263,4 +269,5 @@ export type TurnState =
   | CraniumConsortiumChooseResourcesToDiscardState
   | BrotherhoodChooseShipToTransferFromState
   | BrotherhoodChooseShipToTransferToState
+  | MheeChooseShipState
   | EndGameState

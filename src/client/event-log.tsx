@@ -1,9 +1,9 @@
-import _ from 'lodash'
 import { ActionCard, EventLogEntry, ShipCard } from '@shared-types'
-import React, { useEffect, useRef, Fragment } from 'react'
+import _ from 'lodash'
+import React, { Fragment, useEffect, useRef } from 'react'
+import ReactTooltip from 'react-tooltip'
 import { CommandShip } from './board'
 import { ActionCardComponent, ShipCardComponent } from './hand'
-import ReactTooltip from 'react-tooltip'
 
 export const CardLink: React.FunctionComponent<{ card: ActionCard }> = ({
   card,

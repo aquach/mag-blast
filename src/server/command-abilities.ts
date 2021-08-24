@@ -1,6 +1,5 @@
-import * as _ from 'lodash'
 import { warn } from 'console'
-import { owningPlayer, resources, sufficientForCraniumCounter } from './logic'
+import { owningPlayer, sufficientForCraniumCounter } from './logic'
 import { CommandShipType, PlayerId } from './shared-types'
 import { GameState } from './types'
 

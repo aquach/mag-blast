@@ -1,42 +1,41 @@
 import * as _ from 'lodash'
-import { canExecuteAbility } from './command-abilities'
 import { actionCards, commandShipCards, shipCards } from './cards'
+import { canExecuteAbility } from './command-abilities'
 import { NUM_STARTING_SHIP_CARDS } from './constants'
 import { bold, event, parseEventLog, RawEventLog } from './events'
 import {
+  activableMinesweepers,
+  alivePlayers,
+  blastableCommandShipPlayers,
+  blastableShipIndices,
   canPlayCardDuringAttackPhase,
+  canRespondToAnything,
+  canRespondToSquadron,
+  hasCommandShipAbilityActivations,
+  minesweeperTargets,
   movableZones,
+  moveableShips,
   nonfullZones,
   owningPlayer,
   shipCanFire,
-  moveableShips,
   squadronableCommandShipPlayers,
   squadronableShipIndices,
-  blastableCommandShipPlayers,
-  blastableShipIndices,
-  canRespondToBlast,
-  canRespondToSquadron,
-  canRespondToAnything,
-  alivePlayers,
-  hasCommandShipAbilityActivations,
-  minesweeperTargets,
-  activableMinesweepers,
 } from './logic'
 import {
+  ChoicePrompt,
+  ChooseCardPrompt,
+  ChooseShipCardPrompt,
   ChooseShipPrompt,
   ChooseZonePrompt,
+  CommandShipAbilityPrompt,
+  MinesweeperAbilityPrompt,
+  NoPrompt,
   PlaceShipPrompt,
   PlayerId,
   Prompt,
-  ChooseCardPrompt,
+  ShipCard,
   UIGameState,
   UILobbyState,
-  ShipCard,
-  ChooseShipCardPrompt,
-  NoPrompt,
-  CommandShipAbilityPrompt,
-  MinesweeperAbilityPrompt,
-  ChoicePrompt,
 } from './shared-types'
 import { GameSettings, GameState, PlayerState, Ship } from './types'
 import { ascribe, assert, filterIndices, mapValues } from './utils'
@@ -332,6 +331,14 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           },
         })
       }
+
+      case 'MheeChooseShipState':
+        return ascribe<ChooseShipCardPrompt>({
+          type: 'ChooseShipCardPrompt',
+          ships: state.turnState.ships,
+          text: 'Choose one of these two ships to deploy (Mhee Yow-Meex ability).',
+          multiselect: undefined,
+        })
 
       case 'AttackPlaceShipState':
       case 'ReinforcePlaceShipState': {

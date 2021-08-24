@@ -1,6 +1,6 @@
-import { CommandShip, GameState, PlayerState, Ship } from './types'
 import * as _ from 'lodash'
-import { ascribe, assert, filterIndices, partition, warn } from './utils'
+import { MAX_ZONE_SHIPS } from './constants'
+import { event, p } from './events'
 import {
   ActionCard,
   Location,
@@ -8,9 +8,8 @@ import {
   PlayerId,
   ShipCard,
 } from './shared-types'
-import { MAX_ZONE_SHIPS } from './constants'
-import { event, p } from './events'
-import { canExecuteAbility } from './command-abilities'
+import { CommandShip, GameState, PlayerState, Ship, TurnState } from './types'
+import { ascribe, assert, filterIndices, partition, warn } from './utils'
 
 export function drawActivePlayerCards(
   state: GameState,
@@ -50,6 +49,25 @@ export function drawShipCard(state: GameState): ShipCard {
   }
 
   return topCard
+}
+
+export function drawAndChooseShipCard(
+  state: GameState,
+  nextState: (_: ShipCard) => TurnState
+): TurnState {
+  if (
+    state.getPlayerState(state.activePlayer).commandShip.shipType
+      .commandType === 'MheeYowMeex'
+  ) {
+    const newShips = [drawShipCard(state), drawShipCard(state)]
+    return {
+      type: 'MheeChooseShipState',
+      ships: newShips,
+      nextState,
+    }
+  } else {
+    return nextState(drawShipCard(state))
+  }
 }
 
 export function discardPlayerHandCards(
@@ -330,12 +348,10 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
       card,
     }
   } else if (card.cardType === 'ReinforcementsCard') {
-    const newShip = drawShipCard(state)
-
-    state.turnState = {
+    state.turnState = drawAndChooseShipCard(state, (newShip) => ({
       type: 'AttackPlaceShipState',
       newShip,
-    }
+    }))
 
     // The boolean is technically used to indicate that the game is over, which
     // suppresses future state transitions, but the game is not over here. We

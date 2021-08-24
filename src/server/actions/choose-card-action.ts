@@ -1,4 +1,19 @@
 import * as _ from 'lodash'
+import { DRAW_UP_TO_HAND_SIZE, NUM_STARTING_SHIPS } from '../constants'
+import { event, p } from '../events'
+import {
+  canPlayCardDuringAttackPhase,
+  discardPlayerHandCards,
+  drawActivePlayerCards,
+  drawAndChooseShipCard,
+  fullOnShips,
+  owningPlayer,
+  playersThatCanRespondToActions,
+  resolveActionCard,
+  sufficientForCraniumCounter,
+  sufficientForReinforcement,
+} from '../logic'
+import { ActionError, ChooseCardAction, PlayerId } from '../shared-types'
 import {
   ChooseStartingShipsState,
   CraniumConsortiumChooseResourcesToDiscardState,
@@ -7,22 +22,7 @@ import {
   PlayBlastRespondState,
   PlaySquadronRespondState,
 } from '../types'
-import { ChooseCardAction, ActionError, PlayerId } from '../shared-types'
 import { assert, partition, warn } from '../utils'
-import {
-  canPlayCardDuringAttackPhase,
-  discardPlayerHandCards,
-  drawActivePlayerCards,
-  drawShipCard,
-  fullOnShips,
-  sufficientForReinforcement,
-  resolveActionCard,
-  playersThatCanRespondToActions,
-  sufficientForCraniumCounter,
-  owningPlayer,
-} from '../logic'
-import { NUM_STARTING_SHIPS, DRAW_UP_TO_HAND_SIZE } from '../constants'
-import { event, p } from '../events'
 
 function handleChooseStartingShipState(
   state: GameState,
@@ -461,6 +461,39 @@ export function applyChooseCardAction(
 
       break
 
+    case 'MheeChooseShipState':
+      if (Array.isArray(action.handIndex)) {
+        warn(
+          'handIndex should be a single value for choosing MheeYowMeex ship.'
+        )
+        break
+      }
+
+      const chosenCardIndex = action.handIndex
+      const chosenCard = state.turnState.ships[chosenCardIndex]
+      const notChosenCards = state.turnState.ships.filter(
+        (v, i) => chosenCardIndex !== i
+      )
+
+      if (notChosenCards.length !== state.turnState.ships.length - 1) {
+        warn('Invalid handIndex for choosing MheeYowMeex ship.')
+        break
+      }
+
+      notChosenCards.forEach((c) => state.shipDiscardDeck.push(c))
+
+      state.pushEventLog(
+        event`${p(
+          state.activePlayer
+        )} draws two ships and chooses one, thanks to ${
+          state.getPlayerState(state.activePlayer).commandShip.shipType.name
+        }.`
+      )
+
+      state.turnState = state.turnState.nextState(chosenCard)
+
+      break
+
     case 'ReinforceTurnState':
       {
         if (!Array.isArray(action.handIndex)) {
@@ -481,13 +514,10 @@ export function applyChooseCardAction(
               reinforceIndices.length
             } cards to draw reinforcements.`
           )
-
-          const newShip = drawShipCard(state)
-
-          state.turnState = {
+          state.turnState = drawAndChooseShipCard(state, (newShip) => ({
             type: 'ReinforcePlaceShipState',
             newShip,
-          }
+          }))
         } else {
           return {
             type: 'ActionError',

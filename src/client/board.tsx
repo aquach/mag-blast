@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import {
   Action,
   Location as ShipLocation,
@@ -8,9 +7,10 @@ import {
   UIPlayerState,
   UIShip,
 } from '@shared-types'
+import _ from 'lodash'
 import React, { Fragment } from 'react'
-import { shipClassBreaks } from './hand'
 import ReactTooltip from 'react-tooltip'
+import { shipClassBreaks } from './hand'
 
 export const TurretMarker: React.FunctionComponent<{
   type: 'laser' | 'beam' | 'mag'

@@ -1,4 +1,4 @@
-import { PlayerId, Location } from './base'
+import { Location, PlayerId } from './base'
 import { ShipCard } from './cards'
 
 export interface ChooseCardPrompt {

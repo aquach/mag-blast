@@ -549,6 +549,7 @@ export function applyChooseShipAction(
 
         state.turnState = {
           type: 'DiscardTurnState',
+          skipDraw: false,
         }
       }
       break

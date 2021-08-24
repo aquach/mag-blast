@@ -39,6 +39,18 @@ export interface ChooseShipCardPrompt {
   multiselect: { actionText: string } | undefined
 }
 
+export interface ChooseCardFromActionDiscardPrompt {
+  type: 'ChooseCardFromActionDiscardPrompt'
+  selectableCardIndices: number[]
+  text: string
+  multiselect: { actionText: string }
+}
+
+export interface ChooseCardFromShipDiscardPrompt {
+  type: 'ChooseCardFromShipDiscardPrompt'
+  text: string
+}
+
 export interface ChoicePrompt {
   type: 'ChoicePrompt'
   text: string
@@ -57,6 +69,8 @@ export type Prompt =
   | PlaceShipPrompt
   | ChooseZonePrompt
   | ChooseShipCardPrompt
+  | ChooseCardFromActionDiscardPrompt
+  | ChooseCardFromShipDiscardPrompt
   | ChoicePrompt
   | NoPrompt
 

@@ -79,7 +79,7 @@ describe('Fighters', () => {
   it("should resolve when P2 can't respond", () => {
     const state = gameState([])
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -99,7 +99,7 @@ describe('Fighters', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     applyAction(state, 'P2', { type: 'PassAction' })
 
@@ -120,10 +120,10 @@ describe('Fighters', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -143,10 +143,10 @@ describe('Fighters', () => {
 
   it('should fail when responded to with a EvasiveAction', () => {
     const state = gameState([findActionCard('EvasiveActionCard')])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -169,10 +169,10 @@ describe('Fighters', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 2 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -196,11 +196,11 @@ describe('Fighters', () => {
       findActionCard('TemporalFluxCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 2 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 2 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 2 })
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -224,11 +224,11 @@ describe('Fighters', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 2 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 2 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 2 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(eventLogToText(state.eventLog)).to.be.eql([
@@ -251,11 +251,11 @@ describe('Fighters', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 2 })
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -282,12 +282,12 @@ describe('Fighters', () => {
       findActionCard('TemporalFluxCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 2 })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -313,7 +313,7 @@ describe('Bombers', () => {
   it("should resolve when P2 can't respond", () => {
     const state = gameState([])
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -335,7 +335,7 @@ describe('Bombers', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     applyAction(state, 'P2', { type: 'PassAction' })
 
@@ -358,10 +358,10 @@ describe('Bombers', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -386,10 +386,10 @@ describe('Bombers', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 2 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -413,11 +413,11 @@ describe('Bombers', () => {
       findActionCard('TemporalFluxCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 2 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 2 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 2 })
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -441,11 +441,11 @@ describe('Bombers', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 2 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 2 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 2 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(eventLogToText(state.eventLog)).to.be.eql([
@@ -468,17 +468,17 @@ describe('Bombers', () => {
       findActionCard('BomberCard'),
       findActionCard('TemporalFluxCard'),
     ])
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
     expect(gameUiState('P1', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P2', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(gameUiState('P2', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P1', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 2 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 2 })
     expect(gameUiState('P1', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P2', state).prompt.type).to.be.eq('ChooseCardPrompt')
 

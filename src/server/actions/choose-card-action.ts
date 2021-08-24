@@ -35,8 +35,8 @@ function handleChooseStartingShipState(
     dealtShipCards !== undefined,
     `Ship cards for player ${playerId} not found.`
   )
-  if (!Array.isArray(action.handIndex)) {
-    warn('handIndex should be an array for choosing starting ships.')
+  if (!Array.isArray(action.cardIndex)) {
+    warn('cardIndex should be an array for choosing starting ships.')
     return
   }
 
@@ -45,7 +45,7 @@ function handleChooseStartingShipState(
     return
   }
 
-  const chosenCardIndices = action.handIndex
+  const chosenCardIndices = action.cardIndex
 
   if (chosenCardIndices.length !== NUM_STARTING_SHIPS) {
     return {
@@ -85,19 +85,19 @@ function handlePlayBlastRespondState(
 
   const playerState = state.getPlayerState(playerId)
 
-  if (typeof action.handIndex !== 'number') {
-    warn('handIndex should be a single number for playing cards.')
+  if (typeof action.cardIndex !== 'number') {
+    warn('cardIndex should be a single number for playing cards.')
     return
   }
-  const card = playerState.hand[action.handIndex]
+  const card = playerState.hand[action.cardIndex]
 
   if (!card) {
-    warn(`Attempted to play a non-existent card ${action.handIndex}.`)
+    warn(`Attempted to play a non-existent card ${action.cardIndex}.`)
     return
   }
 
-  state.actionDiscardDeck.push(playerState.hand[action.handIndex])
-  playerState.hand.splice(action.handIndex, 1)
+  state.actionDiscardDeck.push(playerState.hand[action.cardIndex])
+  playerState.hand.splice(action.cardIndex, 1)
 
   if (
     card.cardType === 'TemporalFluxCard' ||
@@ -153,13 +153,13 @@ function handlePlaySquadronResponseState(
   const playerState = state.getPlayerState(playerId)
 
   assert(
-    typeof action.handIndex === 'number',
-    'handIndex should be a single number for playing cards.'
+    typeof action.cardIndex === 'number',
+    'cardIndex should be a single number for playing cards.'
   )
-  const respondingCard = playerState.hand[action.handIndex]
+  const respondingCard = playerState.hand[action.cardIndex]
 
   if (!respondingCard) {
-    warn(`Attempted to respond with a non-existent card ${action.handIndex}.`)
+    warn(`Attempted to respond with a non-existent card ${action.cardIndex}.`)
     return
   }
 
@@ -183,7 +183,7 @@ function handlePlaySquadronResponseState(
   )
 
   state.actionDiscardDeck.push(respondingCard)
-  playerState.hand.splice(action.handIndex, 1)
+  playerState.hand.splice(action.cardIndex, 1)
 
   const resolveCounter = () => {
     // By default, squadrons will go back to the attacking player's hand.
@@ -270,13 +270,13 @@ function handlePlayActionResponseState(
   const playerState = state.getPlayerState(playerId)
 
   assert(
-    typeof action.handIndex === 'number',
-    'handIndex should be a single number for playing cards.'
+    typeof action.cardIndex === 'number',
+    'cardIndex should be a single number for playing cards.'
   )
-  const respondingCard = playerState.hand[action.handIndex]
+  const respondingCard = playerState.hand[action.cardIndex]
 
   if (!respondingCard) {
-    warn(`Attempted to respond with a non-existent card ${action.handIndex}.`)
+    warn(`Attempted to respond with a non-existent card ${action.cardIndex}.`)
     return
   }
 
@@ -292,7 +292,7 @@ function handlePlayActionResponseState(
   )
 
   state.actionDiscardDeck.push(respondingCard)
-  playerState.hand.splice(action.handIndex, 1)
+  playerState.hand.splice(action.cardIndex, 1)
 
   const respondablePlayers = playersThatCanRespondToActions(state, playerId)
   if (respondablePlayers.length > 0) {
@@ -334,11 +334,11 @@ function handleCraniumConsortiumChooseResourcesToDiscardState(
     return
   }
 
-  if (!Array.isArray(action.handIndex)) {
-    warn('handIndex should be an array for reinforcing.')
+  if (!Array.isArray(action.cardIndex)) {
+    warn('cardIndex should be an array for reinforcing.')
     return
   }
-  const discardIndices = action.handIndex
+  const discardIndices = action.cardIndex
 
   const respondingPlayer = turnState.respondingPlayer
   const respondingPlayerState = state.getPlayerState(respondingPlayer)
@@ -427,12 +427,12 @@ export function applyChooseCardAction(
   switch (state.turnState.type) {
     case 'DiscardTurnState':
       // Discard, then draw.
-      if (!Array.isArray(action.handIndex)) {
-        warn('handIndex should be an array for discarding.')
+      if (!Array.isArray(action.cardIndex)) {
+        warn('cardIndex should be an array for discarding.')
         break
       }
 
-      const discardIndices = action.handIndex
+      const discardIndices = action.cardIndex
       discardPlayerHandCards(state, state.activePlayer, discardIndices)
 
       if (discardIndices.length > 0) {
@@ -443,7 +443,10 @@ export function applyChooseCardAction(
         )
       }
 
-      if (activePlayerState.hand.length < DRAW_UP_TO_HAND_SIZE) {
+      if (
+        activePlayerState.hand.length < DRAW_UP_TO_HAND_SIZE &&
+        !state.turnState.skipDraw
+      ) {
         drawActivePlayerCards(
           state,
           DRAW_UP_TO_HAND_SIZE - activePlayerState.hand.length
@@ -461,22 +464,63 @@ export function applyChooseCardAction(
 
       break
 
+    case 'OverseersChooseBlastsState':
+      {
+        if (!Array.isArray(action.cardIndex)) {
+          warn(
+            'cardIndex should be an array for choosing OverseersOfKalgon ships.'
+          )
+          break
+        }
+
+        const chosenIndices = action.cardIndex
+
+        const [chosenCards, notChosenCards] = partition(
+          state.actionDiscardDeck,
+          (v, i) => chosenIndices.includes(i)
+        )
+
+        if (chosenCards.length > 3) {
+          return {
+            type: 'ActionError',
+            message: 'Please choose up to three blasts.',
+            time: new Date().getTime(),
+          }
+        }
+
+        if (!chosenCards.every((c) => c.isBlast)) {
+          warn(
+            `${state.activePlayer} chose more than 3 cards or chose non-blasts.`
+          )
+          break
+        }
+
+        chosenCards.forEach((c) => activePlayerState.hand.push(c))
+        state.actionDiscardDeck = notChosenCards
+
+        state.turnState = {
+          type: 'DiscardTurnState',
+          skipDraw: true,
+        }
+      }
+      break
+
     case 'MheeChooseShipState':
-      if (Array.isArray(action.handIndex)) {
+      if (Array.isArray(action.cardIndex)) {
         warn(
-          'handIndex should be a single value for choosing MheeYowMeex ship.'
+          'cardIndex should be a single value for choosing MheeYowMeex ship.'
         )
         break
       }
 
-      const chosenCardIndex = action.handIndex
+      const chosenCardIndex = action.cardIndex
       const chosenCard = state.turnState.ships[chosenCardIndex]
       const notChosenCards = state.turnState.ships.filter(
         (v, i) => chosenCardIndex !== i
       )
 
       if (notChosenCards.length !== state.turnState.ships.length - 1) {
-        warn('Invalid handIndex for choosing MheeYowMeex ship.')
+        warn('Invalid cardIndex for choosing MheeYowMeex ship.')
         break
       }
 
@@ -496,11 +540,11 @@ export function applyChooseCardAction(
 
     case 'ReinforceTurnState':
       {
-        if (!Array.isArray(action.handIndex)) {
-          warn('handIndex should be an array for reinforcing.')
+        if (!Array.isArray(action.cardIndex)) {
+          warn('cardIndex should be an array for reinforcing.')
           break
         }
-        const reinforceIndices = action.handIndex
+        const reinforceIndices = action.cardIndex
 
         if (
           sufficientForReinforcement(
@@ -529,14 +573,14 @@ export function applyChooseCardAction(
       break
 
     case 'AttackTurnState':
-      if (typeof action.handIndex !== 'number') {
-        warn('handIndex should be a single number for playing cards.')
+      if (typeof action.cardIndex !== 'number') {
+        warn('cardIndex should be a single number for playing cards.')
         break
       }
-      const card = activePlayerState.hand[action.handIndex]
+      const card = activePlayerState.hand[action.cardIndex]
 
       if (!card) {
-        warn(`Attempted to play a non-existent card ${action.handIndex}.`)
+        warn(`Attempted to play a non-existent card ${action.cardIndex}.`)
         return
       }
 
@@ -546,7 +590,7 @@ export function applyChooseCardAction(
       }
 
       // Consume the card.
-      activePlayerState.hand.splice(action.handIndex, 1)
+      activePlayerState.hand.splice(action.cardIndex, 1)
 
       const playingCardHasMoreStates =
         card.isSquadron ||

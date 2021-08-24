@@ -5,13 +5,18 @@ import ReactTooltip from 'react-tooltip'
 import { CommandShip } from './board'
 import { ActionCardComponent, ShipCardComponent } from './hand'
 
-export const CardLink: React.FunctionComponent<{ card: ActionCard }> = ({
-  card,
-}) => {
+export const CardLink: React.FunctionComponent<{
+  card: ActionCard
+  unbold?: boolean
+}> = ({ card, unbold }) => {
   const id = _.uniqueId()
   return (
     <Fragment>
-      <span className="b underline" data-tip data-for={id}>
+      <span
+        className={`underline ${!unbold ? 'b' : ''}`}
+        data-tip
+        data-for={id}
+      >
         {card.name}
       </span>
       <ReactTooltip

@@ -1,4 +1,6 @@
 import {
+  Action,
+  ActionError,
   AttackMode,
   ATTACK_MODES,
   PlayerId,
@@ -81,6 +83,142 @@ const DeckData: React.FunctionComponent<{
   )
 }
 
+type TabType = 'event-log' | 'action-discard' | 'ship-discard'
+
+const tabs: Record<TabType, string> = {
+  'event-log': 'Event Log',
+  'action-discard': 'Action Discard Pile',
+  'ship-discard': 'Ship Discard Pile',
+}
+
+const GameTabs: React.FunctionComponent<{
+  uiState: UIGameState
+  selectedDiscardCards: number[]
+  setSelectedDiscardCards: (_: number[]) => void
+  performAction: (_: Action) => void
+}> = ({
+  uiState,
+  selectedDiscardCards,
+  setSelectedDiscardCards,
+  performAction,
+}) => {
+  const prompt = uiState.prompt
+
+  const [tab, setTab] = useState<TabType>('event-log')
+
+  const selectActionDiscardCards =
+    prompt.type === 'ChooseCardFromActionDiscardPrompt'
+  const selectShipDiscardCards =
+    prompt.type === 'ChooseCardFromShipDiscardPrompt'
+
+  const selectableActionCardIndices =
+    prompt.type === 'ChooseCardFromActionDiscardPrompt'
+      ? prompt.selectableCardIndices
+      : []
+
+  const selectedTab = selectActionDiscardCards
+    ? 'action-discard'
+    : selectShipDiscardCards
+    ? 'ship-discard'
+    : tab
+
+  return (
+    <div>
+      <div className="flex justify-between">
+        {Object.entries(tabs).map(([key, name]) => (
+          <div
+            key={key}
+            className={`f6 pa1 pv2 ${
+              selectedTab === key ? 'b' : 'underline pointer'
+            }`}
+            style={{ textDecorationStyle: 'solid' }}
+            onClick={() => setTab(key as TabType)}
+          >
+            {name}
+          </div>
+        ))}
+      </div>
+
+      <div
+        className="ba pa1 overflow-y-scroll"
+        style={{
+          width: '22em',
+          flexShrink: 0,
+          height: 'calc(100vh - 11rem)',
+        }}
+      >
+        {selectedTab === 'event-log' ? (
+          <EventLog eventLog={uiState.eventLog} />
+        ) : null}
+
+        {selectedTab === 'action-discard'
+          ? uiState.actionDiscardDeck.map((d, i) => {
+              const selectable = selectableActionCardIndices.includes(i)
+
+              return (
+                <div
+                  key={i}
+                  className={`pv1 ${
+                    selectActionDiscardCards && selectable ? 'pointer' : ''
+                  }`}
+                  onClick={() =>
+                    selectable
+                      ? setSelectedDiscardCards(
+                          selectedDiscardCards.includes(i)
+                            ? _.without(selectedDiscardCards, i)
+                            : selectedDiscardCards.concat(i)
+                        )
+                      : null
+                  }
+                >
+                  <CardLink unbold={!selectable} card={d} />{' '}
+                  {selectedDiscardCards.includes(i) ? '✅' : ''}
+                </div>
+              )
+            })
+          : null}
+
+        {selectedTab === 'ship-discard'
+          ? uiState.shipDiscardDeck.map((d, i) => (
+              <div
+                key={i}
+                className={`pv1 ${selectShipDiscardCards ? 'pointer' : ''}`}
+                onClick={() =>
+                  selectShipDiscardCards
+                    ? performAction({
+                        type: 'ChooseCardAction',
+                        cardIndex: i,
+                      })
+                    : null
+                }
+              >
+                <ShipLink shipCard={d} />
+              </div>
+            ))
+          : null}
+      </div>
+    </div>
+  )
+}
+
+const ErrorComponent: React.FunctionComponent<{
+  error: ActionError | undefined
+}> = ({ error }) => {
+  const [showError, setShowError] = useState(false)
+
+  useEffect(() => {
+    setShowError(true)
+    const h = setTimeout(() => setShowError(false), 3000)
+    return () => clearTimeout(h)
+  }, [JSON.stringify(error)])
+
+  if (showError && error) {
+    return <h3 className="ma1 mv2 red">{error.message}</h3>
+  }
+
+  return null
+}
+
 const Game: React.FunctionComponent<{
   comms: Comms
   uiState: UIGameState
@@ -99,69 +237,19 @@ const Game: React.FunctionComponent<{
   const canActivateAbility = uiState.commandShipAbilityPrompt !== undefined
   const canActivateMinesweeper = uiState.minesweeperAbilityPrompt !== undefined
 
-  const error = uiState.actionError
-
-  const [showError, setShowError] = useState(false)
-
-  useEffect(() => {
-    setShowError(true)
-    const h = setTimeout(() => setShowError(false), 3000)
-    return () => clearTimeout(h)
-  }, [JSON.stringify(error)])
-
   const [playSounds, setPlaySounds] = useState(true)
 
-  type TabType = 'event-log' | 'action-discard' | 'ship-discard'
-  const [tab, setTab] = useState<TabType>('event-log')
-
-  const tabs: Record<TabType, string> = {
-    'event-log': 'Event Log',
-    'action-discard': 'Action Discard Pile',
-    'ship-discard': 'Ship Discard Pile',
-  }
+  const [selectedDiscardCards, setSelectedDiscardCards] = useState<number[]>([])
 
   return (
     <div className="flex ma2">
       <div>
-        <div className="flex justify-between">
-          {Object.entries(tabs).map(([key, name]) => (
-            <div
-              key={key}
-              className={`f6 pa1 pv2 ${tab === key ? 'b' : 'underline pointer'}`}
-              style={{ textDecorationStyle: 'solid' }}
-              onClick={() => setTab(key as TabType)}
-            >
-              {name}
-            </div>
-          ))}
-        </div>
-        <div
-          className="ba pa1 overflow-y-scroll"
-          style={{
-            width: '22em',
-            flexShrink: 0,
-            height: 'calc(100vh - 11rem)',
-          }}
-        >
-          {tab === 'event-log' ? (
-            <EventLog eventLog={uiState.eventLog} />
-          ) : null}
-          {tab === 'action-discard'
-            ? uiState.actionDiscardDeck.map((d) => (
-                <div className="pv1">
-                  <CardLink card={d} />
-                </div>
-              ))
-            : null}
-          {tab === 'ship-discard'
-            ? uiState.shipDiscardDeck.map((d) => (
-                <div className="pv1">
-                  <ShipLink shipCard={d} />
-                </div>
-              ))
-            : null}
-        </div>
-
+        <GameTabs
+          uiState={uiState}
+          selectedDiscardCards={selectedDiscardCards}
+          setSelectedDiscardCards={setSelectedDiscardCards}
+          performAction={comms.performAction}
+        />
         <div className="flex">
           <DeckData uiState={uiState} />
           <div className="pa2">
@@ -185,7 +273,7 @@ const Game: React.FunctionComponent<{
         />
 
         {prompt && <h3 className="ma1 mv2">{prompt.text}</h3>}
-        {showError && error && <h3 className="ma1 mv2 red">{error.message}</h3>}
+        <ErrorComponent error={uiState.actionError} />
         {prompt && prompt.type === 'PlaceShipPrompt' && (
           <div className="flex">
             {prompt.newShips.map((s, i) => (
@@ -271,6 +359,21 @@ const Game: React.FunctionComponent<{
             }
           >
             Activate Minesweeper Ability 🧹
+          </button>
+        ) : null}
+
+        {prompt.type === 'ChooseCardFromActionDiscardPrompt' ? (
+          <button
+            className="ma1 pa1 f5"
+            onClick={() => {
+              comms.performAction({
+                type: 'ChooseCardAction',
+                cardIndex: selectedDiscardCards,
+              })
+              setSelectedDiscardCards([])
+            }}
+          >
+            {prompt.multiselect.actionText}
           </button>
         ) : null}
 

@@ -77,15 +77,15 @@ describe('Direct hits with double blasts', () => {
   it("should not have 'play' event log", () => {
     const state = gameState()
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlayBlastRespondState')
     applyAction(state, 'P2', { type: 'PassAction' })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(state.turnState.type).to.be.eq('PlayActionRespondState')
     applyAction(state, 'P2', { type: 'PassAction' })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(state.turnState.type).to.be.eq('PlayActionRespondState')
     applyAction(state, 'P2', { type: 'PassAction' })
 
@@ -102,17 +102,17 @@ describe('Direct hits with double blasts', () => {
   it('can still be countered', () => {
     const state = gameState()
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlayBlastRespondState')
     applyAction(state, 'P2', { type: 'PassAction' })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(state.turnState.type).to.be.eq('PlayActionRespondState')
     applyAction(state, 'P2', { type: 'PassAction' })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(state.turnState.type).to.be.eq('PlayActionRespondState')
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(eventLogToText(state.eventLog)).to.be.eql([

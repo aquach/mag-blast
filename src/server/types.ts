@@ -101,6 +101,7 @@ export interface PlaceStartingShipsState {
 
 export interface DiscardTurnState {
   type: 'DiscardTurnState'
+  skipDraw: boolean
 }
 
 export interface ReinforceTurnState {
@@ -236,6 +237,10 @@ export interface MheeChooseShipState {
   nextState: (_: ShipCard) => TurnState
 }
 
+export interface OverseersChooseBlastsState {
+  type: 'OverseersChooseBlastsState'
+}
+
 export interface EndGameState {
   type: 'EndGameState'
 }
@@ -270,4 +275,5 @@ export type TurnState =
   | BrotherhoodChooseShipToTransferFromState
   | BrotherhoodChooseShipToTransferToState
   | MheeChooseShipState
+  | OverseersChooseBlastsState
   | EndGameState

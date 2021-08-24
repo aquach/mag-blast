@@ -23,6 +23,7 @@ import {
 } from './logic'
 import {
   ChoicePrompt,
+  ChooseCardFromActionDiscardPrompt,
   ChooseCardPrompt,
   ChooseShipCardPrompt,
   ChooseShipPrompt,
@@ -308,6 +309,20 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
           pass: undefined,
           multiselect: {
             actionText: 'Discard 🗑',
+          },
+        })
+      }
+
+      case 'OverseersChooseBlastsState': {
+        return ascribe<ChooseCardFromActionDiscardPrompt>({
+          type: 'ChooseCardFromActionDiscardPrompt',
+          selectableCardIndices: filterIndices(
+            state.actionDiscardDeck,
+            (c) => c.isBlast
+          ),
+          text: 'Choose up to 3 Blasts to take from the action discard pile.',
+          multiselect: {
+            actionText: 'Take Blasts',
           },
         })
       }
@@ -698,7 +713,11 @@ export function gameUiState(playerId: PlayerId, state: GameState): UIGameState {
     actionDeckSize: state.actionDeck.length,
     actionDiscardDeck: state.actionDiscardDeck,
     shipDeckSize: state.shipDeck.length,
-    shipDiscardDeck: state.shipDiscardDeck,
+    shipDiscardDeck:
+      state.turnState.type === 'PlaceStartingShipsState' ||
+      state.turnState.type === 'ChooseStartingShipsState'
+        ? []
+        : state.shipDiscardDeck,
     isActivePlayer: state.activePlayer === playerId,
     eventLog: state.eventLog,
     prompt: prompt(state, playerId),

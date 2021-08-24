@@ -40,10 +40,24 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
   },
   {
     commandType: 'OverseersOfKalgon',
-    activate(s, playerId) {
-      return (
-        s.turnState.type === 'DiscardTurnState' && s.activePlayer === playerId
-      )
+    activate(s, playerId, dryRun) {
+      console.log(s.activePlayer, s.turnState.type, dryRun)
+      if (
+        s.turnState.type === 'DiscardTurnState' &&
+        s.activePlayer === playerId
+      ) {
+        if (dryRun) {
+          return true
+        }
+
+        s.turnState = {
+          type: 'OverseersChooseBlastsState',
+        }
+
+        return true
+      }
+
+      return false
     },
   },
   {
@@ -69,10 +83,11 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
   },
   {
     commandType: 'TriBot',
-    activate(s, playerId) {
-      return (
-        s.turnState.type === 'ReinforceTurnState' && s.activePlayer === playerId
-      )
+    activate(s, playerId, dryRun) {
+      return false
+      // if (
+      //   s.turnState.type === 'ReinforceTurnState' && s.activePlayer === playerId
+      // ) {
     },
   },
   {

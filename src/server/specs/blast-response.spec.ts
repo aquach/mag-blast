@@ -144,7 +144,7 @@ describe('Blasts', () => {
   it("should resolve when P2 can't respond", () => {
     const state = gameState(0)
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
 
@@ -159,7 +159,7 @@ describe('Blasts', () => {
 
   it('should resolve when passing', () => {
     const state = gameState(5)
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     applyAction(state, 'P2', { type: 'PassAction' })
@@ -175,10 +175,10 @@ describe('Blasts', () => {
 
   it('should fail when responded to', () => {
     const state = gameState(5)
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -192,11 +192,11 @@ describe('Blasts', () => {
 
   it('should resolve when double-responded to', () => {
     const state = gameState(5)
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -212,11 +212,11 @@ describe('Blasts', () => {
 
   it('should resolve when double-responded to and P2 has no response', () => {
     const state = gameState(1)
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(eventLogToText(state.eventLog)).to.be.eql([
@@ -231,12 +231,12 @@ describe('Blasts', () => {
 
   it('should fail when triple-responded to', () => {
     const state = gameState(5)
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -253,26 +253,26 @@ describe('Blasts', () => {
 
   it('should resolve when quadruple-responded to and P2 has no response', () => {
     const state = gameState(2)
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
 
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(gameUiState('P1', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P2', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(gameUiState('P2', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P1', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(gameUiState('P1', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P2', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(gameUiState('P2', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P1', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(gameUiState('P2', state).prompt.type).to.be.eq('NoPrompt')
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -380,7 +380,7 @@ describe('Blasts', () => {
       minefieldUntilBeginningOfPlayerTurn: undefined,
     })
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
 
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -389,7 +389,7 @@ describe('Blasts', () => {
     expect(gameUiState('P2', state).prompt.type).to.be.eq('ChooseCardPrompt')
     expect(gameUiState('P3', state).prompt.type).to.be.eq('NoPrompt')
 
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(state.turnState.type).to.be.eq('PlayActionRespondState')
     expect(gameUiState('P1', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P2', state).prompt.type).to.be.eq('NoPrompt')
@@ -401,13 +401,13 @@ describe('Blasts', () => {
     expect(gameUiState('P2', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P3', state).prompt.type).to.be.eq('NoPrompt')
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(state.turnState.type).to.be.eq('PlayActionRespondState')
     expect(gameUiState('P1', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P2', state).prompt.type).to.be.eq('NoPrompt')
     expect(gameUiState('P3', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
-    applyAction(state, 'P3', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P3', { type: 'ChooseCardAction', cardIndex: 0 })
     expect(gameUiState('P1', state).prompt.type).to.be.eq('ChooseCardPrompt')
 
     applyAction(state, 'P1', { type: 'PassAction' })
@@ -426,10 +426,10 @@ describe('Blasts', () => {
   describe('Direct Hits', () => {
     it('should reset state machine when blast canceled', () => {
       const state = directHitState()
-      applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+      applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
       applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
       applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
-      applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+      applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
       expect(state.turnState.type).to.be.eq('AttackTurnState')
       expect(state.directHitStateMachine?.type).to.be.eq(undefined)
@@ -442,13 +442,13 @@ describe('Blasts', () => {
 
     it('should reset state machine when direct hit canceled', () => {
       const state = directHitState()
-      applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+      applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
       applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
       applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
       applyAction(state, 'P2', { type: 'PassAction' })
 
-      applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
-      applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+      applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
+      applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
       expect(state.turnState.type).to.be.eq('AttackTurnState')
       expect(state.directHitStateMachine?.type).to.be.eq(
@@ -464,16 +464,16 @@ describe('Blasts', () => {
 
     it('should reset state machine when effect canceled', () => {
       const state = directHitState()
-      applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+      applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
       applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P1', 0] })
       applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
       applyAction(state, 'P2', { type: 'PassAction' })
 
-      applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+      applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
       applyAction(state, 'P2', { type: 'PassAction' })
 
-      applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
-      applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+      applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
+      applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
       expect(state.turnState.type).to.be.eq('AttackTurnState')
       expect(state.directHitStateMachine?.type).to.be.eq(

@@ -73,9 +73,9 @@ describe('Squadrons', () => {
   it("should be used, then returned to player's hand when defending", () => {
     const state = gameState()
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(eventLogToText(state.eventLog)).to.be.eql([
@@ -103,7 +103,7 @@ describe('Squadrons', () => {
   it('should not be duplicated when canceled', () => {
     const state = gameState()
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'CancelAction' })
     expect(state.turnState.type).to.be.eq('AttackTurnState')
 

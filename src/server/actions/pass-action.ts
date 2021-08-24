@@ -158,6 +158,7 @@ export function applyPassAction(
       state.turnState = {
         type:
           state.turnNumber === 1 ? 'ReinforceTurnState' : 'DiscardTurnState',
+        skipDraw: false,
       }
 
       state.activePlayer = nextPlayer

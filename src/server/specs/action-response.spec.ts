@@ -78,7 +78,7 @@ describe('Non-targeted actions', () => {
     const state = gameState()
     state.getPlayerState('P2').hand = []
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(state.actionDiscardDeck.length).to.be.eq(1)
@@ -91,7 +91,7 @@ describe('Non-targeted actions', () => {
 
   it('should resolve when passing', () => {
     const state = gameState()
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -105,8 +105,8 @@ describe('Non-targeted actions', () => {
 
   it('should fail when responded to', () => {
     const state = gameState()
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 0 })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(state.actionDiscardDeck.length).to.be.eq(2)
@@ -123,7 +123,7 @@ describe('Targeted actions', () => {
     const state = gameState()
     state.getPlayerState('P2').hand = []
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: 'P1' })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
@@ -136,7 +136,7 @@ describe('Targeted actions', () => {
 
   it('should resolve when passing', () => {
     const state = gameState()
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: 'P1' })
     applyAction(state, 'P2', { type: 'PassAction' })
 
@@ -150,9 +150,9 @@ describe('Targeted actions', () => {
 
   it('should fail when responded to', () => {
     const state = gameState()
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 1 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: 'P1' })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(state.actionDiscardDeck.length).to.be.eq(2)
@@ -169,7 +169,7 @@ describe('Reinforcements', () => {
     const state = gameState()
     state.getPlayerState('P2').hand = []
 
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 3 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 3 })
 
     expect(state.turnState.type).to.be.eq('AttackPlaceShipState')
     expect(state.actionDiscardDeck.length).to.be.eq(1)
@@ -181,7 +181,7 @@ describe('Reinforcements', () => {
 
   it('should resolve when passing', () => {
     const state = gameState()
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 3 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 3 })
     applyAction(state, 'P2', { type: 'PassAction' })
 
     expect(state.turnState.type).to.be.eq('AttackPlaceShipState')
@@ -194,8 +194,8 @@ describe('Reinforcements', () => {
 
   it('should fail when responded to', () => {
     const state = gameState()
-    applyAction(state, 'P1', { type: 'ChooseCardAction', handIndex: 3 })
-    applyAction(state, 'P2', { type: 'ChooseCardAction', handIndex: 0 })
+    applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 3 })
+    applyAction(state, 'P2', { type: 'ChooseCardAction', cardIndex: 0 })
 
     expect(state.turnState.type).to.be.eq('AttackTurnState')
     expect(state.actionDiscardDeck.length).to.be.eq(2)

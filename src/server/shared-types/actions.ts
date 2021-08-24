@@ -2,7 +2,7 @@ import { Location, PlayerId } from './base'
 
 export interface ChooseCardAction {
   type: 'ChooseCardAction'
-  handIndex: number | number[]
+  cardIndex: number | number[]
 }
 
 export interface ChooseShipAction {

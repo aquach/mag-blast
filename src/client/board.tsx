@@ -181,7 +181,7 @@ export const CommandShip: React.FunctionComponent<{
           : commandShipBreaks[ship.shipType.commandType] ?? ship.shipType.name}
       </p>
       {expanded && cardsInHand !== undefined && (
-        <p className="f8 tc mv1">
+        <p className="f8 tc mv1 i">
           {cardsInHand} card{cardsInHand === 1 ? '' : 's'} in hand
         </p>
       )}

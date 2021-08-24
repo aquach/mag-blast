@@ -127,7 +127,7 @@ const Game: React.FunctionComponent<{
           {Object.entries(tabs).map(([key, name]) => (
             <div
               key={key}
-              className={`f6 pa1 ${tab === key ? 'b' : 'underline pointer'}`}
+              className={`f6 pa1 pv2 ${tab === key ? 'b' : 'underline pointer'}`}
               style={{ textDecorationStyle: 'solid' }}
               onClick={() => setTab(key as TabType)}
             >

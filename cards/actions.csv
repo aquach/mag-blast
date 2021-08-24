@@ -11,7 +11,7 @@ Fighter,FighterCard,0,"S,S,D,D,C,C,SD,DC,SC",2,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE
 
 Any Turn (requires a carrier): Play to cancel an attacking bomber or discard to cancel an attacking fighter.",FALSE
 Bridge Hit,BridgeHitCard,0,"SS,CC",0,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,Direct Hit Effect: Play on an enemy ship on which you just played a Direct Hit to take up to 3 cards at random from that player's hand.,FALSE
-Spacedock,SpacedockCard,4,,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,Play to discard one Blast from one of your fleet ships.,FALSE
+Spacedock,SpacedockCard,4,,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,Play to discard one Blast from one of your fleet ships (repairs one instance of Blast damage).,FALSE
 Ramming Speed,RammingSpeedCard,2,,0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play to sacrifice one of your fleet ships, turning it into a Blast that fires immediately from the ship's current zone. If it hits, it does damage equal to its speed.",FALSE
 Asteroids,AsteroidsCard,0,"S,D,C",0,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"Play on any fleet. Until the beginning of your next turn, Blasts and Squadrons cannot be played on ships in that fleet.",FALSE
 Mag Blast,MagBlastCard,7,"S,D,C",5,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,,FALSE

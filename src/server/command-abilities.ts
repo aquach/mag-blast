@@ -20,7 +20,8 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
 
         if (
           respondingPlayer === playerId &&
-          sufficientForCraniumCounter(respondingPlayerState.hand)
+          sufficientForCraniumCounter(respondingPlayerState.hand) &&
+          s.turnState.targetShip.type === 'Ship'
         ) {
           if (dryRun) {
             return true
@@ -41,7 +42,6 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
   {
     commandType: 'OverseersOfKalgon',
     activate(s, playerId, dryRun) {
-      console.log(s.activePlayer, s.turnState.type, dryRun)
       if (
         s.turnState.type === 'DiscardTurnState' &&
         s.activePlayer === playerId
@@ -84,10 +84,20 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
   {
     commandType: 'TriBot',
     activate(s, playerId, dryRun) {
+      if (
+        s.turnState.type === 'ReinforceTurnState' &&
+        s.activePlayer === playerId
+      ) {
+        if (dryRun) {
+          return true
+        }
+
+        // TODO
+
+        return true
+      }
+
       return false
-      // if (
-      //   s.turnState.type === 'ReinforceTurnState' && s.activePlayer === playerId
-      // ) {
     },
   },
   {

@@ -824,7 +824,7 @@ export function hasCommandShipAbilityActivations(
   playerState: PlayerState
 ): boolean {
   if (playerState.commandShip.remainingAbilityActivations === undefined) {
-    return false
+    return true
   }
 
   if (playerState.commandShip.remainingAbilityActivations <= 0) {

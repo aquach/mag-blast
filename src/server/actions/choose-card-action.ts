@@ -4,7 +4,7 @@ import { event, p } from '../events'
 import {
   canPlayCardDuringAttackPhase,
   discardPlayerHandCards,
-  drawActivePlayerCards,
+  drawCards,
   drawAndChooseShipCard,
   fullOnShips,
   owningPlayer,
@@ -447,8 +447,9 @@ export function applyChooseCardAction(
         activePlayerState.hand.length < DRAW_UP_TO_HAND_SIZE &&
         !state.turnState.skipDraw
       ) {
-        drawActivePlayerCards(
+        drawCards(
           state,
+          state.activePlayer,
           DRAW_UP_TO_HAND_SIZE - activePlayerState.hand.length
         )
       }

@@ -114,7 +114,7 @@ const GameTabs: React.FunctionComponent<{
   const selectableActionCardIndices =
     prompt.type === 'ChooseCardFromActionDiscardPrompt'
       ? prompt.selectableCardIndices
-      : []
+      : undefined
 
   const selectedTab = selectActionDiscardCards
     ? 'action-discard'
@@ -153,7 +153,9 @@ const GameTabs: React.FunctionComponent<{
 
         {selectedTab === 'action-discard'
           ? uiState.actionDiscardDeck.map((d, i) => {
-              const selectable = selectableActionCardIndices.includes(i)
+              const selectable =
+                selectableActionCardIndices === undefined ||
+                selectableActionCardIndices.includes(i)
 
               return (
                 <div

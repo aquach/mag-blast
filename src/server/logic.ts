@@ -11,22 +11,21 @@ import {
 import { CommandShip, GameState, PlayerState, Ship, TurnState } from './types'
 import { ascribe, assert, filterIndices, partition, warn } from './utils'
 
-export function drawActivePlayerCards(
+export function drawCards(
   state: GameState,
+  playerId: PlayerId,
   numCards: number
 ): void {
-  const activePlayerState = state.getPlayerState(state.activePlayer)
+  const playerState = state.getPlayerState(playerId)
 
   state.pushEventLog(
-    event`${p(state.activePlayer)} draws ${numCards} card${
-      numCards > 1 ? 's' : ''
-    }.`
+    event`${p(playerId)} draws ${numCards} card${numCards > 1 ? 's' : ''}.`
   )
 
   _.times(numCards, () => {
     const topCard = state.actionDeck.shift()
     assert(topCard !== undefined, 'Action card deck must not be empty.')
-    activePlayerState.hand.push(topCard)
+    playerState.hand.push(topCard)
 
     if (state.actionDeck.length === 0) {
       state.pushEventLog(event`Action card deck is reshuffled.`)
@@ -191,9 +190,22 @@ export function destroyShip(
     event`${p(targetPlayer)}'s ${ship.shipType.name} is destroyed!`
   )
 
+  const recyclonsPlayer = Array.from(state.playerState.entries()).find(
+    (e) =>
+      e[1].commandShip.shipType.commandType === 'Recyclonsv40K' && e[1].isAlive
+  )
+
   if (ship.type === 'Ship') {
     _.remove(targetPlayerState.ships, (s) => s === ship)
     state.shipDiscardDeck.push(ship.shipType)
+
+    if (recyclonsPlayer !== undefined) {
+      const [recyclonsPlayerId, recyclonsPlayerState] = recyclonsPlayer
+      state.pushEventLog(
+        event`${recyclonsPlayerId}'s ${recyclonsPlayerState.commandShip.shipType.name} activates!`
+      )
+      drawCards(state, recyclonsPlayerId, 1)
+    }
   } else {
     state.pushEventLog(event`${p(targetPlayer)} is eliminated.`)
     targetPlayerState.isAlive = false
@@ -209,6 +221,14 @@ export function destroyShip(
       }
       state.activePlayer = ''
       return true
+    } else if (recyclonsPlayer !== undefined) {
+      const [recyclonsPlayerId, recyclonsPlayerState] = recyclonsPlayer
+      state.pushEventLog(
+        event`${p(recyclonsPlayerId)}'s ${
+          recyclonsPlayerState.commandShip.shipType.name
+        } activates!`
+      )
+      drawCards(state, recyclonsPlayerId, 3)
     }
   }
 
@@ -359,7 +379,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
     // AttackTurnState.
     return true
   } else if (card.cardType === 'StrategicAllocationCard') {
-    drawActivePlayerCards(state, 3)
+    drawCards(state, state.activePlayer, 3)
   } else if (card.isDirectHit) {
     if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
       warn(

@@ -5,6 +5,7 @@ import {
   AttackMode,
   CommandShipCard,
   EventLogEntry,
+  GameFlavor,
   Location,
   PlayerId,
   ShipCard,
@@ -58,6 +59,7 @@ export type DirectHitState =
 
 export interface GameSettings {
   startingHandSize: number
+  gameFlavor: GameFlavor
   attackMode: AttackMode
 }
 

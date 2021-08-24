@@ -154,6 +154,7 @@ export function lobbyUiState(
     type: 'UILobbyState',
     playerIds,
     gameSettings: {
+      gameFlavor: gameSettings.gameFlavor,
       attackMode: gameSettings.attackMode,
     },
   }

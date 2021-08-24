@@ -10,6 +10,7 @@ import {
   Action,
   ATTACK_MODES,
   GameError,
+  GAME_FLAVORS,
   PlayerId,
   UIGameSettings,
 } from './shared-types'
@@ -47,6 +48,7 @@ const games: Game[] = [
     gameState: newGameState(new Set(['a', 'b']), {
       startingHandSize: 25,
       attackMode: 'FreeForAll',
+      gameFlavor: 'Rebalanced',
     }),
     lastUpdated: new Date().getTime(),
     gameSettings: null as any,
@@ -72,6 +74,7 @@ app.post('/create-game', (req, res) => {
     gameSettings: {
       startingHandSize: STARTING_HAND_SIZE,
       attackMode: 'AttackRight',
+      gameFlavor: 'Rebalanced',
     },
   }
 
@@ -175,8 +178,14 @@ io.on('connection', (socket) => {
       return
     }
 
+    if (!GAME_FLAVORS.map((m) => m.name).includes(settings.gameFlavor)) {
+      warn(`${settings.gameFlavor} is not a valid game flavor.`)
+      return
+    }
+
     game.gameSettings = _.merge({}, game.gameSettings, {
       attackMode: settings.attackMode,
+      gameFlavor: settings.gameFlavor,
     })
 
     game.lastUpdated = new Date().getTime()

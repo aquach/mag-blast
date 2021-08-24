@@ -39,6 +39,27 @@ export interface UIGameState {
   actionError: ActionError | undefined
 }
 
+export type GameFlavor = 'Original' | 'Rebalanced'
+
+export interface GameFlavorInfo {
+  gameFlavor: GameFlavor
+  name: string
+  description: string
+}
+
+export const GAME_FLAVORS: GameFlavorInfo[] = [
+  {
+    gameFlavor: 'Original',
+    name: 'Original',
+    description: 'The original game, faithfully reproduced.',
+  },
+  {
+    gameFlavor: 'Rebalanced',
+    name: 'Rebalanced',
+    description: 'A newer, hopefully more enjoyable experience.',
+  },
+]
+
 export type AttackMode = 'FreeForAll' | 'AttackRight' | 'AttackLeftRight'
 
 export interface AttackModeInfo {
@@ -66,6 +87,7 @@ export const ATTACK_MODES: AttackModeInfo[] = [
 ]
 
 export interface UIGameSettings {
+  gameFlavor: GameFlavor
   attackMode: AttackMode
 }
 

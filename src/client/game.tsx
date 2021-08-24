@@ -3,6 +3,8 @@ import {
   ActionError,
   AttackMode,
   ATTACK_MODES,
+  GameFlavor,
+  GAME_FLAVORS,
   PlayerId,
   Prompt,
   UIGameSettings,
@@ -408,6 +410,32 @@ const Lobby: React.FunctionComponent<{
       </button>
 
       <h3 className="mv2">Settings</h3>
+
+      <h4 className="mv1">Game Flavor</h4>
+
+      <div className="flex flex-column">
+        {GAME_FLAVORS.map((m, i) => (
+          <div className="pa1" key={i}>
+            <input
+              type="radio"
+              id={m.gameFlavor}
+              name="gameFlavor"
+              value={m.gameFlavor}
+              checked={gameSettings.gameFlavor === m.gameFlavor}
+              onChange={(e) =>
+                setSettings({
+                  ...gameSettings,
+                  gameFlavor: e.target.value as GameFlavor,
+                })
+              }
+            />
+            &nbsp;
+            <label htmlFor={m.gameFlavor}>
+              {m.name}: {m.description}
+            </label>
+          </div>
+        ))}
+      </div>
 
       <h4 className="mv1">Attack Mode (who can you attack?)</h4>
 

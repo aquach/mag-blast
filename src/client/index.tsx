@@ -17,7 +17,7 @@ const App: React.FunctionComponent = () => {
 
   return (
     <div className="flex flex-column vh-100 w-100 justify-center items-center">
-      <h1>Mag Blast</h1>
+      <h1>Mag Blast V1.0</h1>
       <button className="f4" onClick={onClick}>
         Create Game
       </button>

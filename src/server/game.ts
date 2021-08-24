@@ -587,6 +587,9 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
               if (targetPlayerId === fromPlayerId) {
                 return []
               }
+              if (!targetPlayerState.isAlive) {
+                return []
+              }
               return filterIndices(targetPlayerState.ships, () => true).map<
                 [PlayerId, number]
               >((shipIndex) => [targetPlayerId, shipIndex])

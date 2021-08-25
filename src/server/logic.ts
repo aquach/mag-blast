@@ -245,7 +245,7 @@ export function resolveBlastAttack(
   let damage
   if (blast.cardType === 'RammingSpeedCard') {
     destroyShip(state, firingShip)
-    damage = firingShip.shipType.movement
+    damage = firingShip.shipType.movement * (state.gameSettings.gameFlavor === 'Rebalanced' ? 2 : 1)
   } else {
     damage = blast.damage
   }

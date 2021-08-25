@@ -1,11 +1,11 @@
-import _ from 'lodash'
 import {
   Action,
-  Prompt,
   ActionCard,
-  ShipCard,
   ChooseShipCardPrompt,
+  Prompt,
+  ShipCard,
 } from '@shared-types'
+import _ from 'lodash'
 import React, { Fragment, useState } from 'react'
 import { TurretMarker } from './board'
 

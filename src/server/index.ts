@@ -1,11 +1,12 @@
-import * as path from 'path'
 import * as crypto from 'crypto'
-import * as http from 'http'
-
 import * as express from 'express'
+import * as http from 'http'
 import * as _ from 'lodash'
+import * as path from 'path'
 import { Server, Socket } from 'socket.io'
-
+import { applyAction } from './actions'
+import { MAX_PLAYERS, STARTING_HAND_SIZE } from './constants'
+import { gameUiState, lobbyUiState, newGameState } from './game'
 import {
   Action,
   ATTACK_MODES,
@@ -14,11 +15,8 @@ import {
   PlayerId,
   UIGameSettings,
 } from './shared-types'
-import { gameUiState, lobbyUiState, newGameState } from './game'
-import { applyAction } from './actions'
 import { GameSettings, GameState } from './types'
 import { ascribe, warn } from './utils'
-import { MAX_PLAYERS, STARTING_HAND_SIZE } from './constants'
 
 interface PlayerSocketBinding {
   id: PlayerId

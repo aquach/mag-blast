@@ -1,10 +1,9 @@
 import { expect } from 'chai'
 import { applyAction } from '../actions'
 import { commandShipCards } from '../cards'
-import { gameUiState, newGameState } from '../game'
-import { ActionCard } from '../shared-types'
+import { newGameState } from '../game'
 import { GameState } from '../types'
-import { findActionCard, findShipCard, eventLogToText } from './test-utils'
+import { eventLogToText, findActionCard, findShipCard } from './test-utils'
 
 function gameState(): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {

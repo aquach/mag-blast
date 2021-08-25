@@ -1,9 +1,8 @@
-import { expect } from 'chai'
-import { applyAction } from '../actions'
-import { commandShipCards } from '../cards'
-import { newGameState } from '../game'
-import { GameState } from '../types'
-import { eventLogToText, findActionCard, findShipCard } from './test-utils'
+import {expect} from 'chai'
+import {applyAction} from '../actions'
+import {newGameState} from '../game'
+import {GameState} from '../types'
+import {eventLogToText, findOriginalActionCard, findOriginalCommandShipCard, findOriginalShipCard} from './test-utils'
 
 function gameState(): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
@@ -16,17 +15,17 @@ function gameState(): GameState {
   s.activePlayer = 'P1'
   s.playerState.set('P1', {
     hand: [
-      findActionCard('StrategicAllocationCard'),
-      findActionCard('AsteroidsCard'),
-      findActionCard('MinefieldCard'),
-      findActionCard('ReinforcementsCard'),
+      findOriginalActionCard('StrategicAllocationCard'),
+      findOriginalActionCard('AsteroidsCard'),
+      findOriginalActionCard('MinefieldCard'),
+      findOriginalActionCard('ReinforcementsCard'),
     ],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Dink'),
+        shipType: findOriginalShipCard('Dink'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -35,7 +34,7 @@ function gameState(): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[0],
+      shipType: findOriginalCommandShipCard('TheGlorp'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -46,13 +45,13 @@ function gameState(): GameState {
   })
 
   s.playerState.set('P2', {
-    hand: [findActionCard('TemporalFluxCard')],
+    hand: [findOriginalActionCard('TemporalFluxCard')],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Dink'),
+        shipType: findOriginalShipCard('Dink'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -61,7 +60,7 @@ function gameState(): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[1],
+      shipType: findOriginalCommandShipCard('Freep'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,

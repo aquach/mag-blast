@@ -66,6 +66,10 @@ export interface GameSettings {
 export interface GameState {
   type: 'GameState'
 
+  actionCards: ActionCard[]
+  shipCards: ShipCard[]
+  commandShipCards: CommandShipCard[]
+
   actionDeck: ActionCard[]
   actionDiscardDeck: ActionCard[]
 

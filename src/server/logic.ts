@@ -1,15 +1,16 @@
 import * as _ from 'lodash'
-import { MAX_ZONE_SHIPS } from './constants'
-import { event, p } from './events'
+import {MAX_ZONE_SHIPS} from './constants'
+import {event, p} from './events'
 import {
-  ActionCard,
-  Location,
-  LOCATIONS,
-  PlayerId,
-  ShipCard,
+    ActionCard,
+    GameFlavor,
+    Location,
+    LOCATIONS,
+    PlayerId,
+    ShipCard
 } from './shared-types'
-import { CommandShip, GameState, PlayerState, Ship, TurnState } from './types'
-import { ascribe, assert, filterIndices, partition, warn } from './utils'
+import {CommandShip, GameState, PlayerState, Ship, TurnState} from './types'
+import {ascribe, assert, filterIndices, partition, warn} from './utils'
 
 export function drawCards(
   state: GameState,
@@ -260,7 +261,7 @@ export function resolveBlastAttack(
     targetShip
   )
 
-  if (isDead(targetShip)) {
+  if (isDead(state.gameSettings.gameFlavor, targetShip)) {
     return destroyShip(state, targetShip)
   } else if (blast.cardType !== 'RammingSpeedCard') {
     state.directHitStateMachine = {
@@ -296,7 +297,7 @@ export function resolveSquadronAttack(
 ): boolean {
   targetShip.temporaryDamage += squadronDamage(state, targetShip, squadron)
 
-  if (isDead(targetShip)) {
+  if (isDead(state.gameSettings.gameFlavor, targetShip)) {
     return destroyShip(state, targetShip)
   }
 
@@ -649,7 +650,10 @@ export function zoneEmpty(ships: Ship[], location: Location): boolean {
   return ships.every((s) => s.location !== location)
 }
 
-export function isDead(ship: Ship | CommandShip): boolean {
+export function isDead(
+  gameFlavor: GameFlavor,
+  ship: Ship | CommandShip
+): boolean {
   return ship.damage + ship.temporaryDamage >= ship.shipType.hp
 }
 

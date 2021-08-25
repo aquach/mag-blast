@@ -1,9 +1,9 @@
-import { expect } from 'chai'
-import { applyAction } from '../actions'
-import { commandShipCards } from '../cards'
-import { newGameState } from '../game'
-import { GameState } from '../types'
-import { eventLogToText, findActionCard, findShipCard } from './test-utils'
+import {expect} from 'chai'
+import {applyAction} from '../actions'
+import {commandShipCards} from '../cards'
+import {newGameState} from '../game'
+import {GameState} from '../types'
+import {eventLogToText, findOriginalActionCard, findOriginalCommandShipCard, findOriginalShipCard} from './test-utils'
 
 function gameState(): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
@@ -15,13 +15,13 @@ function gameState(): GameState {
   s.turnState = { type: 'AttackTurnState' }
   s.activePlayer = 'P1'
   s.playerState.set('P1', {
-    hand: [findActionCard('FighterCard'), findActionCard('BomberCard')],
+    hand: [findOriginalActionCard('FighterCard'), findOriginalActionCard('BomberCard')],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Woden'),
+        shipType: findOriginalShipCard('Woden'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -30,7 +30,7 @@ function gameState(): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[0],
+      shipType: findOriginalCommandShipCard('TheGlorp'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -41,13 +41,13 @@ function gameState(): GameState {
   })
 
   s.playerState.set('P2', {
-    hand: [findActionCard('FighterCard')],
+    hand: [findOriginalActionCard('FighterCard')],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Woden'),
+        shipType: findOriginalShipCard('Woden'),
         damage: 5,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -56,7 +56,7 @@ function gameState(): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[2],
+      shipType: findOriginalCommandShipCard('AlphaMazons'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,

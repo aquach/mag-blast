@@ -1,9 +1,8 @@
-import { expect } from 'chai'
-import { applyAction } from '../actions'
-import { commandShipCards } from '../cards'
-import { gameUiState, newGameState } from '../game'
-import { GameState } from '../types'
-import { findActionCard, findShipCard, eventLogToText } from './test-utils'
+import {expect} from 'chai'
+import {applyAction} from '../actions'
+import {gameUiState, newGameState} from '../game'
+import {GameState} from '../types'
+import {eventLogToText, findOriginalActionCard, findOriginalCommandShipCard, findOriginalShipCard} from './test-utils'
 
 function gameState(p2NumFluxes: number): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
@@ -16,17 +15,17 @@ function gameState(p2NumFluxes: number): GameState {
   s.activePlayer = 'P1'
   s.playerState.set('P1', {
     hand: [
-      findActionCard('LaserBlastCard'),
-      findActionCard('TemporalFluxCard'),
-      findActionCard('TemporalFluxCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('LaserBlastCard'),
+      findOriginalActionCard('TemporalFluxCard'),
+      findOriginalActionCard('TemporalFluxCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Dink'),
+        shipType: findOriginalShipCard('Dink'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -35,7 +34,7 @@ function gameState(p2NumFluxes: number): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[0],
+      shipType: findOriginalCommandShipCard('TheGlorp'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -46,13 +45,13 @@ function gameState(p2NumFluxes: number): GameState {
   })
 
   s.playerState.set('P2', {
-    hand: new Array(p2NumFluxes).fill(findActionCard('TemporalFluxCard')),
+    hand: new Array(p2NumFluxes).fill(findOriginalActionCard('TemporalFluxCard')),
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Dink'),
+        shipType: findOriginalShipCard('Dink'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -61,7 +60,7 @@ function gameState(p2NumFluxes: number): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[1],
+      shipType: findOriginalCommandShipCard('Freep'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -86,16 +85,16 @@ function directHitState(): GameState {
   state.playerTurnOrder = ['P1', 'P2']
   state.playerState.set('P1', {
     hand: [
-      findActionCard('LaserBlastCard'),
-      findActionCard('DirectHitCard'),
-      findActionCard('CatastrophicDamageCard'),
+      findOriginalActionCard('LaserBlastCard'),
+      findOriginalActionCard('DirectHitCard'),
+      findOriginalActionCard('CatastrophicDamageCard'),
     ],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Dink'),
+        shipType: findOriginalShipCard('Dink'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -104,7 +103,7 @@ function directHitState(): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[0],
+      shipType: findOriginalCommandShipCard('TheGlorp'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -115,13 +114,13 @@ function directHitState(): GameState {
   })
 
   state.playerState.set('P2', {
-    hand: [findActionCard('TemporalFluxCard')],
+    hand: [findOriginalActionCard('TemporalFluxCard')],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Pyrox'),
+        shipType: findOriginalShipCard('Pyrox'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -130,7 +129,7 @@ function directHitState(): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[1],
+      shipType: findOriginalCommandShipCard('Freep'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -302,17 +301,17 @@ describe('Blasts', () => {
     state.playerTurnOrder = ['P1', 'P2', 'P3']
     state.playerState.set('P1', {
       hand: [
-        findActionCard('LaserBlastCard'),
-        findActionCard('TemporalFluxCard'),
-        findActionCard('TemporalFluxCard'),
-        findActionCard('TemporalFluxCard'),
+        findOriginalActionCard('LaserBlastCard'),
+        findOriginalActionCard('TemporalFluxCard'),
+        findOriginalActionCard('TemporalFluxCard'),
+        findOriginalActionCard('TemporalFluxCard'),
       ],
       usedSquadronCards: [],
       ships: [
         {
           type: 'Ship',
           location: 'n',
-          shipType: findShipCard('Dink'),
+          shipType: findOriginalShipCard('Dink'),
           damage: 0,
           temporaryDamage: 0,
           hasFiredThisTurn: false,
@@ -321,7 +320,7 @@ describe('Blasts', () => {
       ],
       commandShip: {
         type: 'CommandShip',
-        shipType: commandShipCards[0],
+        shipType: findOriginalCommandShipCard('TheGlorp'),
         damage: 0,
         temporaryDamage: 0,
         remainingAbilityActivations: undefined,
@@ -332,13 +331,13 @@ describe('Blasts', () => {
     })
 
     state.playerState.set('P2', {
-      hand: [findActionCard('TemporalFluxCard')],
+      hand: [findOriginalActionCard('TemporalFluxCard')],
       usedSquadronCards: [],
       ships: [
         {
           type: 'Ship',
           location: 'n',
-          shipType: findShipCard('Dink'),
+          shipType: findOriginalShipCard('Dink'),
           damage: 0,
           temporaryDamage: 0,
           hasFiredThisTurn: false,
@@ -347,7 +346,7 @@ describe('Blasts', () => {
       ],
       commandShip: {
         type: 'CommandShip',
-        shipType: commandShipCards[1],
+        shipType: findOriginalCommandShipCard('Freep'),
         damage: 0,
         temporaryDamage: 0,
         remainingAbilityActivations: undefined,
@@ -358,13 +357,13 @@ describe('Blasts', () => {
     })
 
     state.playerState.set('P3', {
-      hand: [findActionCard('TemporalFluxCard')],
+      hand: [findOriginalActionCard('TemporalFluxCard')],
       usedSquadronCards: [],
       ships: [
         {
           type: 'Ship',
           location: 'n',
-          shipType: findShipCard('Dink'),
+          shipType: findOriginalShipCard('Dink'),
           damage: 0,
           temporaryDamage: 0,
           hasFiredThisTurn: false,
@@ -373,7 +372,7 @@ describe('Blasts', () => {
       ],
       commandShip: {
         type: 'CommandShip',
-        shipType: commandShipCards[1],
+        shipType: findOriginalCommandShipCard('Freep'),
         damage: 0,
         temporaryDamage: 0,
         remainingAbilityActivations: undefined,

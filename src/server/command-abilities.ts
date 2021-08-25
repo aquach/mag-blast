@@ -1,11 +1,11 @@
-import { warn } from 'console'
+import {warn} from 'console'
 import {
-  owningPlayer,
-  sufficientForCraniumCounter,
-  sufficientForReinforcement,
+    owningPlayer,
+    sufficientForCraniumCounter,
+    sufficientForReinforcement
 } from './logic'
-import { CommandShipType, PlayerId } from './shared-types'
-import { GameState } from './types'
+import {CommandShipType, PlayerId} from './shared-types'
+import {GameState} from './types'
 
 interface ActivatedCommandShipAbility {
   commandType: CommandShipType

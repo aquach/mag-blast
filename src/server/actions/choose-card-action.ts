@@ -1,28 +1,25 @@
 import * as _ from 'lodash'
-import { DRAW_UP_TO_HAND_SIZE, NUM_STARTING_SHIPS } from '../constants'
-import { event, p } from '../events'
+import {DRAW_UP_TO_HAND_SIZE, NUM_STARTING_SHIPS} from '../constants'
+import {event, p} from '../events'
 import {
-  canPlayCardDuringAttackPhase,
-  discardPlayerHandCards,
-  drawCards,
-  drawAndChooseShipCard,
-  fullOnShips,
-  owningPlayer,
-  playersThatCanRespondToActions,
-  resolveActionCard,
-  sufficientForCraniumCounter,
-  sufficientForReinforcement,
+    canPlayCardDuringAttackPhase,
+    discardPlayerHandCards, drawAndChooseShipCard, drawCards, fullOnShips,
+    owningPlayer,
+    playersThatCanRespondToActions,
+    resolveActionCard,
+    sufficientForCraniumCounter,
+    sufficientForReinforcement
 } from '../logic'
-import { ActionError, ChooseCardAction, PlayerId } from '../shared-types'
+import {ActionError, ChooseCardAction, PlayerId} from '../shared-types'
 import {
-  ChooseStartingShipsState,
-  CraniumConsortiumChooseResourcesToDiscardState,
-  GameState,
-  PlayActionRespondState,
-  PlayBlastRespondState,
-  PlaySquadronRespondState,
+    ChooseStartingShipsState,
+    CraniumConsortiumChooseResourcesToDiscardState,
+    GameState,
+    PlayActionRespondState,
+    PlayBlastRespondState,
+    PlaySquadronRespondState
 } from '../types'
-import { assert, partition, warn } from '../utils'
+import {assert, partition, warn} from '../utils'
 
 function handleChooseStartingShipState(
   state: GameState,

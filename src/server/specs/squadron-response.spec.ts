@@ -1,10 +1,10 @@
-import { expect } from 'chai'
-import { applyAction } from '../actions'
-import { commandShipCards } from '../cards'
-import { gameUiState, newGameState } from '../game'
-import { ActionCard } from '../shared-types'
-import { GameState } from '../types'
-import { findActionCard, findShipCard, eventLogToText } from './test-utils'
+import {expect} from 'chai'
+import {applyAction} from '../actions'
+import {commandShipCards} from '../cards'
+import {gameUiState, newGameState} from '../game'
+import {ActionCard} from '../shared-types'
+import {GameState} from '../types'
+import {eventLogToText, findOriginalActionCard, findOriginalCommandShipCard, findOriginalShipCard} from './test-utils'
 
 function gameState(p2Hand: ActionCard[]): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
@@ -17,18 +17,18 @@ function gameState(p2Hand: ActionCard[]): GameState {
   s.activePlayer = 'P1'
   s.playerState.set('P1', {
     hand: [
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
-      findActionCard('TemporalFluxCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
+      findOriginalActionCard('TemporalFluxCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ],
     usedSquadronCards: [],
     ships: [
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Woden'),
+        shipType: findOriginalShipCard('Woden'),
         damage: 0,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -37,7 +37,7 @@ function gameState(p2Hand: ActionCard[]): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[0],
+      shipType: findOriginalCommandShipCard('TheGlorp'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -54,7 +54,7 @@ function gameState(p2Hand: ActionCard[]): GameState {
       {
         type: 'Ship',
         location: 'n',
-        shipType: findShipCard('Woden'),
+        shipType: findOriginalShipCard('Woden'),
         damage: 5,
         temporaryDamage: 0,
         hasFiredThisTurn: false,
@@ -63,7 +63,7 @@ function gameState(p2Hand: ActionCard[]): GameState {
     ],
     commandShip: {
       type: 'CommandShip',
-      shipType: commandShipCards[2],
+      shipType: findOriginalCommandShipCard('AlphaMazons'),
       damage: 0,
       temporaryDamage: 0,
       remainingAbilityActivations: undefined,
@@ -96,9 +96,9 @@ describe('Fighters', () => {
 
   it('should resolve when passing', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -117,9 +117,9 @@ describe('Fighters', () => {
 
   it('should fail when responded to with a Fighter', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -143,7 +143,7 @@ describe('Fighters', () => {
   })
 
   it('should fail when responded to with a EvasiveAction', () => {
-    const state = gameState([findActionCard('EvasiveActionCard')])
+    const state = gameState([findOriginalActionCard('EvasiveActionCard')])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
     expect(state.turnState.type).to.be.eq('PlaySquadronRespondState')
@@ -166,9 +166,9 @@ describe('Fighters', () => {
 
   it('should fail when responded to with a Temporal Flux', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -192,10 +192,10 @@ describe('Fighters', () => {
 
   it('should resolve when double-responded to with Temporal Fluxes', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -221,9 +221,9 @@ describe('Fighters', () => {
 
   it('should resolve when double-responded to with Temporal Fluxes and P2 is out of options', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -248,9 +248,9 @@ describe('Fighters', () => {
 
   it('should resolve when double-responded to with a Fighter and Temporal Flux', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -278,10 +278,10 @@ describe('Fighters', () => {
 
   it('should fail when triple-responded to with a Fighter and two Temporal Fluxes', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 0 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -332,9 +332,9 @@ describe('Bombers', () => {
 
   it('should resolve when passing', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -355,9 +355,9 @@ describe('Bombers', () => {
 
   it('should fail when responded to with a Fighter', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -383,9 +383,9 @@ describe('Bombers', () => {
 
   it('should fail when responded to with a Temporal Flux', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -409,10 +409,10 @@ describe('Bombers', () => {
 
   it('should resolve when double-responded to with Temporal Fluxes', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -438,9 +438,9 @@ describe('Bombers', () => {
 
   it('should resolve when double-responded to with Temporal Fluxes and P2 is out of options', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })
@@ -465,9 +465,9 @@ describe('Bombers', () => {
 
   it('should resolve when double-responded to with a Fighter and Temporal Flux', () => {
     const state = gameState([
-      findActionCard('FighterCard'),
-      findActionCard('BomberCard'),
-      findActionCard('TemporalFluxCard'),
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+      findOriginalActionCard('TemporalFluxCard'),
     ])
     applyAction(state, 'P1', { type: 'ChooseCardAction', cardIndex: 1 })
     applyAction(state, 'P1', { type: 'ChooseShipAction', choice: ['P2', 0] })

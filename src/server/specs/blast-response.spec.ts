@@ -1,8 +1,13 @@
-import {expect} from 'chai'
-import {applyAction} from '../actions'
-import {gameUiState, newGameState} from '../game'
-import {GameState} from '../types'
-import {eventLogToText, findOriginalActionCard, findOriginalCommandShipCard, findOriginalShipCard} from './test-utils'
+import { expect } from 'chai'
+import { applyAction } from '../actions'
+import { gameUiState, newGameState } from '../game'
+import { GameState } from '../types'
+import {
+  eventLogToText,
+  findOriginalActionCard,
+  findOriginalCommandShipCard,
+  findOriginalShipCard,
+} from './test-utils'
 
 function gameState(p2NumFluxes: number): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
@@ -45,7 +50,9 @@ function gameState(p2NumFluxes: number): GameState {
   })
 
   s.playerState.set('P2', {
-    hand: new Array(p2NumFluxes).fill(findOriginalActionCard('TemporalFluxCard')),
+    hand: new Array(p2NumFluxes).fill(
+      findOriginalActionCard('TemporalFluxCard')
+    ),
     usedSquadronCards: [],
     ships: [
       {

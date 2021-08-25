@@ -1,15 +1,15 @@
 import * as parse from 'csv-parse/lib/sync'
 import * as fs from 'fs'
 import * as _ from 'lodash'
-import {COMMAND_SHIP_HP, COMMAND_SHIP_REBALANCED_HP} from './constants'
+import { COMMAND_SHIP_HP, COMMAND_SHIP_REBALANCED_HP } from './constants'
 import {
-    ActionCard,
-    ActionCardType,
-    CommandShipCard,
-    CommandShipType,
-    GameFlavor,
-    ShipCard,
-    ShipClass
+  ActionCard,
+  ActionCardType,
+  CommandShipCard,
+  CommandShipType,
+  GameFlavor,
+  ShipCard,
+  ShipClass,
 } from './shared-types'
 
 interface ShipCSVRow {

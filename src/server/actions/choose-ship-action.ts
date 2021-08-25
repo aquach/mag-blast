@@ -1,27 +1,27 @@
 import * as _ from 'lodash'
-import {event, p} from '../events'
+import { event, p } from '../events'
 import {
-    activableMinesweepers,
-    blastableCommandShipPlayers,
-    blastableShipIndices,
-    canRespondToBlast,
-    canRespondToSquadron,
-    destroyShip,
-    isDead,
-    minesweeperTargets,
-    moveableShips,
-    playersThatCanRespondToActions,
-    resolveBlastAttack,
-    resolveSquadronAttack,
-    shipCanFire,
-    squadronableCommandShipPlayers,
-    squadronableShipIndices,
-    squadronDamage,
-    stealThreeCardsAndGiveToActivePlayer
+  activableMinesweepers,
+  blastableCommandShipPlayers,
+  blastableShipIndices,
+  canRespondToBlast,
+  canRespondToSquadron,
+  destroyShip,
+  isDead,
+  minesweeperTargets,
+  moveableShips,
+  playersThatCanRespondToActions,
+  resolveBlastAttack,
+  resolveSquadronAttack,
+  shipCanFire,
+  squadronableCommandShipPlayers,
+  squadronableShipIndices,
+  squadronDamage,
+  stealThreeCardsAndGiveToActivePlayer,
 } from '../logic'
-import {ActionError, ChooseShipAction, PlayerId} from '../shared-types'
-import {CommandShip, GameState, Ship} from '../types'
-import {stringList, warn} from '../utils'
+import { ActionError, ChooseShipAction, PlayerId } from '../shared-types'
+import { CommandShip, GameState, Ship } from '../types'
+import { stringList, warn } from '../utils'
 
 export function applyChooseShipAction(
   state: GameState,

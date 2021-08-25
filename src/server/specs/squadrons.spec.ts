@@ -1,9 +1,14 @@
-import {expect} from 'chai'
-import {applyAction} from '../actions'
-import {commandShipCards} from '../cards'
-import {newGameState} from '../game'
-import {GameState} from '../types'
-import {eventLogToText, findOriginalActionCard, findOriginalCommandShipCard, findOriginalShipCard} from './test-utils'
+import { expect } from 'chai'
+import { applyAction } from '../actions'
+import { commandShipCards } from '../cards'
+import { newGameState } from '../game'
+import { GameState } from '../types'
+import {
+  eventLogToText,
+  findOriginalActionCard,
+  findOriginalCommandShipCard,
+  findOriginalShipCard,
+} from './test-utils'
 
 function gameState(): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
@@ -15,7 +20,10 @@ function gameState(): GameState {
   s.turnState = { type: 'AttackTurnState' }
   s.activePlayer = 'P1'
   s.playerState.set('P1', {
-    hand: [findOriginalActionCard('FighterCard'), findOriginalActionCard('BomberCard')],
+    hand: [
+      findOriginalActionCard('FighterCard'),
+      findOriginalActionCard('BomberCard'),
+    ],
     usedSquadronCards: [],
     ships: [
       {

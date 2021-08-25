@@ -1,55 +1,50 @@
 import * as _ from 'lodash'
 import {
-    actionCards as generateActionCards,
-    commandShipCards as generateCommandShipCards,
-    shipCards as generateShipCards
+  actionCards as generateActionCards,
+  commandShipCards as generateCommandShipCards,
+  shipCards as generateShipCards,
 } from './cards'
-import {canExecuteAbility} from './command-abilities'
-import {NUM_STARTING_SHIP_CARDS} from './constants'
+import { canExecuteAbility } from './command-abilities'
+import { NUM_STARTING_SHIP_CARDS } from './constants'
+import { bold, buildEventLogParser, event, RawEventLog } from './events'
 import {
-    bold,
-    buildEventLogParser,
-    event,
-    RawEventLog
-} from './events'
-import {
-    activableMinesweepers,
-    alivePlayers,
-    blastableCommandShipPlayers,
-    blastableShipIndices,
-    canPlayCardDuringAttackPhase,
-    canRespondToAnything,
-    canRespondToSquadron,
-    hasCommandShipAbilityActivations,
-    minesweeperTargets,
-    movableZones,
-    moveableShips,
-    nonfullZones,
-    owningPlayer,
-    shipCanFire,
-    squadronableCommandShipPlayers,
-    squadronableShipIndices
+  activableMinesweepers,
+  alivePlayers,
+  blastableCommandShipPlayers,
+  blastableShipIndices,
+  canPlayCardDuringAttackPhase,
+  canRespondToAnything,
+  canRespondToSquadron,
+  hasCommandShipAbilityActivations,
+  minesweeperTargets,
+  movableZones,
+  moveableShips,
+  nonfullZones,
+  owningPlayer,
+  shipCanFire,
+  squadronableCommandShipPlayers,
+  squadronableShipIndices,
 } from './logic'
 import {
-    ChoicePrompt,
-    ChooseCardFromActionDiscardPrompt,
-    ChooseCardFromShipDiscardPrompt,
-    ChooseCardPrompt,
-    ChooseShipCardPrompt,
-    ChooseShipPrompt,
-    ChooseZonePrompt,
-    CommandShipAbilityPrompt,
-    MinesweeperAbilityPrompt,
-    NoPrompt,
-    PlaceShipPrompt,
-    PlayerId,
-    Prompt,
-    ShipCard,
-    UIGameState,
-    UILobbyState
+  ChoicePrompt,
+  ChooseCardFromActionDiscardPrompt,
+  ChooseCardFromShipDiscardPrompt,
+  ChooseCardPrompt,
+  ChooseShipCardPrompt,
+  ChooseShipPrompt,
+  ChooseZonePrompt,
+  CommandShipAbilityPrompt,
+  MinesweeperAbilityPrompt,
+  NoPrompt,
+  PlaceShipPrompt,
+  PlayerId,
+  Prompt,
+  ShipCard,
+  UIGameState,
+  UILobbyState,
 } from './shared-types'
-import {GameSettings, GameState, PlayerState, Ship} from './types'
-import {ascribe, assert, filterIndices, mapValues} from './utils'
+import { GameSettings, GameState, PlayerState, Ship } from './types'
+import { ascribe, assert, filterIndices, mapValues } from './utils'
 
 function obfuscateShips(ships: Ship[]): Ship[] {
   return ships.map((s) => ({

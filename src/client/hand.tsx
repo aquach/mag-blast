@@ -3,11 +3,11 @@ import {
   ActionCard,
   ChooseShipCardPrompt,
   Prompt,
-  ShipCard
+  ShipCard,
 } from '@shared-types'
 import _ from 'lodash'
-import React, {Fragment, useState} from 'react'
-import {TurretMarker} from './board'
+import React, { Fragment, useState } from 'react'
+import { TurretMarker } from './board'
 
 const cardNameBreaks: Record<string, JSX.Element> = {
   Reinforcements: (

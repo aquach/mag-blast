@@ -1,10 +1,15 @@
-import {expect} from 'chai'
-import {applyAction} from '../actions'
-import {commandShipCards} from '../cards'
-import {gameUiState, newGameState} from '../game'
-import {ActionCard} from '../shared-types'
-import {GameState} from '../types'
-import {eventLogToText, findOriginalActionCard, findOriginalCommandShipCard, findOriginalShipCard} from './test-utils'
+import { expect } from 'chai'
+import { applyAction } from '../actions'
+import { commandShipCards } from '../cards'
+import { gameUiState, newGameState } from '../game'
+import { ActionCard } from '../shared-types'
+import { GameState } from '../types'
+import {
+  eventLogToText,
+  findOriginalActionCard,
+  findOriginalCommandShipCard,
+  findOriginalShipCard,
+} from './test-utils'
 
 function gameState(p2Hand: ActionCard[]): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {

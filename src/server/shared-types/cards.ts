@@ -1,4 +1,4 @@
-import {Location} from './base'
+import { Location } from './base'
 
 export type ActionCardType =
   | 'TemporalFluxCard'

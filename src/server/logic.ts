@@ -1,16 +1,16 @@
 import * as _ from 'lodash'
-import {MAX_ZONE_SHIPS} from './constants'
-import {event, p} from './events'
+import { MAX_ZONE_SHIPS } from './constants'
+import { event, p } from './events'
 import {
-    ActionCard,
-    GameFlavor,
-    Location,
-    LOCATIONS,
-    PlayerId,
-    ShipCard
+  ActionCard,
+  GameFlavor,
+  Location,
+  LOCATIONS,
+  PlayerId,
+  ShipCard,
 } from './shared-types'
-import {CommandShip, GameState, PlayerState, Ship, TurnState} from './types'
-import {ascribe, assert, filterIndices, partition, warn} from './utils'
+import { CommandShip, GameState, PlayerState, Ship, TurnState } from './types'
+import { ascribe, assert, filterIndices, partition, warn } from './utils'
 
 export function drawCards(
   state: GameState,
@@ -182,6 +182,8 @@ export function destroyShip(
   state: GameState,
   ship: Ship | CommandShip
 ): boolean {
+  const gameFlavor = state.gameSettings.gameFlavor
+
   const [targetPlayer, targetPlayerState] = owningPlayer(
     state.playerState,
     ship
@@ -200,12 +202,17 @@ export function destroyShip(
     _.remove(targetPlayerState.ships, (s) => s === ship)
     state.shipDiscardDeck.push(ship.shipType)
 
-    if (recyclonsPlayer !== undefined) {
+    // In Original, this triggers whenever any ship dies. In Rebalanced, it
+    // triggers only if a Recyclons fleet ship dies.
+    if (
+      recyclonsPlayer !== undefined &&
+      (gameFlavor === 'Original' || targetPlayer === recyclonsPlayer[0])
+    ) {
       const [recyclonsPlayerId, recyclonsPlayerState] = recyclonsPlayer
       state.pushEventLog(
         event`${recyclonsPlayerId}'s ${recyclonsPlayerState.commandShip.shipType.name} activates!`
       )
-      drawCards(state, recyclonsPlayerId, 1)
+      drawCards(state, recyclonsPlayerId, gameFlavor === 'Original' ? 1 : 2)
     }
   } else {
     state.pushEventLog(event`${p(targetPlayer)} is eliminated.`)
@@ -222,7 +229,7 @@ export function destroyShip(
       }
       state.activePlayer = ''
       return true
-    } else if (recyclonsPlayer !== undefined) {
+    } else if (recyclonsPlayer !== undefined && gameFlavor === 'Original') {
       const [recyclonsPlayerId, recyclonsPlayerState] = recyclonsPlayer
       state.pushEventLog(
         event`${p(recyclonsPlayerId)}'s ${
@@ -245,7 +252,9 @@ export function resolveBlastAttack(
   let damage
   if (blast.cardType === 'RammingSpeedCard') {
     destroyShip(state, firingShip)
-    damage = firingShip.shipType.movement * (state.gameSettings.gameFlavor === 'Rebalanced' ? 2 : 1)
+    damage =
+      firingShip.shipType.movement *
+      (state.gameSettings.gameFlavor === 'Rebalanced' ? 2 : 1)
   } else {
     damage = blast.damage
   }

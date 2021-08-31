@@ -66,7 +66,7 @@ const TurnAlert: React.FunctionComponent<{
     }
   }, [JSON.stringify(prompt)])
 
-  return <audio src="/beep.mp3" ref={audioRef} />
+  return <audio src="../beep.mp3" ref={audioRef} />
 }
 
 const DeckData: React.FunctionComponent<{

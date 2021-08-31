@@ -90,7 +90,7 @@ export const ActionCardComponent: React.FunctionComponent<{
       >
         {_.repeat('⭐', card.resources.stars)}
         {_.repeat('💎', card.resources.diamonds)}
-        {_.repeat('⚡', card.resources.circles)}
+        {_.repeat('⭕', card.resources.circles)}
       </div>
     </div>
   )

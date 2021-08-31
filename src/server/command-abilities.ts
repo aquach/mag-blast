@@ -69,7 +69,8 @@ const ABILITIES: ActivatedCommandShipAbility[] = [
     activate(s, playerId, dryRun) {
       if (
         s.turnState.type === 'DiscardTurnState' &&
-        s.activePlayer === playerId
+        s.activePlayer === playerId &&
+        s.getPlayerState(playerId).ships.some((ship) => ship.damage > 0)
       ) {
         if (dryRun) {
           return true

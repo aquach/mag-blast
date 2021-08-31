@@ -141,7 +141,9 @@ export function commandShipCards(gameFlavor: GameFlavor): CommandShipCard[] {
     commandType: row.Type,
     text: row.Text,
     rebalancedText:
-      row['Rebalanced Text'] === '' ? row.Text : row['Rebalanced Text'],
+      gameFlavor === 'Rebalanced' && row['Rebalanced Text'] !== ''
+        ? row['Rebalanced Text']
+        : row.Text,
     numAbilityActivations:
       row['Num Activations'] === '' ? undefined : row['Num Activations'],
     hp:

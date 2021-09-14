@@ -648,6 +648,8 @@ export function applyChooseCardAction(
           return
         }
 
+        state.pushEventLog(event`${p(state.activePlayer)} discards a card.`)
+
         // Consume the card.
         activePlayerState.hand.splice(action.cardIndex, 1)
         state.actionDiscardDeck.push(card)

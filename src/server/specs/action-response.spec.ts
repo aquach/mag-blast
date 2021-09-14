@@ -13,7 +13,7 @@ function gameState(): GameState {
   const s = newGameState(new Set(['P1', 'P2']), {
     startingHandSize: 0,
     attackMode: 'FreeForAll',
-    gameFlavor: 'Rebalanced',
+    gameFlavor: 'Original',
   })
 
   s.turnState = { type: 'AttackTurnState' }

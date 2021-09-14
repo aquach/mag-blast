@@ -634,6 +634,28 @@ export function applyChooseCardAction(
       }
       break
 
+    case 'AttackDiscardCardState':
+      {
+        if (typeof action.cardIndex !== 'number') {
+          warn('cardIndex should be a single number for discarding a card.')
+          break
+        }
+
+        const card = activePlayerState.hand[action.cardIndex]
+
+        if (!card) {
+          warn(`Attempted to discard a non-existent card ${action.cardIndex}.`)
+          return
+        }
+
+        // Consume the card.
+        activePlayerState.hand.splice(action.cardIndex, 1)
+        state.actionDiscardDeck.push(card)
+
+        state.turnState.onResolve()
+      }
+      break
+
     case 'AttackTurnState':
       if (typeof action.cardIndex !== 'number') {
         warn('cardIndex should be a single number for playing cards.')

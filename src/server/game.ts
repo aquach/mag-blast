@@ -480,6 +480,18 @@ export function prompt(state: GameState, playerId: PlayerId): Prompt {
         })
       }
 
+      case 'AttackDiscardCardState': {
+        const playableCardIndices = filterIndices(playerState.hand, () => true)
+
+        return ascribe<ChooseCardPrompt>({
+          type: 'ChooseCardPrompt',
+          selectableCardIndices: playableCardIndices,
+          text: 'Choose a card to discard.',
+          multiselect: undefined,
+          pass: undefined,
+        })
+      }
+
       case 'AttackTurnState': {
         const playableCardIndices = filterIndices(playerState.hand, (c) =>
           canPlayCardDuringAttackPhase(state, playerState, c)

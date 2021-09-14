@@ -378,18 +378,46 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
       card,
     }
   } else if (card.cardType === 'ReinforcementsCard') {
-    state.turnState = drawAndChooseShipCard(state, (newShip) => ({
-      type: 'AttackPlaceShipState',
-      newShip,
-    }))
+    const resolve = () => {
+      state.turnState = drawAndChooseShipCard(state, (newShip) => ({
+        type: 'AttackPlaceShipState',
+        newShip,
+      }))
+    }
+
+    if (state.gameSettings.gameFlavor === 'Rebalanced') {
+      state.turnState = {
+        type: 'AttackDiscardCardState',
+        onResolve: resolve,
+      }
+    } else {
+      resolve()
+    }
 
     // The boolean is technically used to indicate that the game is over, which
     // suppresses future state transitions, but the game is not over here. We
     // just want the PassAction on PlayActionRespondState to not go back to
-    // AttackTurnState.
+    // AttackTurnState but to stay in AttackPlaceShipState. Reinforcements is
+    // special because it needs to be countered before entering
+    // AttackPlaceShipState, rather than being countered after the state like
+    // Spacedock or Minefield.
     return true
   } else if (card.cardType === 'StrategicAllocationCard') {
-    drawCards(state, state.activePlayer, 3)
+    if (state.gameSettings.gameFlavor === 'Rebalanced') {
+      state.turnState = {
+        type: 'AttackDiscardCardState',
+        onResolve() {
+          drawCards(state, state.activePlayer, 3)
+          state.turnState = {
+            type: 'AttackTurnState',
+          }
+        },
+      }
+      // Same as above.
+      return true
+    } else {
+      drawCards(state, state.activePlayer, 3)
+    }
   } else if (card.isDirectHit) {
     if (state.directHitStateMachine?.type !== 'BlastPlayedDirectHitState') {
       warn(
@@ -641,6 +669,16 @@ export function canPlayCardDuringAttackPhase(
 
   if (card.isSquadron) {
     return carriers(playerState).length > 0
+  }
+
+  if (
+    state.gameSettings.gameFlavor === 'Rebalanced' &&
+    (card.cardType === 'StrategicAllocationCard' ||
+      card.cardType === 'ReinforcementsCard') &&
+    playerState.hand.length <= 1
+  ) {
+    // Need to be able to discard a card.
+    return false
   }
 
   return true

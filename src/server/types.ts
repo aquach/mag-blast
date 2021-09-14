@@ -179,6 +179,11 @@ export interface AttackChooseSpacedockShipState {
   card: ActionCard
 }
 
+export interface AttackDiscardCardState {
+  type: 'AttackDiscardCardState'
+  onResolve: () => void
+}
+
 export interface PlayBlastChooseFiringShipState {
   type: 'PlayBlastChooseFiringShipState'
   blast: ActionCard
@@ -277,6 +282,7 @@ export type TurnState =
   | AttackChooseMinesweeperState
   | AttackChoosePlayerToMinesweepState
   | AttackChooseAsteroidOrMinefieldToSweepState
+  | AttackDiscardCardState
   | PlayBlastChooseTargetShipState
   | PlayBlastChooseFiringShipState
   | PlayBlastChooseTargetShipState

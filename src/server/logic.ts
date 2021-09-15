@@ -525,10 +525,8 @@ export function stealThreeCardsAndGiveToActivePlayer(
   const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
   stealCards.forEach((c) => {
     activePlayerState.hand.push(c)
+    targetPlayerState.hand.splice(targetPlayerState.hand.indexOf(c), 1)
   })
-  targetPlayerState.hand = targetPlayerState.hand.filter(
-    (c) => !stealCards.includes(c)
-  )
 }
 
 export function canRespondToBlast(

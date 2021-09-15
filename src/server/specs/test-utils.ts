@@ -36,6 +36,8 @@ export function eventLogToText(es: EventLogEntry[]): string[] {
         switch (t.type) {
           case 'ShipEventLogToken':
             return t.shipType.name
+          case 'CommandShipEventLogToken':
+            return t.commandShipType.name
           case 'TextEventLogToken':
             return t.text
           case 'PlayerEventLogToken':

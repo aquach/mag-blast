@@ -2,7 +2,7 @@ Name,Type,Num Activations,Text,Rebalanced Text
 Overseers of Kalgon,OverseersOfKalgon,3,"Three times per game during your Draw phase, instead of drawing cards, you may take up to 3 Blast cards from the action discard pile.",
 The Glorp,TheGlorp,,"Each time one of your fleet ships is attacked by a Squadron, the Squadron only deals half its normal damage.",
 Alpha Mazons,AlphaMazons,3,"Three times per game during your attack phase, you may play a Direct Hit Effect after a Blast without playing a Direct Hit.",
-Freep,Freep,3,"Three times per game during your maneuver phase, you may steal 3 random action cards from another player's hand.",
+Freep,Freep,3,"Three times per game during your maneuver phase, you may steal 3 random action cards from another player's hand.","Three times per game during your maneuver phase, you may steal 2 random action cards from another player's hand."
 Recyclons v40K,Recyclonsv40K,,"Each time a fleet ship in any fleet is destroyed, you draw 1 action card. If a command ship is destroyed, you draw 3 action cards.","Each time a fleet ship in your fleet is destroyed, draw two cards."
 Tri-Bot rent-a-kill series IG44 mark IIV,TriBot,3,"Three times per game during your Reinforce phase, you may expend resources to recruit any ship from the ship discard pile.",
 Mhee Yow-Meex,MheeYowMeex,,"Each time you draw a fleet ship, you draw 2 fleet ships and choose the one you prefer. The other fleet ship is discarded.",

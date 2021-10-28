@@ -488,7 +488,7 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
         break
 
       case 'BridgeHitCard':
-        stealThreeCardsAndGiveToActivePlayer(state, targetPlayer)
+        stealCardsAndGiveToActivePlayer(state, targetPlayer, 3)
         break
 
       default:
@@ -511,18 +511,19 @@ export function executeCardEffect(state: GameState, card: ActionCard): boolean {
   return false
 }
 
-export function stealThreeCardsAndGiveToActivePlayer(
+export function stealCardsAndGiveToActivePlayer(
   state: GameState,
-  targetPlayer: PlayerId
+  targetPlayer: PlayerId,
+  numCards: number
 ): void {
   const activePlayerState = state.getPlayerState(state.activePlayer)
   const targetPlayerState = state.getPlayerState(targetPlayer)
   state.pushEventLog(
-    event`${p(state.activePlayer)} takes three cards at random from ${p(
+    event`${p(state.activePlayer)} takes ${numCards} cards at random from ${p(
       targetPlayer
     )}'s hand.`
   )
-  const stealCards = _.take(_.shuffle(targetPlayerState.hand), 3)
+  const stealCards = _.take(_.shuffle(targetPlayerState.hand), numCards)
   stealCards.forEach((c) => {
     activePlayerState.hand.push(c)
     targetPlayerState.hand.splice(targetPlayerState.hand.indexOf(c), 1)

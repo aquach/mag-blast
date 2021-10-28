@@ -17,7 +17,7 @@ import {
   squadronableCommandShipPlayers,
   squadronableShipIndices,
   squadronDamage,
-  stealThreeCardsAndGiveToActivePlayer,
+  stealCardsAndGiveToActivePlayer,
 } from '../logic'
 import { ActionError, ChooseShipAction, PlayerId } from '../shared-types'
 import { CommandShip, GameState, Ship } from '../types'
@@ -181,7 +181,11 @@ export function applyChooseShipAction(
           break
         }
 
-        stealThreeCardsAndGiveToActivePlayer(state, action.choice)
+        stealCardsAndGiveToActivePlayer(
+          state,
+          action.choice,
+          state.gameSettings.gameFlavor === 'Rebalanced' ? 2 : 3
+        )
         state.turnState = state.turnState.originalState
       }
       break

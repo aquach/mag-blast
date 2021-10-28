@@ -171,12 +171,12 @@ io.on('connection', (socket) => {
       return
     }
 
-    if (!ATTACK_MODES.map((m) => m.name).includes(settings.attackMode)) {
+    if (!ATTACK_MODES.map((m) => m.attackMode).includes(settings.attackMode)) {
       warn(`${settings.attackMode} is not a valid attack mode.`)
       return
     }
 
-    if (!GAME_FLAVORS.map((m) => m.name).includes(settings.gameFlavor)) {
+    if (!GAME_FLAVORS.map((m) => m.gameFlavor).includes(settings.gameFlavor)) {
       warn(`${settings.gameFlavor} is not a valid game flavor.`)
       return
     }

@@ -92,11 +92,11 @@ describe('Freep', () => {
     expect(eventLogToText(state.eventLog)).to.be.eql([
       'Welcome to Mag Blast!',
       'P1 activates Freep!',
-      "P1 takes three cards at random from P2's hand.",
+      "P1 takes 2 cards at random from P2's hand.",
     ])
 
-    expect(state.getPlayerState('P1').hand.length).to.be.eq(4)
-    expect(state.getPlayerState('P2').hand.length).to.be.eq(5)
+    expect(state.getPlayerState('P1').hand.length).to.be.eq(3)
+    expect(state.getPlayerState('P2').hand.length).to.be.eq(6)
     expect(hands).to.have.members(handsAfter)
   })
 })
